@@ -18,6 +18,12 @@ defmodule AndaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/quiz", QuizLive.Index
+    #live "/quiz/new", QuizLive.Index, :new
+    #live "/quiz/:id/edit", QuizLive.Index, :edit
+
+    live "/quiz/:id", QuizLive.Edit
   end
 
   # Other scopes may use custom stacks.
