@@ -2,7 +2,7 @@ defmodule AndaWeb.QuizLive.Index do
   use AndaWeb, :live_view
 
   alias Anda.Contest
-  alias Anda.Contest.Quiz
+  alias AndaWeb.Layouts
 
   @impl true
   def mount(_params, _session, socket) do

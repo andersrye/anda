@@ -1,32 +1,33 @@
-<.header>
-  Listing Quiz
-  <:actions>
-    <.link phx-click={JS.push("new")}>
-      <.button>New Quiz</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.app flash={@flash}>
+  <.header>
+    Listing Quiz
+    <:actions>
+      <.link phx-click={JS.push("new")}>
+        <.button>New Quiz</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table
-  id="quiz"
-  rows={@streams.quiz_collection}
-  row_click={fn {_id, quiz} -> JS.navigate(~p"/admin/quiz/#{quiz}") end}
->
-  <:col :let={{_id, quiz}} label="Title">{quiz.title}</:col>
-  <:col :let={{_id, quiz}} label="Description">{quiz.description}</:col>
-  <:action :let={{_id, quiz}}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/quiz/#{quiz}"}>endre</.link>
-    </div>
-    <.link patch={~p"/quiz/#{quiz}"}>Edit</.link>
-  </:action>
-  <:action :let={{id, quiz}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: quiz.id}) |> hide("##{id}")}
-      data-confirm="Sikker?"
-    >
-      slett
-    </.link>
-  </:action>
-</.table>
-
+  <.table
+    id="quiz"
+    rows={@streams.quiz_collection}
+    row_click={fn {_id, quiz} -> JS.navigate(~p"/admin/quiz/#{quiz}") end}
+  >
+    <:col :let={{_id, quiz}} label="Title">{quiz.title}</:col>
+    <:col :let={{_id, quiz}} label="Description">{quiz.description}</:col>
+    <:action :let={{_id, quiz}}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/quiz/#{quiz}"}>endre</.link>
+      </div>
+      <.link patch={~p"/quiz/#{quiz}"}>Edit</.link>
+    </:action>
+    <:action :let={{id, quiz}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: quiz.id}) |> hide("##{id}")}
+        data-confirm="Sikker?"
+      >
+        slett
+      </.link>
+    </:action>
+  </.table>
+</Layouts.app>

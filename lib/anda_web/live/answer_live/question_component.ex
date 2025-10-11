@@ -1,7 +1,5 @@
 defmodule AndaWeb.AnswerLive.QuestionComponent do
   use AndaWeb, :live_component
-  alias Anda.Contest
-  alias Anda.Contest.Question
   alias Anda.Submission
 
   @impl true
@@ -28,9 +26,9 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
         src={@question.media_url}
       />
       <div :if={!@has_alternatives}>
-        <form phx-change="submit" phx-target={@myself}>
-          <input type="text" name="answer" phx-debounce={500} value={@answer_value} />
-        </form>
+        <.form phx-change="submit" phx-target={@myself}>
+          <.input type="text" name="answer" phx-debounce={500} value={@answer_value} />
+        </.form>
       </div>
     </div>
     """

@@ -1,6 +1,5 @@
 defmodule Anda.Submission do
   import Ecto.Query, warn: false
-  alias Anda.Contest
   alias Anda.Submission
   alias Anda.Repo
 
@@ -96,7 +95,7 @@ defmodule Anda.Submission do
       for {score, ids} <- scores do
         num_ids = Enum.count(ids)
         answers = from a in Answer, where: a.id in ^ids
-        {num_ids, _} = Repo.update_all(answers, set: [score: score])
+        {^num_ids, _} = Repo.update_all(answers, set: [score: score])
       end
 
       {:ok, nil}

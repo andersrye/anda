@@ -13,7 +13,7 @@ defmodule Anda.Application do
       {DNSCluster, query: Application.get_env(:anda, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Anda.PubSub},
       # Start the Finch HTTP client for sending emails
-      {Finch, name: Anda.Finch},
+      #{Finch, name: Anda.Finch},
       # Start a worker by calling: Anda.Worker.start_link(arg)
       # {Anda.Worker, arg},
       # Start to serve requests, typically the last entry

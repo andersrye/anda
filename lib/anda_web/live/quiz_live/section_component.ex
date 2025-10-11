@@ -67,7 +67,7 @@ defmodule AndaWeb.QuizLive.Section do
           </div>
         </div>
       </div>
-      <.button class="mt-5" phx-click="new_question" phx-target={@myself}>
+      <.button phx-click="new_question" phx-target={@myself}>
         legg til spørsmål
       </.button>
       <.modal

@@ -3,7 +3,6 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   alias Anda.Contest
   alias Ecto.Changeset
-  alias AndaWeb.QuizLive.Form.MultiString
 
   @impl true
   def render(assigns) do
@@ -56,7 +55,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
       >
         <.input field={@form[:question]} type="text" label="Spørsmål" />
         <.input field={@form[:alternatives]} type="textarea" label="Alternativer" />
-        <.live_file_input upload={@uploads.avatar} />
+        <.live_file_input upload={@uploads.avatar} class="file-input" />
         <:actions>
           <.button phx-disable-with="Saving...">Save</.button>
         </:actions>

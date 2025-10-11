@@ -4,7 +4,7 @@ defmodule AndaWeb.AnswerLive.Index do
 
   alias Anda.Contest
   alias Anda.Submission
-
+  alias AndaWeb.Layouts
 
   @impl true
   @spec mount(any(), any(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
