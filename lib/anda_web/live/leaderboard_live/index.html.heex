@@ -1,0 +1,21 @@
+<.header>
+  leaderboard
+</.header>
+
+<div>
+<table>
+<tbody>
+<tr :for={{index, name, score} <- @leaderboard}>
+<td>
+{index}
+</td>
+<td>
+{name}
+</td>
+<td>
+{score}
+</td>
+</tr>
+</tbody>
+</table>
+</div>

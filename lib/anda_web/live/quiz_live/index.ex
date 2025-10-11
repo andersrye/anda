@@ -9,10 +9,8 @@ defmodule AndaWeb.QuizLive.Index do
     {:ok, stream(socket, :quiz_collection, Contest.list_quiz())}
   end
 
-
-
   @impl true
-  def handle_info({AndaWeb.QuizLive.FormComponent, {:saved, quiz}}, socket) do
+  def handle_info({AndaWeb.QuizLive.Form.QuizForm, {:saved, quiz}}, socket) do
     {:noreply, stream_insert(socket, :quiz_collection, quiz)}
   end
 
@@ -28,7 +26,7 @@ defmodule AndaWeb.QuizLive.Index do
   def handle_event("new", _, socket) do
     case Contest.create_quiz(%{title: "123"}) do
        {:ok, %{id: id}} ->
-        {:noreply, redirect(socket, to: ~p"/quiz/#{id}")}
+        {:noreply, redirect(socket, to: ~p"/admin/quiz/#{id}")}
        {:error, %Ecto.Changeset{}} ->
         {:noreply, put_flash(socket, :error, "Let's pretend we have an error.")}
        end

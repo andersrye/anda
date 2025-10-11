@@ -1,4 +1,4 @@
-defmodule AndaWeb.QuizLive.FormComponent do
+defmodule AndaWeb.QuizLive.Form.QuizForm do
   use AndaWeb, :live_component
 
   alias Anda.Contest
@@ -9,20 +9,19 @@ defmodule AndaWeb.QuizLive.FormComponent do
     <div>
       <.header>
         {@title}
-        <:subtitle>Use this form to manage quiz records in your database.</:subtitle>
       </.header>
 
       <.simple_form
         for={@form}
         id="quiz-form"
         phx-target={@myself}
-        phx-change="save"
+        phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:title]} type="text" label="Title" />
-        <.input field={@form[:description]} type="text" label="Description" />
+        <.input field={@form[:title]} type="text" label="Tittel" />
+        <.input field={@form[:description]} type="text" label="Beskrivelse" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Quiz</.button>
+          <.button phx-disable-with="Saving...">Lagre</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -49,7 +48,7 @@ defmodule AndaWeb.QuizLive.FormComponent do
     save_quiz(socket, socket.assigns.action, quiz_params)
   end
 
-  defp save_quiz(socket, :edit, quiz_params) do
+  defp save_quiz(socket, :edit_quiz, quiz_params) do
     case Contest.update_quiz(socket.assigns.quiz, quiz_params) do
       {:ok, quiz} ->
         notify_parent({:saved, quiz})
@@ -64,7 +63,7 @@ defmodule AndaWeb.QuizLive.FormComponent do
     end
   end
 
-  defp save_quiz(socket, :new, quiz_params) do
+  defp save_quiz(socket, :new_quiz, quiz_params) do
     case Contest.create_quiz(quiz_params) do
       {:ok, quiz} ->
         notify_parent({:saved, quiz})

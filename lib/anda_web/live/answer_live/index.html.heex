@@ -1,0 +1,22 @@
+<.header>
+  {@quiz.title}
+</.header>
+
+<form phx-change="change_name">
+  <input type="text" name="name" phx-debounce="500" value={@submission.name} />
+</form>
+<div id="sections" phx-update="stream">
+  <div :for={{id, section} <- @streams.sections} id={id}>
+    <h2 class="text-l font-semibold">{section.title}</h2>
+    <div>{section.description}</div>
+    <.live_component
+      :for={question <- section.questions}
+      module={AndaWeb.AnswerLive.QuestionComponent}
+      question={question}
+      answer={@answers_by_question_id[question.id]}
+      submission={@submission}
+      quiz_id={@quiz.id}
+      id={"question-#{question.id}"}
+    />
+  </div>
+</div>

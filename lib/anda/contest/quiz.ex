@@ -5,6 +5,7 @@ defmodule Anda.Contest.Quiz do
   schema "quiz" do
     field :description, :string
     field :title, :string
+    has_many :sections, Anda.Contest.Section
 
     timestamps(type: :utc_datetime)
   end

@@ -20,6 +20,12 @@ if System.get_env("PHX_SERVER") do
   config :anda, AndaWeb.Endpoint, server: true
 end
 
+config :anda, :aws,
+  aws_region: "nl-ams",
+  aws_access_key_id: System.fetch_env!("AWS_ACCESS_KEY_ID"),
+  aws_secret_access_key: System.fetch_env!("AWS_SECRET_ACCESS_KEY")
+
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
