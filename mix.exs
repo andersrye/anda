@@ -34,6 +34,7 @@ defmodule Anda.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.8.1"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
@@ -54,6 +55,7 @@ defmodule Anda.MixProject do
        depth: 1},
       {:swoosh, "~> 1.16"},
       #{:finch, "~> 0.13"},
+      {:req, "~> 0.4"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},

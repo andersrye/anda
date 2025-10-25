@@ -3,7 +3,6 @@ defmodule AndaWeb.QuizLive.Edit do
 
   alias Anda.Contest
   alias Phoenix.PubSub
-  alias AndaWeb.Layouts
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do

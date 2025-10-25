@@ -1,21 +1,23 @@
-<.header>
-  leaderboard
-</.header>
+<Layouts.app flash={@flash}>
+  <.header>
+    leaderboard
+  </.header>
 
-<div>
-<table class="table">
-<tbody>
-<tr :for={{index, name, score} <- @leaderboard}>
-<td>
-{index}
-</td>
-<td>
-{name}
-</td>
-<td>
-{score}
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+  <div>
+    <table class="table">
+      <tbody>
+        <tr :for={{index, name, score} <- @leaderboard}>
+          <td>
+            {index}
+          </td>
+          <td>
+            {name}
+          </td>
+          <td>
+            {score}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.app>

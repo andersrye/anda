@@ -1,4 +1,5 @@
 defmodule Anda.Contest do
+  alias Anda.Accounts.Scope
   @moduledoc """
   The Contest context.
   """
@@ -20,8 +21,8 @@ defmodule Anda.Contest do
       [%Quiz{}, ...]
 
   """
-  def list_quiz do
-    Repo.all(Quiz)
+  def list_quiz(%Scope{} = scope) do
+    Repo.all(from quiz in Quiz, where: quiz.user_id == ^scope.user.id)
   end
 
   @doc """
@@ -53,10 +54,6 @@ defmodule Anda.Contest do
     Repo.all(query) |> Enum.at(0)
   end
 
-  def get_quiz_w_questions2(id) do
-    Repo.get!(Quiz, id) |> Repo.preload(:sections)
-  end
-
   @doc """
   Creates a quiz.
 
@@ -69,8 +66,8 @@ defmodule Anda.Contest do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_quiz(attrs \\ %{}) do
-    %Quiz{}
+  def create_quiz(attrs \\ %{}, %Scope{} = scope) do
+    %Quiz{user_id: scope.user.id}
     |> Quiz.changeset(attrs)
     |> Repo.insert()
   end
@@ -87,7 +84,8 @@ defmodule Anda.Contest do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_quiz(%Quiz{} = quiz, attrs) do
+  def update_quiz(%Quiz{} = quiz, attrs, %Scope{} = scope) do
+    if quiz.user_id != scope.user.id, do: raise "Forbidden!" #TODO!
     quiz
     |> Quiz.changeset(attrs)
     |> Repo.update()
@@ -105,7 +103,8 @@ defmodule Anda.Contest do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_quiz(%Quiz{} = quiz) do
+  def delete_quiz(%Quiz{} = quiz,  %Scope{} = scope) do
+    if quiz.user_id != scope.user.id, do: raise "Forbidden!" #TODO!
     Repo.delete(quiz)
   end
 

@@ -39,8 +39,7 @@ defmodule AndaWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: AndaWeb.Layouts]
+        formats: [:html, :json]
 
       import Plug.Conn
       use Gettext, backend: AndaWeb.Gettext
@@ -88,6 +87,7 @@ defmodule AndaWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+      alias AndaWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

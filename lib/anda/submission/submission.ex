@@ -26,9 +26,10 @@ defmodule Anda.Submission.Submission do
           :invalid | %{optional(:__struct__) => none(), optional(atom() | binary()) => any()}
         ) :: Ecto.Changeset.t()
   @doc false
-  def changeset(section, attrs) do
+  def changeset(section, attrs \\ %{}) do
     section
     |> cast(attrs, [:name, :secret, :quiz_id])
     |> validate_required([:secret, :quiz_id])
+    |> unique_constraint([:name, :quiz_id])
   end
 end

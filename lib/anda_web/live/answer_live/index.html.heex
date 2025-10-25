@@ -3,11 +3,26 @@
     {@quiz.title}
   </.header>
 
-  <.form phx-change="change_name">
-    <.input type="text" name="name" phx-debounce="500" value={@submission.name} />
+
+<div>
+Navn
+  <.form for={@name_form} id="name-form" phx-hook=".Test">
+    <div class="flex items-center">
+      <div class="flex-1">
+        <.input type="text" field={@name_form[:name]} />
+      </div>
+      <div class="flex-none size-6 flex items-center">
+
+      <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
+      <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
+      </div>
+
+    </div>
+    <button type="submit" class="hidden" disabled></button>
   </.form>
-  <div id="sections" phx-update="stream">
-    <div :for={{id, section} <- @streams.sections} id={id}>
+  </div>
+  <div id="sections" phx-update="stream" class="flex flex-col gap-6">
+    <div :for={{id, section} <- @streams.sections} id={id} class="bg-base-100 p-6 drop-shadow-sm">
       <h2 class="text-l font-semibold">{section.title}</h2>
       <div>{section.description}</div>
       <.live_component
@@ -22,3 +37,28 @@
     </div>
   </div>
 </Layouts.app>
+<script :type={Phoenix.LiveView.ColocatedHook} name=".Test">
+  let eventHandler
+  export default {
+    mounted() {
+      const input = this.el.getElementsByTagName("input")[0]
+      const loadingIcon = this.el.getElementsByClassName("loading")[0]
+      const loadingDone = this.el.getElementsByClassName("loading-done")[0]
+      let timer
+      input.addEventListener("input", e => {
+        loadingIcon.classList.remove('hidden')
+        loadingDone.classList.add('hidden')
+        clearTimeout(timer)
+        timer = setTimeout(()=> {
+          this.pushEvent("change_name", {"name": input.value}, (...args) => {
+            loadingIcon.classList.add('hidden')
+            loadingDone.classList.remove('hidden')
+            loadingDone.classList.add('fade-out')
+
+            console.log('reply', ...args)
+          })
+        }, 600)
+      })
+    }
+  }
+</script>

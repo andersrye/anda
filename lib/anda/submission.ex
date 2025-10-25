@@ -19,13 +19,12 @@ defmodule Anda.Submission do
   end
 
   def update_submission_name(submission, name) do
-    res =
+    {status, _} = res =
       submission
       |> Submission.changeset(%{"name" => name})
       |> Repo.update()
 
-    case res do
-      {:ok, submission} ->
+    if status == :ok do
         Phoenix.PubSub.broadcast(
           Anda.PubSub,
           "submission:#{submission.id}",

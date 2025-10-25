@@ -6,7 +6,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={@class} id={@id}>
+    <div class={"#{@class} bg-base-100 p-6 drop-shadow-xs"} id={@id}>
       <div class="flex">
         <h2 class="text-xl font-semibold flex-grow">{@section.title}</h2>
         <.link
@@ -41,7 +41,7 @@ defmodule AndaWeb.QuizLive.Section do
               </li>
             </ul>
           </div>
-          <div class="pl-5 py-6 flex flex-col gap-2">
+          <div class="pl-5 py-6 grid grid-cols-2 gap-2">
             <.button
               phx-click={JS.push("edit_question", target: @myself, value: %{id: question.id})}
               phx-target={@myself}

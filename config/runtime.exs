@@ -22,8 +22,8 @@ end
 
 config :anda, :aws,
   aws_region: "nl-ams",
-  aws_access_key_id: System.fetch_env!("AWS_ACCESS_KEY_ID"),
-  aws_secret_access_key: System.fetch_env!("AWS_SECRET_ACCESS_KEY")
+  aws_access_key_id: System.fetch_env!("ACCESS_KEY_ID"),
+  aws_secret_access_key: System.fetch_env!("SECRET_ACCESS_KEY")
 
 
 if config_env() == :prod do
@@ -37,10 +37,13 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :anda, Anda.Repo,
-    # ssl: true,
+    ssl: [verify: :verify_peer, cacerts: :public_key.cacerts_get()],
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
+    socket_options: maybe_ipv6,
+    queue_target: 1000,
+    queue_interval: 10000
+#    show_sensitive_data_on_connection_error: true
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -108,10 +111,10 @@ if config_env() == :prod do
   # In production you need to configure the mailer to use a different adapter.
   # Here is an example configuration for Mailgun:
   #
-  #     config :anda, Anda.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
+  config :anda, Anda.Mailer,
+    adapter: Swoosh.Adapters.Scaleway,
+    project_id: System.fetch_env!("PROJECT_ID"),
+    secret_key: System.fetch_env!("SECRET_ACCESS_KEY")
   #
   # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
   # and Finch out-of-the-box. This configuration is typically done at

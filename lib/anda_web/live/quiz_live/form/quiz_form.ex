@@ -49,7 +49,8 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
   end
 
   defp save_quiz(socket, :edit_quiz, quiz_params) do
-    case Contest.update_quiz(socket.assigns.quiz, quiz_params) do
+    dbg(socket.assigns)
+    case Contest.update_quiz(socket.assigns.quiz, quiz_params, socket.assigns.current_scope) do
       {:ok, quiz} ->
         notify_parent({:saved, quiz})
 
@@ -64,7 +65,7 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
   end
 
   defp save_quiz(socket, :new_quiz, quiz_params) do
-    case Contest.create_quiz(quiz_params) do
+    case Contest.create_quiz(quiz_params, socket.assigns.current_scope) do
       {:ok, quiz} ->
         notify_parent({:saved, quiz})
 

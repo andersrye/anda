@@ -1,6 +1,7 @@
 defmodule AndaWeb.AnswerLive.QuestionComponent do
   use AndaWeb, :live_component
   alias Anda.Submission
+  alias Ecto.Changeset
 
   @impl true
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
@@ -9,10 +10,11 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
       !is_nil(assigns.question.alternatives) && !Enum.empty?(assigns.question.alternatives)
 
     answer_value = if assigns.answer != nil, do: assigns.answer.answer, else: ""
+    changeset = Changeset.change({%{answer: answer_value}, %{answer: :string}})
 
     assigns =
       assigns
-      |> assign(:answer_value, answer_value)
+      |> assign_new(:form, fn -> to_form(changeset, as: "form") end)
       |> assign(:has_alternatives, has_alternatives)
 
     ~H"""
@@ -26,8 +28,8 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
         src={@question.media_url}
       />
       <div :if={!@has_alternatives}>
-        <.form phx-change="submit" phx-target={@myself}>
-          <.input type="text" name="answer" phx-debounce={500} value={@answer_value} />
+        <.form for={@form} phx-change="submit" phx-target={@myself}>
+          <.input id={"#{@id}-form"} type="text" field={@form[:answer]} phx-debounce={500} />
         </.form>
       </div>
     </div>
@@ -35,7 +37,8 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   end
 
   @impl true
-  def handle_event("submit", %{"answer" => new_answer}, socket) do
+  def handle_event("submit", %{"form" => %{"answer" => new_answer}}, socket) do
+    dbg(new_answer)
     answer =
       if(socket.assigns.answer) do
         socket.assigns.answer

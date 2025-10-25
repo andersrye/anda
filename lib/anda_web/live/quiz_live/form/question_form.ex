@@ -111,11 +111,8 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp presign_upload(entry, socket) do
     uploads = socket.assigns.uploads
-
-    dbg(entry)
     bucket = "anda-test"
     key = "public/#{Ecto.UUID.generate()}#{Path.extname(entry.client_name)}"
-
     config = %{
       region: Application.fetch_env!(:anda, :aws)[:aws_region],
       access_key_id: Application.fetch_env!(:anda, :aws)[:aws_access_key_id],

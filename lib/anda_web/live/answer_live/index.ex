@@ -4,7 +4,6 @@ defmodule AndaWeb.AnswerLive.Index do
 
   alias Anda.Contest
   alias Anda.Submission
-  alias AndaWeb.Layouts
 
   @impl true
   @spec mount(any(), any(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -33,7 +32,9 @@ defmodule AndaWeb.AnswerLive.Index do
      socket
      |> assign(:quiz, quiz)
      |> assign(:submission, submission)
+     |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:answers_by_question_id, answers_by_question_id)
+     |> assign(:saved, nil)
      |> stream(:sections, quiz.sections)}
   end
 
@@ -52,9 +53,14 @@ defmodule AndaWeb.AnswerLive.Index do
   def handle_event("change_name", %{"name" => name}, socket) do
     case Submission.update_submission_name(socket.assigns.submission, name) do
       {:ok, submission} ->
-        {:noreply, socket |> assign(:submission, submission)}
-      _ ->
-        {:noreply, socket}
+        {:reply, %{hello: "world"}, socket
+         |> assign(:submission, submission)
+         |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
+         |> assign(:saved, Ecto.UUID.generate())
+        }
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, name_form: to_form(changeset))}
     end
   end
 end
