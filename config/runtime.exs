@@ -22,8 +22,8 @@ end
 
 config :anda, :aws,
   aws_region: "nl-ams",
-  aws_access_key_id: System.fetch_env!("ACCESS_KEY_ID"),
-  aws_secret_access_key: System.fetch_env!("SECRET_ACCESS_KEY")
+  aws_access_key_id: System.get_env("ACCESS_KEY_ID"),
+  aws_secret_access_key: System.get_env("SECRET_ACCESS_KEY")
 
 
 if config_env() == :prod do

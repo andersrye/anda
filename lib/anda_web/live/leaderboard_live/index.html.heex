@@ -1,23 +1,36 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
+  <:breadcrumb>Leaderboard</:breadcrumb>
   <.header>
-    leaderboard
+    Leaderboard
   </.header>
 
   <div>
-    <table class="table">
-      <tbody>
-        <tr :for={{index, name, score} <- @leaderboard}>
-          <td>
-            {index}
-          </td>
-          <td>
-            {name}
-          </td>
-          <td>
-            {score}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="flex justify-end mb-2">
+      <form phx-change="change_tag">
+        <select name="tag" class="select select-sm w-30">
+          <option value="" selected={@selected_tag == nil}>Alle</option>
+          <option :for={tag <- @tags} value={tag} selected={@selected_tag == tag}>{tag}</option>
+        </select>
+      </form>
+    </div>
+    <div class="card bg-base-100 shadow-sm">
+      <table class="table">
+        <tbody>
+          <tr :for={{index, name, score} <- @leaderboard}>
+            <td>
+              {index}
+            </td>
+            <td>
+              {name}
+            </td>
+            <td>
+              {score}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </Layouts.app>

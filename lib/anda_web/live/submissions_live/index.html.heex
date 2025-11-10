@@ -1,0 +1,95 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+<:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+<:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
+<:breadcrumb>Besvarelser</:breadcrumb>
+  <.header>
+    Besvarelser
+  </.header>
+
+  <div class="card bg-base-100 shadow-sm">
+    <table class="table">
+      <thead>
+        <tr>
+          <td>
+            Navn
+          </td>
+          <td>
+            Besvarte spm
+          </td>
+          <td>
+            Merkelapper
+          </td>
+          <td>
+            Slett
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
+          <td>
+          <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}>
+            {submission.name}
+            </.link>
+          </td>
+          <td>
+            {submission.num_answers} / {@quiz.question_count}
+          </td>
+          <td class="">
+            <div class="flex flex-wrap gap-1 ">
+              <span
+                :for={
+                  {tag, color} <-
+                    for t <- submission.tags,
+                        do:
+                          {t, RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
+                }
+                class="badge badge-primary pr-0"
+                style={"--badge-color: #{color}; --btn-color: #{color}"}
+              >
+                {tag}
+                <button
+                  class="btn btn-xs btn-square btn-ghost"
+                  phx-click="remove_tag"
+                  phx-value-tag={tag}
+                  phx-value-submission-id={submission.id}
+                >
+                  <.icon name="hero-x-mark" />
+                </button>
+              </span>
+              <button
+                class="btn btn-xs btn-square"
+                phx-click={
+                  JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
+                }
+              >
+                <.icon name="hero-plus" />
+              </button>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-square btn-outline btn-sm btn-error">
+              <.icon name="hero-trash" />
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <.modal
+    :if={@live_action in [:add_tag]}
+    id="add-tag-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions")}
+  >
+    <h1 class="text-lg font-semibold mb-4">Legg til merkelapp</h1>
+    <form phx-submit="add_tag">
+      <input type="hidden" name="submission-id" value={@submission_id} />
+      <input type="text" name="tag" list="suggested-tags" class="input mb-4" />
+      <datalist id="suggested-tags">
+        <option :for={tag <- @tags} value={tag}></option>
+      </datalist>
+      <br />
+      <.button type="submit">Lagre</.button>
+    </form>
+  </.modal>
+</Layouts.app>

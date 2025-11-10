@@ -54,6 +54,20 @@ defmodule Anda.Contest do
     Repo.all(query) |> Enum.at(0)
   end
 
+  def get_quiz_w_question_count(id) do
+    query =
+      from quiz in Quiz,
+        where: quiz.id == ^id,
+        join: s in Section,
+        on: s.quiz_id == quiz.id,
+        join: q in Question,
+        on: q.section_id == s.id,
+        select: %{id: quiz.id, title: quiz.title, question_count: count(q)},
+        group_by: quiz.id
+
+    Repo.all(query) |> Enum.at(0)
+  end
+
   @doc """
   Creates a quiz.
 

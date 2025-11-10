@@ -3,9 +3,10 @@ defmodule AndaWeb.QuizLive.Edit do
 
   alias Anda.Contest
   alias Phoenix.PubSub
+  alias AndaWeb.QuizLive.Form
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"quiz_id" => id}, _session, socket) do
     if connected?(socket) do
       PubSub.subscribe(Anda.PubSub, "quiz:#{id}:new_answer")
     end
@@ -19,39 +20,45 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_params(params, _, socket) do
-    #quiz_id = Map.fetch!(params, "id")
+    parsed_params = for {k, v} when k in ["quiz_id", "section_id", "question_id"] <- params, into: %{} do
+      {String.to_atom(k), String.to_integer(v)}
+    end
 
-    section_id =
-      if Map.has_key?(params, "section_id") do
-        params |> Map.fetch!("section_id") |> String.to_integer()
-      else
-        nil
-      end
-
-    {:noreply,
-     socket
-     |> assign(:section_id, section_id)}
+    {:noreply, socket |> assign(parsed_params)}
   end
 
   @impl true
-  def handle_info({AndaWeb.QuizLive.Form.SectionForm, {:saved, section}}, socket) do
+  def handle_info({Form.SectionForm, {:saved, section}}, socket) do
     {:noreply, stream_insert(socket, :sections, section)}
   end
 
   @impl true
-  def handle_info({AndaWeb.QuizLive.Form.QuestionForm, {:saved, _question}}, socket) do
+  def handle_info({Form.QuestionForm, {:saved, _question}}, socket) do
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({AndaWeb.QuizLive.Form.QuizForm, {:saved, quiz}}, socket) do
+  def handle_info({Form.QuizForm, {:saved, quiz}}, socket) do
     {:noreply, assign(socket, :quiz, quiz)}
   end
 
   @impl true
   def handle_info({:new_answer, %{:section_id => section_id, :question_id => question_id}}, socket) do
-    dbg(question_id)
     send_update(AndaWeb.QuizLive.Section, id: "sections-#{section_id}", new_answer: question_id)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:updated_question, question}, socket) do
+    send_update(AndaWeb.QuizLive.Section, id: "sections-#{question.section_id}", updated_question: question)
+    {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
+  end
+
+  @impl true
+  def handle_event("delete_question", %{"question_id" => question_id}, socket) do
+    question = Contest.get_question!(question_id)
+    Contest.delete_question(question)
+    send_update(AndaWeb.QuizLive.Section, id: "sections-#{question.section_id}", deleted_question: question)
+    {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
   end
 end

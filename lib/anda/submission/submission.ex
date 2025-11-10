@@ -5,6 +5,7 @@ defmodule Anda.Submission.Submission do
   schema "submissions" do
     field :name, :string
     field :secret, :string
+    field :tags, {:array, :string}
     has_many :answers, Anda.Submission.Answer
     belongs_to :quiz, Anda.Contest.Quiz
 
@@ -28,7 +29,7 @@ defmodule Anda.Submission.Submission do
   @doc false
   def changeset(section, attrs \\ %{}) do
     section
-    |> cast(attrs, [:name, :secret, :quiz_id])
+    |> cast(attrs, [:name, :secret, :quiz_id, :tags])
     |> validate_required([:secret, :quiz_id])
     |> unique_constraint([:name, :quiz_id])
   end

@@ -1,4 +1,14 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb>{@quiz.title}</:breadcrumb>
+  <div class="flex gap-2">
+    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>
+      Besvarelser
+    </.link>
+    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}>
+      Leaderboard
+    </.link>
+  </div>
   <div class="flex justify-between">
     <.header>
       {@quiz.title}
@@ -36,7 +46,7 @@
       quiz={@quiz}
       title={@page_title}
       action={@live_action}
-      section_id={@section_id}
+      section_id={if @live_action == :edit_section, do: @section_id, else: nil}
       patch={~p"/admin/quiz/#{@quiz}"}
     />
   </.modal>
@@ -55,6 +65,74 @@
       quiz={@quiz}
       current_scope={@current_scope}
       patch={~p"/admin/quiz/#{@quiz.id}"}
+    />
+  </.modal>
+
+  <.modal
+    :if={@live_action == :delete_question}
+    id="delete-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}")}
+  >
+    Sikker?
+    <div>
+      <.button phx-click={JS.push("delete_question", value: %{question_id: @question_id})}>
+        Ja
+      </.button>
+      <.button phx-click={JS.patch(~p"/admin/quiz/#{@quiz.id}")}>Nei</.button>
+    </div>
+  </.modal>
+
+  <.modal
+    :if={@live_action == :score_question}
+    id="score-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}")}
+  >
+    <.live_component
+      module={AndaWeb.QuizLive.Form.ScoreForm}
+      id={@quiz.id}
+      title="ASD"
+      question_id={@question_id}
+    />
+  </.modal>
+
+  <.modal
+    :if={@live_action in [:edit_question]}
+    id="edit-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}")}
+  >
+    <.live_component
+      module={AndaWeb.QuizLive.Form.QuestionForm}
+      id={@quiz_id}
+      title="test"
+      question_id={@question_id}
+      action={:edit}
+      on_saved={
+        fn q ->
+          send(self(), {:updated_question, q})
+        end
+      }
+    />
+  </.modal>
+  <.modal
+    :if={@live_action in [:new_question]}
+    id="edit-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}")}
+  >
+    <.live_component
+      module={AndaWeb.QuizLive.Form.QuestionForm}
+      id={@quiz_id}
+      title="test"
+      action={:new}
+      section_id={@section_id}
+      on_saved={
+        fn q ->
+          send(self(), {:updated_question, q})
+        end
+      }
     />
   </.modal>
 </Layouts.app>

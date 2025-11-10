@@ -79,9 +79,7 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
-
-
-    @doc """
+  @doc """
   Renders a simple form.
 
   ## Examples
@@ -108,9 +106,9 @@ defmodule AndaWeb.CoreComponents do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-base">
-        <%= render_slot(@inner_block, f) %>
+        {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
-          <%= render_slot(action, f) %>
+          {render_slot(action, f)}
         </div>
       </div>
     </.form>
@@ -164,7 +162,7 @@ defmodule AndaWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-base p-14 shadow-lg ring-1 transition"
+              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-base-100 p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -177,7 +175,7 @@ defmodule AndaWeb.CoreComponents do
                 </button>
               </div>
               <div id={"#{@id}-content"}>
-                <%= render_slot(@inner_block) %>
+                {render_slot(@inner_block)}
               </div>
             </.focus_wrap>
           </div>
@@ -187,7 +185,7 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
-    def show_modal(js \\ %JS{}, id) when is_binary(id) do
+  def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
     |> JS.show(to: "##{id}")
     |> JS.show(
@@ -249,6 +247,55 @@ defmodule AndaWeb.CoreComponents do
     end
   end
 
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :label, :string, default: nil
+  attr :value, :any
+
+  attr :field, Phoenix.HTML.FormField,
+    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+
+  attr :errors, :list, default: []
+  attr :class, :string, default: nil, doc: "the input class to use over defaults"
+  attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
+  attr :num_inputs, :integer, default: 1
+
+  attr :rest, :global,
+    include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
+                multiple pattern placeholder readonly required rows size step)
+
+  def textgroup(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+
+    assigns =
+      assigns
+      |> assign(field: nil, id: assigns.id || field.id)
+      |> assign(:errors, Enum.map(errors, &translate_error(&1)))
+      |> assign_new(:name, fn -> field.name <> "[]" end)
+      |> assign_new(:value, fn ->
+        if is_bitstring(field.value), do: [field.value], else: field.value
+      end)
+
+    ~H"""
+    <div class="text-sm">
+      <label for={@id}>{@label}</label>
+      <div class="flex flex-col gap-2">
+        <div :for={index <- 0..(@num_inputs - 1)} class="">
+          <input
+            type="text"
+            id={"#{@id}-#{index}"}
+            name={@name}
+            value={Enum.at(@value, index, "")}
+            class="input w-3xs"
+            {@rest}
+          />
+        </div>
+      </div>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
   @doc """
   Renders an input with label and error messages.
 
@@ -283,18 +330,20 @@ defmodule AndaWeb.CoreComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               search select tel text textarea time url week)
+               search select tel text textarea time url week checkgroup radiogroup textgroup)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :errors, :list, default: []
+  attr :saved, :boolean, default: false
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :string, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
+  attr :num_inputs, :integer, default: 1
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -338,6 +387,30 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "radiogroup"} = assigns) do
+    ~H"""
+    <fieldset class="fieldset mb-2 w-full">
+      <label>{@label}</label>
+      <input type="hidden" name={@name} value="" />
+      <div class="grid grid-cols-3 gap-1 w-full">
+        <label :for={{label, value} <- @options} class="label text-base">
+          <input
+            type="radio"
+            id={"#{@id}-#{@name}-#{value}"}
+            name={@name}
+            value={value}
+            checked={value == @value}
+            class="radio radio-sm"
+            {@rest}
+          />
+          {label}
+        </label>
+      </div>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div class="fieldset mb-2">
@@ -346,11 +419,11 @@ defmodule AndaWeb.CoreComponents do
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[@class, "select w-full", @errors != [] && (@error_class || "select-error")]}
           multiple={@multiple}
           {@rest}
         >
-          <option :if={@prompt} value="">{@prompt}</option>
+          <option :if={@prompt} value="" disabled selected={@value == ""}>{@prompt}</option>
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
@@ -368,7 +441,8 @@ defmodule AndaWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
+            @class,
+            "w-full textarea",
             @errors != [] && (@error_class || "textarea-error")
           ]}
           {@rest}
@@ -381,29 +455,26 @@ defmodule AndaWeb.CoreComponents do
 
   def input(%{type: "checkgroup"} = assigns) do
     ~H"""
-    <div phx-feedback-for={@name} class="text-sm">
-      <label for={@id}><%= @label %></label>
-      <div class="mt-1 w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-        <div class="grid grid-cols-1 gap-1 text-sm items-baseline">
-          <input type="hidden" name={@name} value="" />
-          <div class="flex items-center" :for={{label, value} <- @options}>
-            <label
-              for={"#{@name}-#{value}"} class="font-medium text-gray-700">
-              <input
-                type="checkbox"
-                id={"#{@name}-#{value}"}
-                name={@name}
-                value={value}
-                checked={value in @value}
-                class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition duration-150 ease-in-out"
-                {@rest}
-              />
-              <%= label %>
-            </label>
-          </div>
+    <div class="text-sm my-3">
+      <label :if={@label} for={@id}>{@label}</label>
+      <div class="grid grid-cols-1 gap-1 text-sm items-baseline mt-3">
+        <input type="hidden" name={@name} value="" />
+        <div :for={{label, value} <- @options} class="flex items-center gap-2">
+          <label for={"#{@name}-#{value}"} class="label">
+            <input
+              type="checkbox"
+              id={"#{@name}-#{value}"}
+              name={@name}
+              value={value}
+              checked={value in @value}
+              class="checkbox"
+              {@rest}
+            />
+            {label}
+          </label>
         </div>
       </div>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -420,25 +491,29 @@ defmodule AndaWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
+            @class,
+            "w-full input",
             @errors != [] && (@error_class || "input-error")
           ]}
           {@rest}
         />
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
+      <.saved :if={Enum.empty?(@errors) && @saved}></.saved>
     </div>
     """
   end
 
-    @doc """
+  @doc """
   Generate a checkbox group for multi-select.
   """
   attr :id, :any
   attr :name, :any
   attr :label, :string, default: nil
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
+
   attr :errors, :list
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :rest, :global, include: ~w(disabled form readonly)
@@ -459,6 +534,22 @@ defmodule AndaWeb.CoreComponents do
     <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
       <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
+    </p>
+    """
+  end
+
+  def saved(assigns) do
+    ~H"""
+    <p class={"mt-1.5 flex gap-2 items-center text-sm text-success fade-out #{@class}"}>
+      <.icon name="hero-check-circle" class="size-5" /> Lagra!
+    </p>
+    """
+  end
+
+  def loading(assigns) do
+    ~H"""
+    <p class={"mt-1.5 flex gap-2 items-center text-sm text-success fade-out #{@class}"}>
+      <span class="loading loading-spinner size-6 flex-none hidden m-2"></span> Lagrer...
     </p>
     """
   end

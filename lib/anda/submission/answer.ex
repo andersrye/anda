@@ -3,7 +3,7 @@ defmodule Anda.Submission.Answer do
   import Ecto.Changeset
 
   schema "answers" do
-    field :answer, :string
+    field :text, :string
     field :index, :integer
     field :score, :float
     belongs_to :submission, Anda.Submission.Submission
@@ -13,9 +13,38 @@ defmodule Anda.Submission.Answer do
   end
 
   @doc false
-  def changeset(section, attrs) do
-    section
-    |> cast(attrs, [:answer, :submission_id, :question_id, :index, :score])
-    |> validate_required([:answer, :submission_id, :question_id, :index])
+  def changeset(answer, attrs \\ %{}) do
+    answer
+    |> cast(attrs, [:text, :submission_id, :question_id, :index, :score])
+    |> validate_required([:text, :submission_id, :question_id, :index])
+    |> update_change(:text, &String.trim/1)
+    |> unique_constraint([:text, :question_id, :submission_id], message: "Du kan ikke skrive det samme flere ganger")
+  end
+
+  def changeset(answer, "number", attrs) do
+    answer
+    |> changeset(attrs)
+    |> validate_format(:text, ~r/^\d+$/,  message: "Dette skulle helst vært et tall")
+  end
+
+  def changeset(answer, "football-score", attrs) do
+    regex = ~r/^(\d+)\W+(\d+)$/
+    answer
+    |> changeset(attrs)
+    |> validate_format(:text, regex, message: "Skriv inn typ \"1-0\"")
+    |> update_change(:text, fn ans ->
+      match = Regex.run(regex, ans)
+      dbg(match)
+      if match do
+        match |> Enum.drop(1) |> Enum.join("-") |> dbg()
+      else
+        ans
+      end
+     end)
+  end
+
+  def changeset(answer, _, attrs) do
+    answer
+    |> changeset(attrs)
   end
 end

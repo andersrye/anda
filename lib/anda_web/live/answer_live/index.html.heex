@@ -1,39 +1,45 @@
-<Layouts.app flash={@flash}>
+<Layouts.app show_header={@live_action != :edit} flash={@flash} current_scope={nil}>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
+  <:breadcrumb>
+    <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>Besvarelser</.link>
+  </:breadcrumb>
+  <:breadcrumb>{@submission.name}</:breadcrumb>
   <.header>
     {@quiz.title}
   </.header>
 
-
-<div>
-Navn
-  <.form for={@name_form} id="name-form" phx-hook=".Test">
-    <div class="flex items-center">
-      <div class="flex-1">
-        <.input type="text" field={@name_form[:name]} />
+  <div>
+    Navn
+    <.form for={@name_form} id="name-form" phx-hook=".Test">
+      <div class="flex items-center">
+        <div class="flex-1">
+          <.input type="text" field={@name_form[:name]} disabled={@live_action != :edit} />
+        </div>
+        <div class="flex-none size-6 flex items-center">
+          <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
+          <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
+        </div>
       </div>
-      <div class="flex-none size-6 flex items-center">
-
-      <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
-      <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
-      </div>
-
-    </div>
-    <button type="submit" class="hidden" disabled></button>
-  </.form>
+      <button type="submit" class="hidden" disabled></button>
+    </.form>
   </div>
   <div id="sections" phx-update="stream" class="flex flex-col gap-6">
     <div :for={{id, section} <- @streams.sections} id={id} class="bg-base-100 p-6 drop-shadow-sm">
-      <h2 class="text-l font-semibold">{section.title}</h2>
-      <div>{section.description}</div>
-      <.live_component
-        :for={question <- section.questions}
-        module={AndaWeb.AnswerLive.QuestionComponent}
-        question={question}
-        answer={@answers_by_question_id[question.id]}
-        submission={@submission}
-        quiz_id={@quiz.id}
-        id={"question-#{question.id}"}
-      />
+      <h2 class="text-xl font-semibold mb-4">{section.title}</h2>
+      <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
+
+      <div :for={question <- section.questions} class="flex">
+        <.live_component
+          module={AndaWeb.AnswerLive.QuestionComponent}
+          action={@live_action}
+          question={question}
+          answers={@answers_by_question_id[question.id] || []}
+          submission={@submission}
+          quiz_id={@quiz.id}
+          id={"question-#{question.id}"}
+        />
+      </div>
     </div>
   </div>
 </Layouts.app>
@@ -53,7 +59,7 @@ Navn
           this.pushEvent("change_name", {"name": input.value}, (...args) => {
             loadingIcon.classList.add('hidden')
             loadingDone.classList.remove('hidden')
-            loadingDone.classList.add('fade-out')
+            loadingDone.classList.add('fade-out') 
 
             console.log('reply', ...args)
           })

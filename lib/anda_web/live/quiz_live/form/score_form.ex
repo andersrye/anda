@@ -1,4 +1,5 @@
 defmodule AndaWeb.QuizLive.Form.ScoreForm do
+  alias Anda.Contest
   alias Ecto.Changeset
   alias Anda.Submission
   use AndaWeb, :live_component
@@ -54,19 +55,18 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
   @impl true
   @spec update(maybe_improper_list() | map(), any()) :: {:ok, map()}
   def update(assigns, socket) do
-    id = assigns.question.id
+    id = assigns.question_id
+    question = Contest.get_question!(id)
 
     unique_answers = Submission.get_all_unique_answers2(id)
     options = unique_answers |> Enum.map(fn {v, ids} -> {"#{v} (#{Enum.count(ids)})", v} end)
-
-    dbg(unique_answers)
-    dbg(options)
 
     changeset = Changeset.change({%{answers: []}, %{answers: {:array, :string}}})
 
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:question, question)
      |> assign(:options, options)
      |> assign(:unique_answers, unique_answers)
      |> assign(:form, to_form(changeset, as: "form"))}

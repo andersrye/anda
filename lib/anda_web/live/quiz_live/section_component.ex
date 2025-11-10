@@ -22,12 +22,12 @@ defmodule AndaWeb.QuizLive.Section do
       <div
         id={"section-#{@section.id}-questions"}
         phx-update="stream"
-        class="divide-black divide-y-2  divide-dotted"
+        class="-divide-stone-300 -divide-y-2  divide-dotted"
       >
         <div
           :for={{id, question} <- @streams.questions}
           id={id}
-          class="flex divide-black divide-x-2  divide-dotted"
+          class="flex -divide-stone-300 -divide-x-2  divide-dotted"
         >
           <div class="flex-grow py-6">
             {question.question}
@@ -42,73 +42,37 @@ defmodule AndaWeb.QuizLive.Section do
             </ul>
           </div>
           <div class="pl-5 py-6 grid grid-cols-2 gap-2">
-            <.button
-              phx-click={JS.push("edit_question", target: @myself, value: %{id: question.id})}
-              phx-target={@myself}
+            <.link
+              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
+              phx-click={JS.push_focus()}
             >
-              endre
-            </.button>
-            <.button
-              phx-click={JS.push("delete_question", target: @myself, value: %{id: question.id})}
-              phx-target={@myself}
+              <.button>endre</.button>
+            </.link>
+            <.link
+              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
+              phx-click={JS.push_focus()}
             >
-              slett
-            </.button>
-            <span>
+              <.button>slett</.button>
+            </.link>
+            <!--<span>
               svar: {@answer_counts[question.id] || 0}
-            </span>
+            </span>-->
 
-            <.button
-              phx-click={JS.push("score_question", target: @myself, value: %{id: question.id})}
-              phx-target={@myself}
+            <.link
+              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
+              phx-click={JS.push_focus()}
             >
-              rett
-            </.button>
+              <.button>rett</.button>
+            </.link>
           </div>
         </div>
       </div>
-      <.button phx-click="new_question" phx-target={@myself}>
-        legg til spørsmål
-      </.button>
-      <.modal
-        :if={@edit_question != nil}
-        id="edit-question-modal"
-        show
-        on_cancel={JS.push("cancel_edit", target: @myself)}
+      <.link
+        patch={~p"/admin/quiz/#{@section.quiz_id}/question/new?section_id=#{@section.id}"}
+        phx-click={JS.push_focus()}
       >
-        <.live_component
-          module={AndaWeb.QuizLive.Form.QuestionForm}
-          id={@quiz_id}
-          title="test"
-          question={@edit_question}
-          edit_action={@edit_action}
-          section={@section}
-          on_saved={fn q -> send_update(@myself, %{question: q}) end}
-        />
-      </.modal>
-      <.modal
-        :if={@score_question != nil}
-        id="score-question-modal"
-        show
-        on_cancel={JS.push("cancel_score", target: @myself)}
-      >
-        <.live_component
-          module={AndaWeb.QuizLive.Form.ScoreForm}
-          id={@quiz_id}
-          title={"ASD"}
-          question={@score_question}
-        />
-      </.modal>
-      <.modal
-        :if={@delete_question != nil}
-        id="delete-question-modal"
-        show
-        on_cancel={JS.push("cancel_delete", target: @myself)}
-      >
-        Sikker?
-        <.button phx-click="confirm_delete" phx-target={@myself}>Ja</.button>
-        <.button phx-click="cancel_delete" phx-target={@myself}>Nei</.button>
-      </.modal>
+        <.button>legg til spørsmål</.button>
+      </.link>
     </div>
     """
   end
@@ -205,11 +169,17 @@ defmodule AndaWeb.QuizLive.Section do
   end
 
   @impl true
-  def update(%{:question => question}, socket) do
+  def update(%{:updated_question => question}, socket) do
     {:ok,
      socket
-     |> assign(:edit_question, nil)
      |> stream_insert(:questions, question)}
+  end
+
+  @impl true
+  def update(%{:deleted_question => question}, socket) do
+    {:ok,
+     socket
+     |> stream_delete(:questions, question)}
   end
 
   @impl true
