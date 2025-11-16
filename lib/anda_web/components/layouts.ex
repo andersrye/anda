@@ -38,8 +38,8 @@ defmodule AndaWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <div class="main-container flex flex-col">
-      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8">
+    <div class="main-container flex flex-col font-serif">
+      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8 drop-shadow-xs bg-base-300">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             Anders sin quizgreie

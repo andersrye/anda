@@ -56,6 +56,8 @@ defmodule AndaWeb.Router do
           live "/submissions", SubmissionsLive.Index, :index
           live "/submissions/:submission_id", AnswerLive.Index, :view
           live "/submissions/:submission_id/add-tag", SubmissionsLive.Index, :add_tag
+          live "/preview", AnswerLive.Index, :preview
+
         end
       end
     end

@@ -1,44 +1,62 @@
 <Layouts.app show_header={@live_action != :edit} flash={@flash} current_scope={nil}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
-  <:breadcrumb>
+  <:breadcrumb :if={@live_action == :view}>
     <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>Besvarelser</.link>
   </:breadcrumb>
-  <:breadcrumb>{@submission.name}</:breadcrumb>
-  <.header>
-    {@quiz.title}
-  </.header>
+  <:breadcrumb :if={@live_action == :view}>{@submission.name}</:breadcrumb>
+  <:breadcrumb :if={@live_action == :preview}>Forhåndsvisning</:breadcrumb>
+  <div :if={@quiz.mode == "hidden" && @live_action in [:edit]}>Oops, her er det ikke noe!</div>
+  <div :if={@quiz.mode in ["open", "closed"] || @live_action in [:preview]}>
+    <.header>
+      {@quiz.title}
+    </.header>
 
-  <div>
-    Navn
-    <.form for={@name_form} id="name-form" phx-hook=".Test">
-      <div class="flex items-center">
-        <div class="flex-1">
-          <.input type="text" field={@name_form[:name]} disabled={@live_action != :edit} />
+    <div>
+      Navn
+      <.form for={@name_form} id="name-form" phx-hook=".Test">
+        <div class="flex items-center">
+          <div class="flex-1">
+            <.input type="text" field={@name_form[:name]} disabled={!@enabled} />
+          </div>
+          <div class="flex-none size-6 flex items-center">
+            <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
+            <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
+          </div>
         </div>
-        <div class="flex-none size-6 flex items-center">
-          <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
-          <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
-        </div>
-      </div>
-      <button type="submit" class="hidden" disabled></button>
-    </.form>
-  </div>
-  <div id="sections" phx-update="stream" class="flex flex-col gap-6">
-    <div :for={{id, section} <- @streams.sections} id={id} class="bg-base-100 p-6 drop-shadow-sm">
-      <h2 class="text-xl font-semibold mb-4">{section.title}</h2>
-      <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
+        <button type="submit" class="hidden" disabled></button>
+      </.form>
+    </div>
+    <div id="sections" phx-update="stream" class="flex flex-col gap-6">
+      <div
+        :for={{id, section} <- @streams.sections}
+        id={id}
+        class="bg-base-100 p-6 drop-shadow-sm"
+      >
+        <h2 class="text-xl font-semibold mb-4">{section.title}</h2>
+        <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
 
-      <div :for={question <- section.questions} class="flex">
-        <.live_component
-          module={AndaWeb.AnswerLive.QuestionComponent}
-          action={@live_action}
-          question={question}
-          answers={@answers_by_question_id[question.id] || []}
-          submission={@submission}
-          quiz_id={@quiz.id}
-          id={"question-#{question.id}"}
-        />
+        <div :for={question <- section.questions}>
+          <div class="text-base mb-2 font-medium">
+            {question.question}
+          </div>
+          <div class="flex flex-col gap2">
+            <.live_component
+              :for={index <- 0..(question.num_answers - 1)}
+              module={AndaWeb.AnswerLive.QuestionComponent}
+              action={@live_action}
+              question={question}
+              answer={
+                Enum.find(@answers_by_question_id[question.id] || [], fn a -> a.index == index end)
+              }
+              submission={@submission}
+              quiz_id={@quiz.id}
+              enabled={@enabled}
+              index={index}
+              id={"question-#{question.id}-#{index}"}
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

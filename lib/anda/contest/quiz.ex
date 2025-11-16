@@ -5,6 +5,7 @@ defmodule Anda.Contest.Quiz do
   schema "quiz" do
     field :description, :string
     field :title, :string
+    field :mode, :string
     has_many :sections, Anda.Contest.Section
     belongs_to :user, Anda.Accounts.User
 
@@ -14,7 +15,8 @@ defmodule Anda.Contest.Quiz do
   @doc false
   def changeset(quiz, attrs) do
     quiz
-    |> cast(attrs, [:title, :description])
-    |> validate_required([])
+    |> cast(attrs, [:title, :description, :mode])
+    |> validate_inclusion(:mode, ["hidden", "open", "closed"])
+    |> validate_required([:mode])
   end
 end

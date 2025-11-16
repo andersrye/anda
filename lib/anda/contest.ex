@@ -1,5 +1,7 @@
 defmodule Anda.Contest do
+  alias AndaWeb.Endpoint
   alias Anda.Accounts.Scope
+
   @moduledoc """
   The Contest context.
   """
@@ -49,7 +51,8 @@ defmodule Anda.Contest do
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
         on: q.section_id == s.id,
-        preload: [sections: {s, questions: q}]
+        preload: [sections: {s, questions: q}],
+        order_by: [s.id, q.id]
 
     Repo.all(query) |> Enum.at(0)
   end
@@ -58,9 +61,9 @@ defmodule Anda.Contest do
     query =
       from quiz in Quiz,
         where: quiz.id == ^id,
-        join: s in Section,
+        left_join: s in Section,
         on: s.quiz_id == quiz.id,
-        join: q in Question,
+        left_join: q in Question,
         on: q.section_id == s.id,
         select: %{id: quiz.id, title: quiz.title, question_count: count(q)},
         group_by: quiz.id
@@ -99,10 +102,15 @@ defmodule Anda.Contest do
 
   """
   def update_quiz(%Quiz{} = quiz, attrs, %Scope{} = scope) do
-    if quiz.user_id != scope.user.id, do: raise "Forbidden!" #TODO!
-    quiz
-    |> Quiz.changeset(attrs)
-    |> Repo.update()
+    if quiz.user_id != scope.user.id, do: raise("Forbidden!")
+
+    with {:ok, quiz} <-
+           quiz
+           |> Quiz.changeset(attrs)
+           |> Repo.update() do
+      Endpoint.broadcast("quiz:#{quiz.id}", "quiz_updated", quiz)
+      {:ok, quiz}
+    end
   end
 
   @doc """
@@ -117,8 +125,9 @@ defmodule Anda.Contest do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_quiz(%Quiz{} = quiz,  %Scope{} = scope) do
-    if quiz.user_id != scope.user.id, do: raise "Forbidden!" #TODO!
+  def delete_quiz(%Quiz{} = quiz, %Scope{} = scope) do
+    # TODO!
+    if quiz.user_id != scope.user.id, do: raise("Forbidden!")
     Repo.delete(quiz)
   end
 

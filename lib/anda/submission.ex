@@ -1,6 +1,5 @@
 defmodule Anda.Submission do
   import Ecto.Query, warn: false
-  alias Ecto.Changeset
   alias Ecto.Multi
   alias Anda.Contest.Quiz
   alias Anda.Submission
@@ -43,10 +42,20 @@ defmodule Anda.Submission do
     res
   end
 
+  def submit_answer(answer, "", question, submission) do
+    if(answer.id) do
+      Repo.delete(answer)
+      #TODO: hmm, litt hack?
+      {:ok, Answer.create(question.id, submission.id, answer.index)}
+    else
+      {:ok, answer}
+    end
+  end
+
   def submit_answer(answer, new_answer, question, submission) do
     res =
       answer
-      |> Answer.changeset(question.type, %{"answer" => new_answer, "score" => nil})
+      |> Answer.changeset(question.type, %{"text" => new_answer, "score" => nil})
       |> Repo.insert_or_update()
 
     case res do

@@ -166,7 +166,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
     question_params =
       question_params
       |> Map.update(:alternatives, nil, fn val ->
-        if !is_nil(val), do: String.split(val, "\n"), else: nil
+        if !is_nil(val), do: String.split(val, "\n") |> Enum.map(&String.trim/1), else: nil
       end)
       |> then(fn q ->
         if(Enum.count(uploaded_files) == 1) do

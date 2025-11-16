@@ -8,6 +8,39 @@
     <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}>
       Leaderboard
     </.link>
+    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/preview"}>
+      Forhåndsvisning
+    </.link>
+    <.link class="btn btn-xs btn-outline" href={~p"/quiz/#{@quiz.id}"} target="_blank">
+      Åpne quiz <.icon name="hero-arrow-top-right-on-square"/> 
+    </.link>
+    <div class="flex-grow"></div>
+      <form phx-change="change_mode" class="join join-horizontal">
+        <input
+          type="radio"
+          name="mode"
+          class={["btn join-item btn-xs btn-outline btn-info"]}
+          aria-label="Skjult"
+          checked={@quiz.mode=="hidden"}
+          value="hidden"
+        />
+        <input
+          type="radio"
+          name="mode"
+          class="btn join-item btn-xs btn-outline btn-success"
+          aria-label="Åpen"
+          checked={@quiz.mode=="open"}
+          value="open"
+        />
+        <input
+          type="radio"
+          name="mode"
+          class="btn join-item btn-xs btn-outline btn-error"
+          aria-label="Stengt"
+          checked={@quiz.mode=="closed"}
+          value="closed"
+        />
+      </form>
   </div>
   <div class="flex justify-between">
     <.header>
@@ -15,7 +48,7 @@
       <:subtitle>{@quiz.description}</:subtitle>
     </.header>
     <.link patch={~p"/admin/quiz/#{@quiz.id}/edit"} phx-click={JS.push_focus()}>
-      <.button>endre</.button>
+      <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
     </.link>
   </div>
   <div id="sections" phx-update="stream">
@@ -31,7 +64,7 @@
   </div>
 
   <.link patch={~p"/admin/quiz/#{@quiz.id}/section/new"} phx-click={JS.push_focus()}>
-    <.button>legg til seksjon</.button>
+    <.button class="btn btn-outline"><.icon name="hero-plus" />Legg til seksjon</.button>
   </.link>
 
   <.modal

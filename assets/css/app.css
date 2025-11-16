@@ -99,9 +99,9 @@
   default: true;
   prefersdark: false;
   color-scheme: "light";
-  --color-base-100: oklch(100% 0 0);
-  --color-base-200: oklch(97% 0 0);
-  --color-base-300: oklch(94% 0 0);
+  --color-base-100: oklch(92.951% 0.002 17.197);
+  --color-base-200: oklch(86.445% 0.002 17.197);
+  --color-base-300: oklch(79.938% 0.001 17.197);
   --color-base-content: oklch(20% 0 0);
   --color-primary: oklch(87% 0 0);
   --color-primary-content: oklch(26% 0 0);
@@ -199,4 +199,22 @@
 
 .main-container {
   min-height: 100dvh;
+}
+
+body {
+
+}
+.noisy-bg {
+  background-repeat: repeat;
+  background-size: 25px 25px;
+  background-image: var(--fx-noise);
+
+}
+
+_main {
+  background-color: var(--color-amber-50);
+}
+_header.navbar {
+  background-color: var(--color-amber-200);
+
 }

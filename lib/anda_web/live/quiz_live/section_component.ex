@@ -7,22 +7,20 @@ defmodule AndaWeb.QuizLive.Section do
   def render(assigns) do
     ~H"""
     <div class={"#{@class} bg-base-100 p-6 drop-shadow-xs"} id={@id}>
-      <div class="flex">
+      <div class="flex border-stone-300 border-b-2 pb-4 border-dotted">
         <h2 class="text-xl font-semibold flex-grow">{@section.title}</h2>
         <.link
           patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
           phx-click={JS.push_focus()}
         >
-          <.button>
-            endre
-          </.button>
+          <.button class="btn btn-square btn-outline"><.icon name="hero-pencil"/></.button>
         </.link>
       </div>
 
       <div
         id={"section-#{@section.id}-questions"}
         phx-update="stream"
-        class="-divide-stone-300 -divide-y-2  divide-dotted"
+        class="divide-stone-300 divide-y-2 divide-dotted"
       >
         <div
           :for={{id, question} <- @streams.questions}
@@ -36,34 +34,34 @@ defmodule AndaWeb.QuizLive.Section do
               src={question.media_url}
             />
             <ul :if={!is_nil(question.alternatives)} class="list-disc ml-5">
-              <li :for={alternative <- question.alternatives}>
+              <li :for={alternative <- Enum.take(question.alternatives, 6)}>
                 {alternative}
               </li>
             </ul>
+            <span class="ml-1" :if={Enum.count(question.alternatives || [])>6}>+ {Enum.count(question.alternatives || [])-6} til</span>
           </div>
-          <div class="pl-5 py-6 grid grid-cols-2 gap-2">
-            <.link
-              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
-              phx-click={JS.push_focus()}
-            >
-              <.button>endre</.button>
-            </.link>
-            <.link
-              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
-              phx-click={JS.push_focus()}
-            >
-              <.button>slett</.button>
-            </.link>
-            <!--<span>
-              svar: {@answer_counts[question.id] || 0}
-            </span>-->
+          <div>
+            <div class="pl-5 py-6 grid grid-cols-2 gap-2">
+              <.link
+                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline"><.icon name="hero-pencil"/></.button>
+              </.link>
+              <.link
+                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline btn-error"><.icon name="hero-trash"/></.button>
+              </.link>
 
-            <.link
-              patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
-              phx-click={JS.push_focus()}
-            >
-              <.button>rett</.button>
-            </.link>
+              <.link
+                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline"><.icon name="hero-document-check"/></.button>
+              </.link>
+            </div>
           </div>
         </div>
       </div>
@@ -71,7 +69,7 @@ defmodule AndaWeb.QuizLive.Section do
         patch={~p"/admin/quiz/#{@section.quiz_id}/question/new?section_id=#{@section.id}"}
         phx-click={JS.push_focus()}
       >
-        <.button>legg til spørsmål</.button>
+        <.button class="btn btn-outline"><.icon name="hero-plus"/>Legg til spørsmål</.button>
       </.link>
     </div>
     """

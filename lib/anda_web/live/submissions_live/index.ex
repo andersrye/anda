@@ -10,6 +10,7 @@ defmodule AndaWeb.SubmissionsLive.Index do
     {:ok, socket}
   end
 
+  @impl true
   def handle_params(%{"quiz_id" => quiz_id} = params, _uri, socket) do
     quiz = Contest.get_quiz_w_question_count(quiz_id)
     submissions = Submission.get_submissions(quiz_id)

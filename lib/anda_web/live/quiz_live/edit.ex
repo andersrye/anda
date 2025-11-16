@@ -20,9 +20,10 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_params(params, _, socket) do
-    parsed_params = for {k, v} when k in ["quiz_id", "section_id", "question_id"] <- params, into: %{} do
-      {String.to_atom(k), String.to_integer(v)}
-    end
+    parsed_params =
+      for {k, v} when k in ["quiz_id", "section_id", "question_id"] <- params, into: %{} do
+        {String.to_atom(k), String.to_integer(v)}
+      end
 
     {:noreply, socket |> assign(parsed_params)}
   end
@@ -43,14 +44,21 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
-  def handle_info({:new_answer, %{:section_id => section_id, :question_id => question_id}}, socket) do
+  def handle_info(
+        {:new_answer, %{:section_id => section_id, :question_id => question_id}},
+        socket
+      ) do
     send_update(AndaWeb.QuizLive.Section, id: "sections-#{section_id}", new_answer: question_id)
     {:noreply, socket}
   end
 
   @impl true
   def handle_info({:updated_question, question}, socket) do
-    send_update(AndaWeb.QuizLive.Section, id: "sections-#{question.section_id}", updated_question: question)
+    send_update(AndaWeb.QuizLive.Section,
+      id: "sections-#{question.section_id}",
+      updated_question: question
+    )
+
     {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
   end
 
@@ -58,7 +66,34 @@ defmodule AndaWeb.QuizLive.Edit do
   def handle_event("delete_question", %{"question_id" => question_id}, socket) do
     question = Contest.get_question!(question_id)
     Contest.delete_question(question)
-    send_update(AndaWeb.QuizLive.Section, id: "sections-#{question.section_id}", deleted_question: question)
+
+    send_update(AndaWeb.QuizLive.Section,
+      id: "sections-#{question.section_id}",
+      deleted_question: question
+    )
+
     {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
+  end
+
+  @impl true
+  def handle_event("change_mode", %{"mode" => mode}, socket) do
+    dbg(mode)
+
+    with {:ok, quiz} =
+           Contest.update_quiz(
+             socket.assigns.quiz,
+             %{"mode" => mode},
+             socket.assigns.current_scope
+           ) do
+      {:noreply,
+       socket
+       |> assign(quiz: quiz)
+       |> put_flash(:info, "Quizen er nå #{case mode do "hidden" -> "skjult"; "open" -> "åpen"; "closed" -> "stengt"; _ -> "??" end }!")}
+    else
+      {:error, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Oops, det funka ikke!")}
+    end
   end
 end

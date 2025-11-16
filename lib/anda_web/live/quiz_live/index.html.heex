@@ -1,13 +1,15 @@
 <Layouts.app flash={@flash}>
   <.header>
-    Listing Quiz
+    Dine quizer
     <:actions>
       <.link phx-click={JS.push("new")}>
-        <.button>New Quiz</.button>
+        <.button>Ny Quiz</.button>
       </.link>
     </:actions>
   </.header>
 
+
+<div class="bg-base-100 p-6 drop-shadow-xs">
   <.table
     id="quiz"
     rows={@streams.quiz_collection}
@@ -30,4 +32,5 @@
       </.link>
     </:action>
   </.table>
+  </div>
 </Layouts.app>

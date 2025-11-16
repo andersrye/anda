@@ -31,6 +31,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
      |> assign(:leaderboard, leaderboard)}
   end
 
+  @impl true
   def handle_event("change_tag", %{"tag" => tag}, socket) do
     url = if tag == "" do
       ~p"/admin/quiz/#{socket.assigns.quiz.id}/leaderboard"

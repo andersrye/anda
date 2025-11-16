@@ -47,4 +47,8 @@ defmodule Anda.Submission.Answer do
     answer
     |> changeset(attrs)
   end
+
+  def create(question_id, submission_id, index) do
+    %Anda.Submission.Answer{question_id: question_id, submission_id: submission_id, index: index, text: ""}
+  end
 end
