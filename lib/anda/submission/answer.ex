@@ -5,7 +5,7 @@ defmodule Anda.Submission.Answer do
   schema "answers" do
     field :text, :string
     field :index, :integer
-    field :score, :float
+    field :score, :integer
     belongs_to :submission, Anda.Submission.Submission
     belongs_to :question, Anda.Contest.Question
 

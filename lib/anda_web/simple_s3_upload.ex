@@ -62,7 +62,6 @@ defmodule SimpleS3Upload do
           {"acl": "public-read"},
           ["eq", "$Content-Type", "#{content_type}"],
           ["content-length-range", 0, #{max_file_size}],
-          {"x-amz-server-side-encryption": "AES256"},
           {"x-amz-credential": "#{credential}"},
           {"x-amz-algorithm": "AWS4-HMAC-SHA256"},
           {"x-amz-date": "#{amz_date}"}
@@ -74,7 +73,6 @@ defmodule SimpleS3Upload do
       "key" => key,
       "acl" => "public-read",
       "content-type" => content_type,
-      "x-amz-server-side-encryption" => "AES256",
       "x-amz-credential" => credential,
       "x-amz-algorithm" => "AWS4-HMAC-SHA256",
       "x-amz-date" => amz_date,
@@ -109,6 +107,8 @@ defmodule SimpleS3Upload do
   defp signing_key(%{} = config, %DateTime{} = expires_at, service) when service in ["s3"] do
     amz_date = short_date(expires_at)
     %{secret_access_key: secret, region: region} = config
+    dbg(config)
+    dbg(expires_at)
 
     ("AWS4" <> secret)
     |> sha256(amz_date)

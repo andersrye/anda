@@ -12,35 +12,35 @@
       Forhåndsvisning
     </.link>
     <.link class="btn btn-xs btn-outline" href={~p"/quiz/#{@quiz.id}"} target="_blank">
-      Åpne quiz <.icon name="hero-arrow-top-right-on-square"/> 
+      Åpne quiz <.icon name="hero-arrow-top-right-on-square" />
     </.link>
     <div class="flex-grow"></div>
-      <form phx-change="change_mode" class="join join-horizontal">
-        <input
-          type="radio"
-          name="mode"
-          class={["btn join-item btn-xs btn-outline btn-info"]}
-          aria-label="Skjult"
-          checked={@quiz.mode=="hidden"}
-          value="hidden"
-        />
-        <input
-          type="radio"
-          name="mode"
-          class="btn join-item btn-xs btn-outline btn-success"
-          aria-label="Åpen"
-          checked={@quiz.mode=="open"}
-          value="open"
-        />
-        <input
-          type="radio"
-          name="mode"
-          class="btn join-item btn-xs btn-outline btn-error"
-          aria-label="Stengt"
-          checked={@quiz.mode=="closed"}
-          value="closed"
-        />
-      </form>
+    <form phx-change="change_mode" class="join join-horizontal">
+      <input
+        type="radio"
+        name="mode"
+        class={["btn join-item btn-xs btn-outline btn-info"]}
+        aria-label="Skjult"
+        checked={@quiz.mode == "hidden"}
+        value="hidden"
+      />
+      <input
+        type="radio"
+        name="mode"
+        class="btn join-item btn-xs btn-outline btn-success"
+        aria-label="Åpen"
+        checked={@quiz.mode == "open"}
+        value="open"
+      />
+      <input
+        type="radio"
+        name="mode"
+        class="btn join-item btn-xs btn-outline btn-error"
+        aria-label="Stengt"
+        checked={@quiz.mode == "closed"}
+        value="closed"
+      />
+    </form>
   </div>
   <div class="flex justify-between">
     <.header>
@@ -127,6 +127,11 @@
       id={@quiz.id}
       title="ASD"
       question_id={@question_id}
+      on_saved={
+        fn ->
+          send(self(), {:scored_question})
+        end
+      }
     />
   </.modal>
 

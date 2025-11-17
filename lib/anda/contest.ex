@@ -65,7 +65,7 @@ defmodule Anda.Contest do
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
         on: q.section_id == s.id,
-        select: %{id: quiz.id, title: quiz.title, question_count: count(q)},
+        select: %{id: quiz.id, title: quiz.title, question_count: sum(q.num_answers)},
         group_by: quiz.id
 
     Repo.all(query) |> Enum.at(0)

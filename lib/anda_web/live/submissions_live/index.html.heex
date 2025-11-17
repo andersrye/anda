@@ -14,7 +14,10 @@
             Navn
           </td>
           <td>
-            Besvarte spm
+            Besvart
+          </td>
+          <td>
+            Rettet
           </td>
           <td>
             Merkelapper
@@ -32,7 +35,11 @@
             </.link>
           </td>
           <td>
-            {submission.num_answers} / {@quiz.question_count}
+          {trunc(submission.num_answers/@quiz.question_count*100)}%
+            
+          </td>
+          <td>
+          {if submission.num_answers > 0, do: trunc(submission.num_scored/submission.num_answers*100), else: 0}%
           </td>
           <td class="">
             <div class="flex flex-wrap gap-1 ">

@@ -63,6 +63,11 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
+  def handle_info({:scored_question}, socket) do
+    {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
+  end
+
+  @impl true
   def handle_event("delete_question", %{"question_id" => question_id}, socket) do
     question = Contest.get_question!(question_id)
     Contest.delete_question(question)

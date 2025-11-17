@@ -64,7 +64,7 @@ defmodule AndaWeb.AnswerLive.Index do
   @impl true
   def handle_info({:answer_updated, answer}, socket) do
     send_update(AndaWeb.AnswerLive.QuestionComponent,
-      id: "question-#{answer.question_id}",
+      id: "question-#{answer.question_id}-#{answer.index}",
       answer: answer
     )
 

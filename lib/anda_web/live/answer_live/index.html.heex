@@ -40,6 +40,12 @@
           <div class="text-base mb-2 font-medium">
             {question.question}
           </div>
+          <div
+            :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
+            class="flex mx-5 justify-center max-h-50"
+          >
+            <img class="object-contain" src={question.media_url} />
+          </div>
           <div class="flex flex-col gap2">
             <.live_component
               :for={index <- 0..(question.num_answers - 1)}

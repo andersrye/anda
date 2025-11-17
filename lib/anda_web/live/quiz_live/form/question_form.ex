@@ -139,7 +139,6 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   @impl true
   def handle_event("validate", %{"question" => params}, socket) do
-    dbg(socket.assigns)
     changeset = changeset(socket.assigns.question_form_data, params)
     form = to_form(changeset, action: :validate, as: "question")
     {:noreply, assign(socket, form: form)}

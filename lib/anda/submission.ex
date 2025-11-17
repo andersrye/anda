@@ -134,7 +134,7 @@ defmodule Anda.Submission do
   def get_all_unique_answers2(question_id) do
     Repo.all(
       from(a in Answer,
-        select: {a.text, fragment("array_agg(?)", a.id)},
+        select: {a.text, fragment("array_agg(?)", a.id), coalesce(max(a.score), 0)},
         group_by: a.text,
         where: a.question_id == ^question_id
       )
@@ -146,6 +146,7 @@ defmodule Anda.Submission do
       for {score, ids} <- scores do
         num_ids = Enum.count(ids)
         answers = from a in Answer, where: a.id in ^ids
+        dbg(answers)
         {^num_ids, _} = Repo.update_all(answers, set: [score: score])
       end
 
@@ -159,9 +160,9 @@ defmodule Anda.Submission do
         where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        select: {s.id, s.name, sum(a.score)},
+        select: {s.id, s.name, coalesce(sum(a.score), 0)},
         group_by: s.id,
-        order_by: [desc: sum(a.score)]
+        order_by: [desc: coalesce(sum(a.score), 0)]
 
     query = if tag, do: query |> where([s], ^tag in s.tags), else: query
 
@@ -174,7 +175,7 @@ defmodule Anda.Submission do
         where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        select: %{id: s.id, name: s.name, num_answers: count(a), tags: s.tags},
+        select: %{id: s.id, name: s.name, num_answers: count(a), num_scored: count(a) |> filter(not is_nil(a.score)), tags: s.tags},
         group_by: s.id
     )
   end

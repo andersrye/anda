@@ -4,17 +4,6 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   alias Anda.Submission
 
   defp score(assigns) do
-    assigns =
-      assigns
-      |> assign(
-        score:
-          if assigns.score && floor(assigns.score) == assigns.score do
-            floor(assigns.score)
-          else
-            assigns.score
-          end
-      )
-
     ~H"""
     <div class="font-mono">
       <div
@@ -52,12 +41,6 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   def render(assigns) do
     ~H"""
     <div class="" id={@id}>
-      <!--
-      <img
-        :if={!is_nil(@question.media_url) && String.starts_with?(@question.media_type, "image")}
-        src={@question.media_url}
-      />
-      -->
       <div class="px-4 flex gap-2">
         <.form
           id={"form-#{@id}"}
@@ -67,21 +50,21 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
           phx-change="submit"
         >
           <.input
-            :if={@question.type == "alternatives" && Enum.count(@question.alternatives) <= 6}
+            :if={@question.type == "alternatives" && Enum.count(@question.alternatives||[]) <= 6}
             id={"input-#{@id}"}
             field={@form[:text]}
             type="radiogroup"
             disabled={!@enabled}
-            options={for a <- @question.alternatives, do: {a, a}}
+            options={for a <- @question.alternatives||[], do: {a, a}}
           />
           <.input
-            :if={@question.type == "alternatives" && Enum.count(@question.alternatives) > 6}
+            :if={@question.type == "alternatives" && Enum.count(@question.alternatives||[]) > 6}
             id={"input-#{@id}"}
             class="max-w-3xs"
             field={@form[:text]}
             type="select"
             disabled={!@enabled}
-            options={for a <- @question.alternatives, do: {a, a}}
+            options={for a <- @question.alternatives||[], do: {a, a}}
             prompt="Velg"
           />
           <.input
