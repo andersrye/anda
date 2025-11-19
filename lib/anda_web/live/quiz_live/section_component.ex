@@ -28,7 +28,7 @@ defmodule AndaWeb.QuizLive.Section do
           class="flex -divide-stone-300 -divide-x-2  divide-dotted"
         >
           <div class="flex-grow py-6">
-            {question.question}
+            {question.text}
             <img
               :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
               src={question.media_url}

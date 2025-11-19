@@ -12,7 +12,7 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
         Retting
       </.header>
       <div>
-        {@question.question}
+        {@question.text}
       </div>
       <.form for={@form} phx-change="validate" phx-submit="save" phx-target={@myself}>
         <.checkgroup label="Velg alle riktige svar" field={@form[:answers]} options={@options} />

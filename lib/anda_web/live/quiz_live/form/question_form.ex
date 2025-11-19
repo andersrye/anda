@@ -21,7 +21,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:question]} type="text" label="Spørsmål" />
+        <.input field={@form[:text]} type="text" label="Spørsmål" />
 
         <fieldset class="fieldset">
           <legend class="label mb-1">Bilde (valgfritt)</legend>
@@ -60,7 +60,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp form_types() do
     %{
-      question: :string,
+      text: :string,
       alternatives: :string,
       type: :string,
       num_answers: :integer
@@ -69,7 +69,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp to_params(question) do
     question
-    |> Map.take([:question, :alternatives, :type, :num_answers])
+    |> Map.take([:text, :alternatives, :type, :num_answers])
     |> Map.update(:alternatives, [], fn val ->
       if !is_nil(val), do: Enum.join(val, "\n"), else: nil
     end)
@@ -78,8 +78,8 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp changeset(changeset, params) do
     changeset
-    |> Changeset.cast(params, [:question, :alternatives, :type, :num_answers])
-    |> Changeset.validate_required([:question])
+    |> Changeset.cast(params, [:text, :alternatives, :type, :num_answers])
+    |> Changeset.validate_required([:text])
   end
 
   @impl true
@@ -190,11 +190,14 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         notify_parent({:saved, question})
         socket.assigns.on_saved.(question)
 
+        dbg(question)
+
         {:noreply,
          socket
          |> put_flash(:info, "Question updated successfully")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        dbg(changeset)
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end

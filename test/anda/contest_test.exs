@@ -80,7 +80,7 @@ defmodule Anda.ContestTest do
       valid_attrs = %{question: "some question", num_answers: 42, alternatives: "some alternatives"}
 
       assert {:ok, %Question{} = question} = Contest.create_question(valid_attrs)
-      assert question.question == "some question"
+      assert question.text == "some question"
       assert question.num_answers == 42
       assert question.alternatives == "some alternatives"
     end
@@ -94,7 +94,7 @@ defmodule Anda.ContestTest do
       update_attrs = %{question: "some updated question", num_answers: 43, alternatives: "some updated alternatives"}
 
       assert {:ok, %Question{} = question} = Contest.update_question(question, update_attrs)
-      assert question.question == "some updated question"
+      assert question.text == "some updated question"
       assert question.num_answers == 43
       assert question.alternatives == "some updated alternatives"
     end

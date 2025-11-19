@@ -3,7 +3,7 @@ defmodule Anda.Contest.Question do
   import Ecto.Changeset
 
   schema "questions" do
-    field :question, :string
+    field :text, :string
     field :type, :string
     field :num_answers, :integer
     field :alternatives, {:array, :string}
@@ -18,15 +18,7 @@ defmodule Anda.Contest.Question do
   @doc false
   def changeset(question, attrs) do
     question
-    |> cast(attrs, [:question, :num_answers, :alternatives, :section_id, :media_url, :media_type, :type])
-    |> validate_required([:question, :num_answers, :section_id, :type])
-    |> then(fn changeset ->
-      dbg(get_field(changeset, :type))
-      case get_field(changeset, :type) do
-        "number" -> validate_format(changeset, :answer, ~r/\d+/)
-        _ -> changeset
-
-      end
-    end)
+    |> cast(attrs, [:text, :num_answers, :alternatives, :section_id, :media_url, :media_type, :type])
+    |> validate_required([:text, :num_answers, :section_id, :type])
   end
 end

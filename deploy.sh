@@ -5,17 +5,18 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 
-op inject -i .env.prod -o .env.tmp
-trap "rm .env.tmp && echo Cleaned up && exit" EXIT
+op inject -i .env.prod -o .env.prod.tmp
+op inject -i .env.migrate -o .env.migrate.tmp
+trap "rm .env.prod.tmp .env.migrate.tmp && echo Cleaned up && exit" EXIT
 
-set -a && . .env.tmp && set +a
+set -a && . .env.prod.tmp && set +a
 
 VERSION="$1"
 TAG="rg.fr-par.scw.cloud/anders/anda:$VERSION"
 
 docker buildx build --platform=linux/amd64 -t "$TAG" .
 docker push "$TAG"
-docker run --env-file .env.tmp "$TAG" /app/bin/migrate
+docker run --env-file .env.migrate.tmp "$TAG" /app/bin/migrate
 
 CONTAINER_NAME=anda
 CONTAINER_ID=$(scw container container list name=$CONTAINER_NAME -o template='{{.ID}}')

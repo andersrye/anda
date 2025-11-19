@@ -27,7 +27,7 @@ defmodule QuestionFormData do
 
   def from_question(question) do
     %QuestionFormData{
-      question: question.question,
+      question: question.text,
       alternatives: question.alternatives |> Enum.join("\n")
     }
   end
