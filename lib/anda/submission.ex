@@ -17,35 +17,36 @@ defmodule Anda.Submission do
   end
 
   def get_submission(submission_id) do
-    Repo.get(Submission, submission_id) |> Repo.preload(:answers)
+    Repo.get(Submission, submission_id)
   end
 
   def get_submission_by_secret(quiz_id, secret) do
-    Repo.get_by(Submission, secret: secret, quiz_id: quiz_id) |> Repo.preload(:answers)
+    Repo.get_by(Submission, secret: secret, quiz_id: quiz_id)
+  end
+
+  def get_answers(submission_id) do
+    Repo.all_by(Answer, submission_id: submission_id)
   end
 
   def update_submission_name(submission, name) do
-    {status, _} =
-      res =
-      submission
-      |> Submission.changeset(%{"name" => name})
-      |> Repo.update()
-
-    if status == :ok do
+    with {:ok, new_submission} <-
+           submission
+           |> Submission.changeset(%{"name" => name})
+           |> Repo.update() do
       Phoenix.PubSub.broadcast(
         Anda.PubSub,
         "submission:#{submission.id}",
-        {:submission_updated, submission}
+        {:submission_updated, new_submission}
       )
-    end
 
-    res
+      {:ok, new_submission}
+    end
   end
 
   def submit_answer(answer, "", question, submission) do
     if(answer.id) do
       Repo.delete(answer)
-      #TODO: hmm, litt hack?
+      # TODO: hmm, litt hack?
       {:ok, Answer.create(question.id, submission.id, answer.index)}
     else
       {:ok, answer}
@@ -175,7 +176,13 @@ defmodule Anda.Submission do
         where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        select: %{id: s.id, name: s.name, num_answers: count(a), num_scored: count(a) |> filter(not is_nil(a.score)), tags: s.tags},
+        select: %{
+          id: s.id,
+          name: s.name,
+          num_answers: count(a),
+          num_scored: count(a) |> filter(not is_nil(a.score)),
+          tags: s.tags
+        },
         group_by: s.id
     )
   end

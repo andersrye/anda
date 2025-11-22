@@ -46,11 +46,15 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
       |> Enum.filter(fn {_, _, score} -> score > 0 end)
       |> Enum.map(fn {text, _, _} -> text end)
 
-    max_score = unique_answers |>  Enum.map(fn {_, _, score} -> score end) |> Enum.max()
+    max_score =
+      unique_answers
+      |> Enum.map(fn {_, _, score} -> score end)
+      |> Enum.max(&>=/2, fn -> 0 end)
 
     changeset =
       Changeset.change(
-        {%{answers: selected_options, points: max(max_score, 1)}, %{answers: {:array, :string}, points: :integer}}
+        {%{answers: selected_options, points: max(max_score, 1)},
+         %{answers: {:array, :string}, points: :integer}}
       )
 
     {:ok,

@@ -15,6 +15,6 @@ defmodule Anda.Contest.Section do
   def changeset(section, attrs) do
     section
     |> cast(attrs, [:title, :description, :quiz_id])
-    |> validate_required([:title, :description, :quiz_id])
+    |> validate_required([:title, :quiz_id])
   end
 end

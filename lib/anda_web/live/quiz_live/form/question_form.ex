@@ -114,7 +114,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp presign_upload(entry, socket) do
     uploads = socket.assigns.uploads
-    bucket = "anda-test"
+    bucket = Application.get_env(:anda, :aws)[:bucket_name] #"anda-dev"
     key = "public/#{Ecto.UUID.generate()}#{Path.extname(entry.client_name)}"
 
     config = %{
@@ -155,8 +155,6 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
                                                  %{client_type: client_type} ->
         {:ok, {url <> "/" <> key, client_type}}
       end)
-
-    dbg(uploaded_files)
 
     {:ok, question_params} =
       changeset(socket.assigns.question_form_data, question_params)
@@ -206,7 +204,6 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
     question =
       question_params
       |> Map.put(:section_id, socket.assigns.section_id)
-      |> Map.put(:num_answers, 1)
 
     case Contest.create_question(question) do
       {:ok, question} ->

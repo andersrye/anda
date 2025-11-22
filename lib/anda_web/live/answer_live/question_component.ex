@@ -20,28 +20,61 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   end
 
   @impl true
-  def update(assigns, socket) do
-    answer =
-      assigns.answer || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
+  def update(%{answer_updated: answer}, socket) do
+    IO.puts "UPDATE answer_updated "
 
     changeset = Answer.changeset(answer)
 
     {:ok,
      socket
-     |> assign(assigns)
-     |> assign(
-       answer: answer,
-       saved: false
-     )
-     |> assign_new(:form, fn -> to_form(changeset, as: "answer") end)}
+     |> assign(answer: answer)
+     |> assign(:form, to_form(changeset, as: "answer"))}
   end
+
+ @impl true
+ def update(assigns, socket) do
+   answer =
+     assigns.answer || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
+
+   changeset = Answer.changeset(answer)
+
+   {:ok,
+    socket
+    |> assign(assigns)
+    |> assign(answer: answer)
+    |> assign_new(:saved, fn -> false end)
+    |> assign_new(:form, fn -> to_form(changeset, as: "answer") end)}
+  end
+
+  # @impl true
+  # def update_many(assigns_sockets) do
+  #   dbg(assigns_sockets)
+  #   IO.puts "UPDATE MANY #{inspect(Enum.map(assigns_sockets, fn {assigns, _} -> "#{assigns.submission.id} #{assigns.question.id} #{assigns.index}" end))}"
+  #   submission_id = Enum.find_value(assigns_sockets, fn {assigns, _} -> assigns.submission.id end)
+
+  #   answers_by_question_id =
+  #     Submission.get_answers(submission_id)
+  #     |> Enum.reduce(%{}, fn a, acc ->
+  #       Map.update(acc, a.question_id, [a], fn l -> [a | l] end)
+  #     end)
+
+  #   Enum.map(assigns_sockets, fn {assigns, socket} ->
+  #     answer = Enum.find(answers_by_question_id[assigns.question.id] || [], fn a -> a.index == assigns.index end)
+  #     || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
+  #     socket
+  #     |> assign(assigns)
+  #     |> assign(:answer, answer)
+  #     |> assign_new(:saved, fn -> false end)
+  #     |> assign_new(:form, fn -> to_form(Answer.changeset(answer), as: "answer") end)
+  #   end)
+  # end
 
   @impl true
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <div class="" id={@id}>
-      <div class="px-4 flex gap-2">
+      <div class="flex gap-2">
         <.form
           id={"form-#{@id}"}
           for={@form}
@@ -50,21 +83,21 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
           phx-change="submit"
         >
           <.input
-            :if={@question.type == "alternatives" && Enum.count(@question.alternatives||[]) <= 6}
+            :if={@question.type == "alternatives" && Enum.count(@question.alternatives || []) <= 6}
             id={"input-#{@id}"}
             field={@form[:text]}
             type="radiogroup"
             disabled={!@enabled}
-            options={for a <- @question.alternatives||[], do: {a, a}}
+            options={for a <- @question.alternatives || [], do: {a, a}}
           />
           <.input
-            :if={@question.type == "alternatives" && Enum.count(@question.alternatives||[]) > 6}
+            :if={@question.type == "alternatives" && Enum.count(@question.alternatives || []) > 6}
             id={"input-#{@id}"}
             class="max-w-3xs"
             field={@form[:text]}
             type="select"
             disabled={!@enabled}
-            options={for a <- @question.alternatives||[], do: {a, a}}
+            options={for a <- @question.alternatives || [], do: {a, a}}
             prompt="Velg"
           />
           <.input

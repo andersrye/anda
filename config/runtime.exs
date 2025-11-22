@@ -21,7 +21,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :anda, :aws,
-  aws_region: "nl-ams",
+  aws_region: "fr-par",
   aws_access_key_id: System.get_env("ACCESS_KEY_ID"),
   aws_secret_access_key: System.get_env("SECRET_ACCESS_KEY")
 

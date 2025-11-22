@@ -8,13 +8,24 @@ defmodule AndaWeb.QuizLive.Section do
     ~H"""
     <div class={"#{@class} bg-base-100 p-6 drop-shadow-xs"} id={@id}>
       <div class="flex border-stone-300 border-b-2 pb-4 border-dotted">
-        <h2 class="text-xl font-semibold flex-grow">{@section.title}</h2>
+      <div class="flex-grow">
+        <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
+        <div>{@section.description}</div>
+      </div>
+        <div class="flex flex-row gap-2">
         <.link
           patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
           phx-click={JS.push_focus()}
         >
-          <.button class="btn btn-square btn-outline"><.icon name="hero-pencil"/></.button>
+          <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
         </.link>
+        <.link
+          _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
+          phx-click={JS.push_focus()}
+        >
+          <.button class="btn btn-square btn-outline btn-error"><.icon name="hero-trash" /></.button>
+        </.link>
+        </div>
       </div>
 
       <div
@@ -38,29 +49,36 @@ defmodule AndaWeb.QuizLive.Section do
                 {alternative}
               </li>
             </ul>
-            <span class="ml-1" :if={Enum.count(question.alternatives || [])>6}>+ {Enum.count(question.alternatives || [])-6} til</span>
+            <span :if={Enum.count(question.alternatives || []) > 6} class="ml-1">
+              + {Enum.count(question.alternatives || []) - 6} til
+            </span>
           </div>
           <div>
-            <div class="pl-5 py-6 grid grid-cols-2 gap-2">
+            <div class="pl-5 py-6 grid grid-cols-3 gap-2">
+              <.link
+                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline">
+                  <.icon name="hero-document-check" />
+                </.button>
+              </.link>
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
                 phx-click={JS.push_focus()}
               >
-                <.button class="btn btn-square btn-outline"><.icon name="hero-pencil"/></.button>
+                <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
               </.link>
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
                 phx-click={JS.push_focus()}
               >
-                <.button class="btn btn-square btn-outline btn-error"><.icon name="hero-trash"/></.button>
+                <.button class="btn btn-square btn-outline btn-error">
+                  <.icon name="hero-trash" />
+                </.button>
               </.link>
 
-              <.link
-                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline"><.icon name="hero-document-check"/></.button>
-              </.link>
+
             </div>
           </div>
         </div>
@@ -69,7 +87,7 @@ defmodule AndaWeb.QuizLive.Section do
         patch={~p"/admin/quiz/#{@section.quiz_id}/question/new?section_id=#{@section.id}"}
         phx-click={JS.push_focus()}
       >
-        <.button class="btn btn-outline"><.icon name="hero-plus"/>Legg til spørsmål</.button>
+        <.button class="btn btn-outline mt-2"><.icon name="hero-plus" />Legg til spørsmål</.button>
       </.link>
     </div>
     """
@@ -183,8 +201,6 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   def update(%{:new_answer => question_id}, socket) do
     counts = socket.assigns.answer_counts |> Map.update(question_id, 1, fn n -> n + 1 end)
-
-    dbg(counts)
 
     {:ok,
      socket

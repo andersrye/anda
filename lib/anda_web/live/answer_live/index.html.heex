@@ -1,4 +1,4 @@
-<Layouts.app show_header={@live_action != :edit} flash={@flash} current_scope={nil}>
+<Layouts.app show_header={@live_action != :edit} flash={@flash} current_scope={@current_scope}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb :if={@live_action == :view}>
@@ -13,11 +13,11 @@
     </.header>
 
     <div>
-      Navn
       <.form for={@name_form} id="name-form" phx-hook=".Test">
         <div class="flex items-center">
-          <div class="flex-1">
-            <.input type="text" field={@name_form[:name]} disabled={!@enabled} />
+          <div class="flex-grow"></div>
+          <div class="flex-base-50">
+            <.input type="text" label="Navn" field={@name_form[:name]} disabled={!@enabled} />
           </div>
           <div class="flex-none size-6 flex items-center">
             <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
@@ -27,40 +27,41 @@
         <button type="submit" class="hidden" disabled></button>
       </.form>
     </div>
-    <div id="sections" phx-update="stream" class="flex flex-col gap-6">
+    <div id="sections" class="flex flex-col gap-6">
       <div
-        :for={{id, section} <- @streams.sections}
-        id={id}
+        :for={{section, questions_with_answers} <- @sections}
         class="bg-base-100 p-6 drop-shadow-sm"
       >
-        <h2 class="text-xl font-semibold mb-4">{section.title}</h2>
+        <h2 class="text-xl font-bold mb-4">{section.title}</h2>
         <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
 
-        <div :for={question <- section.questions}>
-          <div class="text-base mb-2 font-medium">
-            {question.text}
-          </div>
-          <div
-            :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
-            class="flex mx-5 justify-center max-h-50"
-          >
-            <img class="object-contain" src={question.media_url} />
-          </div>
-          <div class="flex flex-col gap2">
-            <.live_component
-              :for={index <- 0..(question.num_answers - 1)}
-              module={AndaWeb.AnswerLive.QuestionComponent}
-              action={@live_action}
-              question={question}
-              answer={
-                Enum.find(@answers_by_question_id[question.id] || [], fn a -> a.index == index end)
+        <div class="divide-stone-300 divide-y-2 divide-dotted flex flex-col gap-3">
+          <div :for={{question, answers_by_index} <- questions_with_answers}>
+            <div class="text-lg mb-4 font-medium">
+              {question.text}
+            </div>
+            <div
+              :if={
+                !is_nil(question.media_url) && String.starts_with?(question.media_type, "image")
               }
-              submission={@submission}
-              quiz_id={@quiz.id}
-              enabled={@enabled}
-              index={index}
-              id={"question-#{question.id}-#{index}"}
-            />
+              class="flex mx-5 max-h-50"
+            >
+              <img class="object-contain" src={question.media_url} />
+            </div>
+            <div class="flex flex-col gap2 mb-8">
+              <.live_component
+                :for={index <- 0..(question.num_answers - 1)}
+                module={AndaWeb.AnswerLive.QuestionComponent}
+                action={@live_action}
+                question={question}
+                answer={Map.get(answers_by_index, index)}
+                submission={@submission}
+                quiz_id={@quiz.id}
+                enabled={@enabled}
+                index={index}
+                id={"question-#{question.id}-#{index}"}
+              />
+            </div>
           </div>
         </div>
       </div>

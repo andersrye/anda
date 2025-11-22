@@ -107,8 +107,6 @@ defmodule SimpleS3Upload do
   defp signing_key(%{} = config, %DateTime{} = expires_at, service) when service in ["s3"] do
     amz_date = short_date(expires_at)
     %{secret_access_key: secret, region: region} = config
-    dbg(config)
-    dbg(expires_at)
 
     ("AWS4" <> secret)
     |> sha256(amz_date)

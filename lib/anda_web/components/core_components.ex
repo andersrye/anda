@@ -392,8 +392,8 @@ defmodule AndaWeb.CoreComponents do
     <fieldset class="fieldset mb-2 w-full">
       <label>{@label}</label>
       <input type="hidden" name={@name} value="" />
-      <div class="grid grid-cols-3 gap-1 w-full">
-        <label :for={{label, value} <- @options} class="label text-base">
+      <div class="flex flex-row flex-wrap gap-3 w-full">
+        <label :for={{label, value} <- @options} class="label text-base min-w-35">
           <input
             type="radio"
             id={"#{@id}-#{@name}-#{value}"}
@@ -565,7 +565,7 @@ defmodule AndaWeb.CoreComponents do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8">
+        <h1 class="text-2xl font-semibold leading-8">
           {render_slot(@inner_block)}
         </h1>
         <p :if={@subtitle != []} class="text-sm text-base-content/70">
