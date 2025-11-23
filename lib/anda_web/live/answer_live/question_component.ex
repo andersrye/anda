@@ -110,6 +110,7 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
             phx-debounce="500"
             phx-value-index="1"
           />
+        <button type="submit" class="hidden" disabled></button>
         </.form>
         <div class="flex-shrink">
           <.score score={@answer.score} />
@@ -120,7 +121,7 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   end
 
   @impl true
-  def handle_event("submit", p, socket) when socket.assigns.action == :preview do
+  def handle_event("submit", _, socket) when socket.assigns.action == :preview do
     {:noreply, socket}
   end
 

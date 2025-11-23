@@ -30,7 +30,7 @@ defmodule AndaWeb.Router do
 
     scope "/quiz", AnswerLive do
       pipe_through :submission
-      live "/:quiz_id", Index, :edit
+      live "/:slug", Index, :edit
     end
 
     scope "/quiz/:quiz_id/leaderboard", LeaderboardLive do

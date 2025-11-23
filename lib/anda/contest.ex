@@ -57,6 +57,20 @@ defmodule Anda.Contest do
     Repo.all(query) |> Enum.at(0)
   end
 
+  def get_quiz_w_questions_by_slug(slug) do
+    query =
+      from quiz in Quiz,
+        where: quiz.slug == ^slug,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_join: q in Question,
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: q}],
+        order_by: [s.id, q.id]
+
+    Repo.all(query) |> Enum.at(0)
+  end
+
   def get_quiz_w_question_count(id) do
     query =
       from quiz in Quiz,
@@ -69,6 +83,10 @@ defmodule Anda.Contest do
         group_by: quiz.id
 
     Repo.all(query) |> Enum.at(0)
+  end
+
+  def get_quiz_id_from_slug(slug) do
+    Repo.one(from quiz in Quiz, select: quiz.id, where: quiz.slug == ^slug)
   end
 
   @doc """

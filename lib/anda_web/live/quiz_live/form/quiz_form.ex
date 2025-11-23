@@ -20,6 +20,10 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
       >
         <.input field={@form[:title]} type="text" label="Tittel" />
         <.input field={@form[:description]} type="text" label="Beskrivelse" />
+        <div class="join">
+          <div class="join-item text-sm mt-9 mr-1">{@base_url}</div>
+          <.input class="join-item input" field={@form[:slug]} type="text" label="Url" />
+        </div>
         <:actions>
           <.button phx-disable-with="Saving...">Lagre</.button>
         </:actions>
@@ -30,9 +34,12 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
 
   @impl true
   def update(%{quiz: quiz} = assigns, socket) do
+    base_url = URI.to_string(socket.host_uri) <> "/quiz/"
+
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(base_url: base_url)
      |> assign_new(:form, fn ->
        to_form(Contest.change_quiz(quiz))
      end)}
@@ -50,6 +57,7 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
 
   defp save_quiz(socket, :edit_quiz, quiz_params) do
     dbg(socket.assigns)
+
     case Contest.update_quiz(socket.assigns.quiz, quiz_params, socket.assigns.current_scope) do
       {:ok, quiz} ->
         notify_parent({:saved, quiz})

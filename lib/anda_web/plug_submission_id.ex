@@ -1,7 +1,9 @@
 defmodule SubmissionPlug do
+  alias Anda.Contest
   def init([]), do: false
 
-  def call(%{path_params: %{"quiz_id" => quiz_id}} = conn, _opts) do
+  def call(%{path_params: %{"slug" => slug}} = conn, _opts) do
+    quiz_id = Contest.get_quiz_id_from_slug(slug)
     submissions_map =
       Plug.Conn.fetch_cookies(conn, signed: ~w"submissions")
       |> Plug.Conn.get_cookies()

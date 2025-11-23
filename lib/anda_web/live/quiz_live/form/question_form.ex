@@ -10,8 +10,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
     ~H"""
     <div>
       <.header>
-        {@title}
-        <:subtitle>Spørsmål</:subtitle>
+        Spørsmål
       </.header>
 
       <.form

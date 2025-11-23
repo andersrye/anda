@@ -1,5 +1,4 @@
 defmodule AndaWeb.AnswerLive.Index do
-alias AndaWeb.Router
   use AndaWeb, :live_view
   alias AndaWeb.Endpoint
   alias Phoenix.PubSub
@@ -89,14 +88,14 @@ alias AndaWeb.Router
   end
 
   @impl true
-  def mount(%{"quiz_id" => quiz_id, "secret" => encoded_secret}, _session, socket)
+  def mount(%{"slug" => slug, "secret" => encoded_secret}, _session, socket)
       when socket.assigns.live_action == :edit do
     IO.puts("MOUNT secret")
-    quiz = Contest.get_quiz_w_questions(quiz_id)
+    quiz = Contest.get_quiz_w_questions_by_slug(slug)
 
     with {:ok, decoded_secret} <- verify_secret_url(encoded_secret),
          %Submission.Submission{} = submission <-
-           Submission.get_submission_by_secret(quiz_id, decoded_secret) do
+           Submission.get_submission_by_secret(quiz.id, decoded_secret) do
       answers = Submission.get_answers(submission.id)
       sections = sections_with_questions_with_answers(quiz.sections, answers)
       subscribe_to_updates(socket, quiz, submission)
@@ -128,14 +127,14 @@ alias AndaWeb.Router
   end
 
   @impl true
-  def mount(%{"quiz_id" => quiz_id}, session, socket) when socket.assigns.live_action == :edit do
-    quiz = Contest.get_quiz_w_questions(quiz_id)
-    secret = session |> Map.fetch!("submissions") |> Map.fetch!(quiz_id)
-    submission = Submission.get_submission_by_secret(quiz_id, secret)
+  def mount(%{"slug" => slug}, session, socket) when socket.assigns.live_action == :edit do
+    quiz = Contest.get_quiz_w_questions_by_slug(slug)
+    secret = session |> Map.fetch!("submissions") |> Map.fetch!(quiz.id)
+    submission = Submission.get_submission_by_secret(quiz.id, secret)
 
     submission =
       if submission == nil do
-        {:ok, new_submission} = Submission.create_submission(quiz_id, secret)
+        {:ok, new_submission} = Submission.create_submission(quiz.id, secret)
         new_submission
       else
         submission

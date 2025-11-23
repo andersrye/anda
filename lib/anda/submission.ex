@@ -9,9 +9,7 @@ defmodule Anda.Submission do
   alias Anda.Submission.Answer
 
   def create_submission(quiz_id, secret) do
-    id = String.to_integer(quiz_id)
-
-    %Submission{secret: secret, name: "", quiz_id: id}
+    %Submission{secret: secret, name: "", quiz_id: quiz_id}
     |> Submission.changeset(%{})
     |> Repo.insert()
   end
