@@ -45,27 +45,36 @@ defmodule AndaWeb.Layouts do
             Anders sin quizgreie
           </a>
         </div>
+
         <div class="flex-none">
-          <ul class="menu menu-horizontal w-full relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-            <%= if @current_scope do %>
-              <li>
-                {@current_scope.user.email}
-              </li>
-              <li>
-                <.link href={~p"/users/settings"}>Settings</.link>
-              </li>
-              <li>
-                <.link href={~p"/users/log-out"} method="delete">Log out</.link>
-              </li>
-            <% else %>
-              <li>
-                <.link href={~p"/users/register"}>Register</.link>
-              </li>
-              <li>
-                <.link href={~p"/users/log-in"}>Log in</.link>
-              </li>
-            <% end %>
-          </ul>
+          <details class="dropdown dropdown-end">
+            <summary class="btn m-1 btn-outline btn-square bg-base-200">
+              <.icon name="hero-user-circle" />
+            </summary>
+            <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100">
+              <div :if={@current_scope} class="text-sm p-3">
+                Logget inn som {@current_scope.user.email}
+              <hr class="h-px my-2 bg-neutral border-0"/>
+              </div>
+              <ul class="menu w-full">
+                <%= if @current_scope do %>
+                  <li>
+                    <.link href={~p"/users/settings"}>Kontoinnstillinger</.link>
+                  </li>
+                  <li>
+                    <.link href={~p"/users/log-out"} method="delete">Logg ut</.link>
+                  </li>
+                <% else %>
+                  <li>
+                    <.link href={~p"/users/register"}>Lag konto</.link>
+                  </li>
+                  <li>
+                    <.link href={~p"/users/log-in"}>Logg inn</.link>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </details>
         </div>
       </header>
 

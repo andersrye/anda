@@ -53,8 +53,8 @@ defmodule AndaWeb.QuizLive.Section do
               + {Enum.count(question.alternatives || []) - 6} til
             </span>
           </div>
-          <div>
-            <div class="pl-5 py-6 grid grid-cols-3 gap-2">
+          <div class="flex-shrink ml-5">
+            <div class=" py-6 grid grid-cols-1 md:grid-cols-3 gap-2">
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
                 phx-click={JS.push_focus()}

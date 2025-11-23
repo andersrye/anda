@@ -1,9 +1,16 @@
 defmodule AndaWeb.AnswerLive.Index do
+alias AndaWeb.Router
   use AndaWeb, :live_view
   alias AndaWeb.Endpoint
   alias Phoenix.PubSub
   alias Anda.Contest
   alias Anda.Submission
+
+  defp assign_defaults(assigns) do
+    assigns
+    |> assign(:show_copy_url, nil)
+    |> assign_new(:current_scope, fn -> nil end)
+  end
 
   defp secret_url(secret) do
     {:ok, uuid_bytes} = Ecto.UUID.dump(secret)
@@ -55,6 +62,7 @@ defmodule AndaWeb.AnswerLive.Index do
 
     {:ok,
      socket
+     |> assign_defaults()
      |> assign(:quiz, quiz)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
@@ -72,6 +80,7 @@ defmodule AndaWeb.AnswerLive.Index do
 
     {:ok,
      socket
+     |> assign_defaults()
      |> assign(:quiz, quiz)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
@@ -94,12 +103,12 @@ defmodule AndaWeb.AnswerLive.Index do
 
       {:ok,
        socket
+       |> assign_defaults()
        |> assign(:quiz, quiz)
        |> assign(:submission, submission)
        |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
        |> assign(:enabled, quiz.mode == "open")
-       |> assign(:sections, sections)
-       |> assign_new(:current_scope, fn -> nil end)}
+       |> assign(:sections, sections)}
     else
       # TODO: den feilhåndteringa her er rotete as...
       _ ->
@@ -108,12 +117,12 @@ defmodule AndaWeb.AnswerLive.Index do
 
         {:ok,
          socket
+         |> assign_defaults()
          |> assign(:quiz, quiz)
          |> assign(:submission, submission)
          |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
          |> assign(:enabled, false)
          |> assign(:sections, sections)
-         |> assign_new(:current_scope, fn -> nil end)
          |> put_flash(:error, "Oops, fant ikke besvarelsen!")}
     end
   end
@@ -123,6 +132,7 @@ defmodule AndaWeb.AnswerLive.Index do
     quiz = Contest.get_quiz_w_questions(quiz_id)
     secret = session |> Map.fetch!("submissions") |> Map.fetch!(quiz_id)
     submission = Submission.get_submission_by_secret(quiz_id, secret)
+
     submission =
       if submission == nil do
         {:ok, new_submission} = Submission.create_submission(quiz_id, secret)
@@ -139,14 +149,18 @@ defmodule AndaWeb.AnswerLive.Index do
 
     {:ok,
      socket
+     |> assign_defaults()
      |> assign(:quiz, quiz)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:enabled, quiz.mode in ["open"])
-     |> assign(:sections, sections)
-     |> assign_new(:current_scope, fn -> nil end)}
+     |> assign(:sections, sections)}
   end
 
+  @impl true
+  def handle_params(_, uri, socket) do
+    {:noreply, socket |> assign(current_uri: uri)}
+  end
 
   @impl true
   def handle_event("change_name", _, socket)
@@ -157,7 +171,6 @@ defmodule AndaWeb.AnswerLive.Index do
   @impl true
   def handle_event("change_name", %{"name" => name}, socket)
       when socket.assigns.live_action == :edit and socket.assigns.quiz.mode in ["open"] do
-
     case Submission.update_submission_name(socket.assigns.submission, name) do
       {:ok, submission} ->
         {:reply, %{hello: "world"},
@@ -171,12 +184,22 @@ defmodule AndaWeb.AnswerLive.Index do
     end
   end
 
+  def handle_event("show_url", _, socket) do
+    encoded_secret = secret_url(socket.assigns.submission.secret)
+    url = URI.parse(socket.assigns.current_uri) |> Map.put(:query, "secret=#{encoded_secret}") |> URI.to_string()
+    {:noreply, socket |> assign(:show_copy_url, url)}
+
+  end
+
+  def handle_event("hide_url", _, socket) do
+    {:noreply, socket |> assign(:show_copy_url, nil)}
+  end
+
   @impl true
   def handle_info(%{event: "quiz_updated", payload: quiz}, socket) do
     enabled = socket.assigns.live_action in [:edit, :preview] && quiz.mode in ["open"]
 
-    {:noreply,
-     socket |> assign(quiz: quiz, enabled: enabled)}
+    {:noreply, socket |> assign(quiz: quiz, enabled: enabled)}
   end
 
   @impl true

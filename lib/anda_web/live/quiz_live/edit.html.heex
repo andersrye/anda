@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb>{@quiz.title}</:breadcrumb>
-  <div class="flex gap-2">
+  <div class="flex gap-2 flex-wrap">
     <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>
       Besvarelser
     </.link>
@@ -15,7 +15,7 @@
       Åpne quiz <.icon name="hero-arrow-top-right-on-square" />
     </.link>
     <div class="flex-grow"></div>
-    <form phx-change="change_mode" class="join join-horizontal">
+    <form phx-change="change_mode" class="join join-horizontal z-0">
       <input
         type="radio"
         name="mode"

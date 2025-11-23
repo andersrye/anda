@@ -1,8 +1,15 @@
-<Layouts.app flash={@flash}>
-  <h1>Halla</h1>
-  <ul style="list-style: disc">
-    <li>
-      <.link href={~p"/admin"}>Sjekk dine greier</.link>
-    </li>
-  </ul>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="hero bg-base-200 ">
+    <div class="hero-content text-center">
+      <div class="max-w-md">
+        <h1 class="text-5xl font-bold">Hallois</h1>
+        <p class="py-6">
+          Her kan du lage din egen quiz. Hvis du heller ville delta på en quiz eller no sånt så er du på feil sted, sorry!
+        </p>
+        <.link href={~p"/admin"}>
+          <button class="btn btn-outline">Sett i gang</button>
+        </.link>
+      </div>
+    </div>
+  </div>
 </Layouts.app>

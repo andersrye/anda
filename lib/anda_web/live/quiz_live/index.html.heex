@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
     Dine quizer
     <:actions>
       <.link phx-click={JS.push("new")}>
-        <.button>Ny Quiz</.button>
+        <.button class="btn btn-outline">Ny Quiz</.button>
       </.link>
     </:actions>
   </.header>

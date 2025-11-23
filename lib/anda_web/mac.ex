@@ -17,10 +17,9 @@ defmodule Mac do
   end
 
   def decode(string) do
-    with {:ok, <<1, mac::binary-size(8), payload::binary>>} <- Base.url_decode64(string, padding: false) |> dbg(),
+    with {:ok, <<1, mac::binary-size(8), payload::binary>>} <-
+           Base.url_decode64(string, padding: false),
          {:ok, payload} <- verify_mac(payload, mac) do
-          dbg(mac)
-          dbg(payload)
       {:ok, payload}
     else
       {:error, msg} -> {:error, msg}
