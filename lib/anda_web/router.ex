@@ -28,9 +28,14 @@ defmodule AndaWeb.Router do
 
     # live "/quiz/new", QuizLive.Index, :new
 
-    scope "/quiz", AnswerLive do
-      pipe_through :submission
-      live "/:slug", Index, :edit
+    scope "/quiz" do
+      scope "/:slug" do
+        pipe_through :submission
+        live "/", AnswerLive.Index, :edit
+        live "/leaderboard/:tag_with_mac", LeaderboardLive.Index, :public
+        live "/leaderboard/:tag_with_mac/:name", AnswerLive.Index, :view_public
+
+      end
     end
 
     scope "/quiz/:quiz_id/leaderboard", LeaderboardLive do
@@ -43,6 +48,7 @@ defmodule AndaWeb.Router do
       live_session :quizmaster,
         on_mount: [{AndaWeb.UserAuth, :require_authenticated}] do
         live "/", QuizLive.Index
+
         scope "/quiz/:quiz_id" do
           live "/", QuizLive.Edit, :index
           live "/edit", QuizLive.Edit, :edit_quiz
@@ -52,12 +58,12 @@ defmodule AndaWeb.Router do
           live "/question/:question_id/score", QuizLive.Edit, :score_question
           live "/section/new", QuizLive.Edit, :new_section
           live "/section/:section_id/edit", QuizLive.Edit, :edit_section
-          live "/leaderboard", LeaderboardLive.Index, :index
+          live "/leaderboard", LeaderboardLive.Index, :private
+          live "/leaderboard/:submission_id", AnswerLive.Index, :view_leaderboard
           live "/submissions", SubmissionsLive.Index, :index
-          live "/submissions/:submission_id", AnswerLive.Index, :view
+          live "/submissions/:submission_id", AnswerLive.Index, :view_submissions
           live "/submissions/:submission_id/add-tag", SubmissionsLive.Index, :add_tag
           live "/preview", AnswerLive.Index, :preview
-
         end
       end
     end

@@ -43,6 +43,8 @@ defmodule Anda.Contest do
   """
   def get_quiz!(id), do: Repo.get!(Quiz, id)
 
+  def get_quiz_by_slug!(slug), do: Repo.get_by!(Quiz, slug: slug)
+
   def get_quiz_w_questions(id) do
     query =
       from quiz in Quiz,

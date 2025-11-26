@@ -22,6 +22,10 @@ defmodule Anda.Submission do
     Repo.get_by(Submission, secret: secret, quiz_id: quiz_id)
   end
 
+  def get_submission_by_name(quiz_id, name) do
+    Repo.get_by(Submission, name: name, quiz_id: quiz_id)
+  end
+
   def get_answers(submission_id) do
     Repo.all_by(Answer, submission_id: submission_id)
   end
@@ -159,7 +163,7 @@ defmodule Anda.Submission do
         where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        select: {s.id, s.name, coalesce(sum(a.score), 0)},
+        select: %{id: s.id, name: s.name, score: coalesce(sum(a.score), 0)},
         group_by: s.id,
         order_by: [desc: coalesce(sum(a.score), 0)]
 

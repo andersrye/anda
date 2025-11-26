@@ -70,7 +70,7 @@ defmodule AndaWeb.AnswerLive.Index do
   end
 
   def mount(%{"quiz_id" => quiz_id, "submission_id" => submission_id}, _session, socket)
-      when socket.assigns.live_action == :view do
+      when socket.assigns.live_action in [:view_submissions, :view_leaderboard] do
     quiz = Contest.get_quiz_w_questions(quiz_id)
     submission = Submission.get_submission(submission_id)
     answers = Submission.get_answers(submission.id)
@@ -124,6 +124,29 @@ defmodule AndaWeb.AnswerLive.Index do
          |> assign(:sections, sections)
          |> put_flash(:error, "Oops, fant ikke besvarelsen!")}
     end
+  end
+
+  @impl true
+  def mount(%{"slug" => slug, "name" => name}, _session, socket) when socket.assigns.live_action == :view_public do
+    quiz = Contest.get_quiz_w_questions_by_slug(slug)
+    dbg(name)
+    submission = Submission.get_submission_by_name(quiz.id, name)
+
+    dbg(submission)
+    answers = Submission.get_answers(submission.id)
+
+    sections = sections_with_questions_with_answers(quiz.sections, answers)
+
+    subscribe_to_updates(socket, quiz, submission)
+
+    {:ok,
+     socket
+     |> assign_defaults()
+     |> assign(:quiz, quiz)
+     |> assign(:submission, submission)
+     |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
+     |> assign(:enabled, false)
+     |> assign(:sections, sections)}
   end
 
   @impl true
@@ -185,7 +208,10 @@ defmodule AndaWeb.AnswerLive.Index do
 
   def handle_event("show_url", _, socket) do
     encoded_secret = secret_url(socket.assigns.submission.secret)
-    url = URI.parse(socket.assigns.current_uri) |> Map.put(:query, "secret=#{encoded_secret}") |> URI.to_string()
+    url = URI.parse(socket.assigns.current_uri)
+     |> Map.put(:path, ~p"/quiz/#{socket.assigns.quiz.slug}")
+     |> Map.put(:query, "secret=#{encoded_secret}")
+      |> URI.to_string()
     {:noreply, socket |> assign(:show_copy_url, url)}
 
   end

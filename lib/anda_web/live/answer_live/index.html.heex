@@ -1,10 +1,13 @@
-<Layouts.app show_header={@live_action != :edit} flash={@flash} current_scope={@current_scope}>
+<Layouts.app show_header={@live_action not in  [:edit, :view_public]} flash={@flash} current_scope={@current_scope}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
-  <:breadcrumb :if={@live_action == :view}>
+  <:breadcrumb :if={@live_action == :view_submissions}>
     <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>Besvarelser</.link>
   </:breadcrumb>
-  <:breadcrumb :if={@live_action == :view}>{@submission.name}</:breadcrumb>
+    <:breadcrumb :if={@live_action == :view_leaderboard}>
+    <.link navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}>Leaderboard</.link>
+  </:breadcrumb>
+  <:breadcrumb :if={@live_action in [:view_submissions, :view_leaderboard]}>{@submission.name}</:breadcrumb>
   <:breadcrumb :if={@live_action == :preview}>Forhåndsvisning</:breadcrumb>
   <div :if={@quiz.mode == "hidden" && @live_action in [:edit]}>Oops, her er det ikke noe!</div>
   <div :if={@quiz.mode in ["open", "closed"] || @live_action in [:preview]}>
@@ -15,7 +18,7 @@
         </.header>
       </div>
       <div class="flex-none">
-        <.button phx-click="show_url" class="btn btn-square">
+        <.button :if={@live_action in [:edit, :view_submissions, :view_leaderboard]} phx-click="show_url" class="btn btn-square">
           <.icon name="hero-link" />
         </.button>
       </div>

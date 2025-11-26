@@ -1,4 +1,4 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
+<Layouts.app show_header={@live_action == :private} flash={@flash} current_scope={@current_scope}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb>Leaderboard</:breadcrumb>
@@ -7,30 +7,82 @@
   </.header>
 
   <div>
-    <div class="flex justify-end mb-2">
-      <form phx-change="change_tag">
-        <select name="tag" class="select select-sm w-30">
-          <option value="" selected={@selected_tag == nil}>Alle</option>
-          <option :for={tag <- @tags} value={tag} selected={@selected_tag == tag}>{tag}</option>
-        </select>
-      </form>
+    <div :if={@live_action == :private} class="flex justify-end mb-2">
+      <div class="flex gap-2">
+        <form phx-change="change_tag">
+          <select :if={@tags != nil} name="tag" class="select select-sm w-30">
+            <option value="" selected={@selected_tag == nil}>Alle</option>
+            <option :for={tag <- @tags} value={tag} selected={@selected_tag == tag}>{tag}</option>
+          </select>
+        </form>
+        <.button phx-click="show_url" class="btn btn-square btn-sm">
+          <.icon name="hero-link" />
+        </.button>
+      </div>
     </div>
     <div class="card bg-base-100 shadow-sm">
       <table class="table">
+        <thead>
+          <tr>
+            <td></td>
+            <td>Navn</td>
+            <td>Poeng</td>
+          </tr>
+        </thead>
         <tbody>
-          <tr :for={{index, name, score} <- @leaderboard}>
+          <tr :for={item <- @leaderboard}>
             <td>
-              {index}
+              {item.index}
             </td>
             <td>
-              {name}
+              <.link
+                :if={@live_action == :public}
+                class="link"
+                navigate={~p"/quiz/#{@quiz.slug}/leaderboard/#{@tag_with_mac}/#{item.name}"}
+              >
+                {item.name}
+              </.link>
+              <.link
+                :if={@live_action == :private}
+                class="link"
+                navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard/#{item.id}"}
+              >
+                {item.name}
+              </.link>
             </td>
             <td>
-              {score}
+              {item.score}
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
+    <p class="text-md mb-10">
+      Åpen link til denne leaderboarden!
+    </p>
+    <div id="copy-input" class="join flex mr-10" phx-hook=".CopyInput">
+      <input type="text" readonly class="input join-item flex-grow" value={@show_copy_url} />
+
+      <.button class="join-item btn btn-square flex-none" data-tip="Kopiert!">
+        <.icon name="hero-square-2-stack" />
+      </.button>
+    </div>
+    <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
+  </.modal>
 </Layouts.app>
+<script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
+  export default {
+    mounted() {
+      const input = this.el.getElementsByTagName("input")[0]
+      const button = this.el.getElementsByTagName("button")[0]
+      input.addEventListener("focus", () => input.select())
+      button.addEventListener("click", () => {
+       navigator.clipboard.writeText(input.value)
+       button.classList.add("tooltip", "tooltip-open")
+      })
+    }
+  }
+</script>

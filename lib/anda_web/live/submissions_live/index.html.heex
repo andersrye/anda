@@ -30,7 +30,7 @@
       <tbody>
         <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
           <td>
-          <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}>
+          <.link class="link" navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}>
           <span :if={submission.name != ""}>{submission.name}</span>
           <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
             

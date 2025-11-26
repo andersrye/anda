@@ -11,6 +11,17 @@ defmodule Mac do
     end
   end
 
+  def add_mac(string) do
+    string <> "." <> Base.url_encode64(mac(string), padding: false)
+  end
+
+  def verify_added_mac(string) do
+    [encoded_mac | rest] = String.split(string, ".") |> Enum.reverse()
+    mac = Base.url_decode64!(encoded_mac, padding: false)
+    payload = Enum.join(rest, ".")
+    verify_mac(payload, mac)
+  end
+
   def encode(payload) do
     mac = mac(payload)
     Base.url_encode64(<<1>> <> mac <> payload, padding: false)
