@@ -51,12 +51,12 @@
       <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
     </.link>
   </div>
-  <div id="sections" phx-update="stream">
+  <div id="sections">
     <.live_component
-      :for={{id, section} <- @streams.sections}
+      :for={section <- @sections}
+      id={"section-#{section.id}"}
       module={AndaWeb.QuizLive.Section}
       class="mt-10"
-      id={id}
       section={section}
       quiz_id={@quiz.id}
       new_question={@live_action == :new_question && section.id == @section_id}

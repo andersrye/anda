@@ -7,6 +7,7 @@ defmodule Anda.Contest do
   """
 
   import Ecto.Query, warn: false
+  alias Ecto.Multi
   alias Anda.Submission.Answer
   alias Anda.Repo
 
@@ -54,7 +55,7 @@ defmodule Anda.Contest do
         left_join: q in Question,
         on: q.section_id == s.id,
         preload: [sections: {s, questions: q}],
-        order_by: [s.id, q.id]
+        order_by: [s.position, q.id]
 
     Repo.all(query) |> Enum.at(0)
   end
@@ -68,7 +69,7 @@ defmodule Anda.Contest do
         left_join: q in Question,
         on: q.section_id == s.id,
         preload: [sections: {s, questions: q}],
-        order_by: [s.id, q.id]
+        order_by: [s.position, q.id]
 
     Repo.all(query) |> Enum.at(0)
   end
@@ -282,7 +283,7 @@ defmodule Anda.Contest do
 
   """
   def list_sections(quiz_id) do
-    Repo.all(from s in Section, where: s.quiz_id == ^quiz_id, order_by: s.id)
+    Repo.all(from s in Section, where: s.quiz_id == ^quiz_id, order_by: s.position)
   end
 
   @doc """
@@ -314,9 +315,17 @@ defmodule Anda.Contest do
 
   """
   def create_section(attrs \\ %{}) do
-    %Section{}
-    |> Section.changeset(attrs)
-    |> Repo.insert()
+    # TODO: rydd opp, ta inn faste parametre, ikke attrs
+    Repo.transact(fn ->
+      quiz_id = Map.get(attrs, "quiz_id")
+      max = Repo.one(from s in Section, select: max(s.position), where: s.quiz_id == ^quiz_id)
+      position = if max, do: max + 1, else: 0
+      attrs = Map.put(attrs, "position", position)
+
+      %Section{}
+      |> Section.changeset(attrs)
+      |> Repo.insert()
+    end)
   end
 
   @doc """
@@ -364,5 +373,36 @@ defmodule Anda.Contest do
   """
   def change_section(%Section{} = section, attrs \\ %{}) do
     Section.changeset(section, attrs)
+  end
+
+  def move_section_by(%Section{} = section, offset) do
+    sections =
+      Repo.all(from s in Section, where: s.quiz_id == ^section.quiz_id, order_by: s.position)
+
+    current_index = Enum.find_index(sections, fn s -> s.id == section.id end)
+
+    new_index = max(0, min(Enum.count(sections) - 1, current_index + offset))
+
+    {:ok, res} =
+      sections
+      |> List.delete_at(current_index)
+      |> List.insert_at(new_index, section)
+      |> Enum.with_index()
+      |> Enum.reduce(Multi.new(), fn {s, i}, m ->
+        changeset = Section.changeset(s, %{"position" => i})
+        Multi.update(m, {:update, i}, changeset)
+      end)
+      |> Repo.transact()
+
+    changed = Map.values(res)
+    Endpoint.broadcast("quiz:#{section.quiz_id}:section", "section_updated", changed)
+  end
+
+  def move_section_up(%Section{} = section) do
+    move_section_by(section, -1)
+  end
+
+  def move_section_down(%Section{} = section) do
+    move_section_by(section, 1)
   end
 end

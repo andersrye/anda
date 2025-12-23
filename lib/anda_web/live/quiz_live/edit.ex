@@ -1,4 +1,5 @@
 defmodule AndaWeb.QuizLive.Edit do
+  alias AndaWeb.Endpoint
   use AndaWeb, :live_view
 
   alias Anda.Contest
@@ -9,13 +10,14 @@ defmodule AndaWeb.QuizLive.Edit do
   def mount(%{"quiz_id" => id}, _session, socket) do
     if connected?(socket) do
       PubSub.subscribe(Anda.PubSub, "quiz:#{id}:new_answer")
+      Endpoint.subscribe("quiz:#{id}:section")
     end
 
     {:ok,
      socket
      |> assign(:page_title, "Quiz")
      |> assign(:quiz, Contest.get_quiz!(id))
-     |> stream(:sections, Contest.list_sections(id))}
+     |> assign(:sections, Contest.list_sections(id))}
   end
 
   @impl true
@@ -68,6 +70,11 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
+  def handle_info(%{event: "section_updated", payload: sections}, socket) do
+    {:noreply, socket |> assign(:sections, sections)}
+  end
+
+  @impl true
   def handle_event("delete_question", %{"question_id" => question_id}, socket) do
     question = Contest.get_question!(question_id)
     Contest.delete_question(question)
@@ -82,8 +89,6 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_event("change_mode", %{"mode" => mode}, socket) do
-    dbg(mode)
-
     with {:ok, quiz} =
            Contest.update_quiz(
              socket.assigns.quiz,
@@ -93,7 +98,15 @@ defmodule AndaWeb.QuizLive.Edit do
       {:noreply,
        socket
        |> assign(quiz: quiz)
-       |> put_flash(:info, "Quizen er nå #{case mode do "hidden" -> "skjult"; "open" -> "åpen"; "closed" -> "stengt"; _ -> "??" end }!")}
+       |> put_flash(
+         :info,
+         "Quizen er nå #{case mode do
+           "hidden" -> "skjult"
+           "open" -> "åpen"
+           "closed" -> "stengt"
+           _ -> "??"
+         end}!"
+       )}
     else
       {:error, _} ->
         {:noreply,

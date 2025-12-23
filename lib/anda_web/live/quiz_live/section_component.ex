@@ -19,6 +19,9 @@ defmodule AndaWeb.QuizLive.Section do
         >
           <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
         </.link>
+          <.button class="btn btn-square btn-outline" phx-click="move_section_up" phx-value-section_id={@section.id} phx-target={@myself}><.icon name="hero-arrow-up" /></.button>
+          <.button class="btn btn-square btn-outline" phx-click="move_section_down" phx-value-section_id={@section.id} phx-target={@myself}><.icon name="hero-arrow-down" /></.button>
+
         <.link
           _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
           phx-click={JS.push_focus()}
@@ -162,6 +165,20 @@ defmodule AndaWeb.QuizLive.Section do
      socket
      |> assign(:delete_question, nil)
      |> stream_delete(:questions, question)}
+  end
+
+  @impl true
+  def handle_event("move_section_up", %{"section_id" => section_id}, socket) do
+    section = Contest.get_section!(section_id)
+    Contest.move_section_up(section)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("move_section_down", %{"section_id" => section_id}, socket) do
+    section = Contest.get_section!(section_id)
+    Contest.move_section_down(section)
+    {:noreply, socket}
   end
 
   @impl true
