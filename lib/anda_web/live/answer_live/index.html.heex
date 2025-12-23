@@ -17,14 +17,7 @@
           {@quiz.title}
         </.header>
       </div>
-      <div class="flex-none">
-        <.button :if={@live_action in [:edit, :view_submissions, :view_leaderboard]} phx-click="show_url" class="btn btn-square">
-          <.icon name="hero-link" />
-        </.button>
-      </div>
-    </div>
-
-    <div>
+      <div class="flex-none flex">
       <.form for={@name_form} id="name-form" phx-hook=".Test">
         <div class="flex items-center">
           <div class="flex-grow"></div>
@@ -38,7 +31,16 @@
         </div>
         <button type="submit" class="hidden" disabled></button>
       </.form>
+        <.button :if={@live_action in [:edit, :view_submissions, :view_leaderboard]} phx-click="show_url" class="btn btn-square mt-6">
+          <.icon name="hero-link" />
+        </.button>
+      </div>
     </div>
+    <p class="p-6">
+    {@quiz.description}
+     </p>
+
+   
     <div id="sections" class="flex flex-col gap-6">
       <div
         :for={{section, questions_with_answers} <- @sections}
