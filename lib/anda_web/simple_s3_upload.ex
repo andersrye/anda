@@ -43,6 +43,7 @@ defmodule SimpleS3Upload do
 
   """
   def sign_form_upload(config, bucket, opts) do
+    dbg(config)
     key = Keyword.fetch!(opts, :key)
     max_file_size = Keyword.fetch!(opts, :max_file_size)
     content_type = Keyword.fetch!(opts, :content_type)
@@ -105,9 +106,9 @@ defmodule SimpleS3Upload do
   end
 
   defp signing_key(%{} = config, %DateTime{} = expires_at, service) when service in ["s3"] do
+    dbg(config)
     amz_date = short_date(expires_at)
     %{secret_access_key: secret, region: region} = config
-
     ("AWS4" <> secret)
     |> sha256(amz_date)
     |> sha256(region)

@@ -27,28 +27,45 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
           <figure :if={Enum.count(@uploads.file.entries) == 1}>
             <.live_img_preview entry={Enum.at(@uploads.file.entries, 0)} />
           </figure>
+          <figure :if={Enum.count(@uploads.file.entries) == 0 && @question.media_url && !@remove_file}>
+            <img src={@question.media_url} />
+          </figure>
           <p :for={err <- upload_errors(@uploads.file)} class="alert alert-danger">
             {error_to_string(err)}
           </p>
-          <div class="mb-8">
+          <div class="mb-8 flex gap-2">
             <.live_file_input upload={@uploads.file} class="file-input" />
             <.button
-              :if={Enum.count(@uploads.file.entries) == 1}
-              type="button"
-              phx-click="cancel-upload"
-              phx-value-ref={Enum.at(@uploads.file.entries, 0).ref}
-              phx-target={@myself}
-              aria-label="cancel"
-            >
-              <.icon name="hero-x-mark" />
-            </.button>
+            :if={Enum.count(@uploads.file.entries) == 1 || (@question.media_url && !@remove_file)}
+            type="button"
+            phx-click="remove-file"
+            phx-target={@myself}
+            aria-label="Fjern fil"
+          >
+            <.icon name="hero-trash" /> Fjern fil
+          </.button>
           </div>
         </fieldset>
-        <.input field={@form[:type]} type="select" label="Svarformat" options={["Fritekst": "text", "Alternativer": "alternatives", "Tall": "number", "Fotballresultat": "football-score"]}/>
+        <.input
+          field={@form[:type]}
+          type="select"
+          label="Svarformat"
+          options={[
+            Fritekst: "text",
+            Alternativer: "alternatives",
+            Tall: "number",
+            Fotballresultat: "football-score"
+          ]}
+        />
 
-        <.input :if={@form[:type].value == "alternatives"} field={@form[:alternatives]} type="textarea" label="Alternativer" />
+        <.input
+          :if={@form[:type].value == "alternatives"}
+          field={@form[:alternatives]}
+          type="textarea"
+          label="Alternativer"
+        />
 
-        <.input field={@form[:num_answers]} type="number" label="Antall svar"/>
+        <.input field={@form[:num_answers]} type="number" label="Antall svar" />
         <div>
           <.button phx-disable-with="Saving...">Save</.button>
         </div>
@@ -103,6 +120,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
      |> assign(:question_form_data, form_params)
      |> assign_new(:form, fn -> to_form(form_params, as: "question") end)
      |> assign(:uploaded_files, [])
+     |> assign(:remove_file, false)
      |> allow_upload(:file,
        accept: ~w(.jpg .jpeg .png .mp4 .mp3),
        max_entries: 1,
@@ -113,7 +131,8 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp presign_upload(entry, socket) do
     uploads = socket.assigns.uploads
-    bucket = Application.get_env(:anda, :aws)[:bucket_name] #"anda-dev"
+    # "anda-dev"
+    bucket = Application.get_env(:anda, :aws)[:bucket_name]
     key = "public/#{Ecto.UUID.generate()}#{Path.extname(entry.client_name)}"
 
     config = %{
@@ -148,6 +167,19 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
     {:noreply, cancel_upload(socket, :file, ref)}
   end
 
+  def handle_event("remove-file", _, socket) do
+    uploaded_file = Enum.at(socket.assigns.uploads.file.entries, 0)
+
+    socket =
+      if uploaded_file do
+        cancel_upload(socket, :file, uploaded_file.ref)
+      else
+        socket
+      end
+
+    {:noreply, socket |> assign(:remove_file, true)}
+  end
+
   def handle_event("save", %{"question" => question_params}, socket) do
     uploaded_files =
       consume_uploaded_entries(socket, :file, fn %{url: url, key: key},
@@ -165,6 +197,15 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         if !is_nil(val), do: String.split(val, "\n") |> Enum.map(&String.trim/1), else: nil
       end)
       |> then(fn q ->
+        if(socket.assigns.remove_file) do
+          q
+          |> Map.put(:media_url, nil)
+          |> Map.put(:media_type, nil)
+        else
+          q
+        end
+      end)
+      |> then(fn q ->
         if(Enum.count(uploaded_files) == 1) do
           {media_url, media_type} = Enum.at(uploaded_files, 0)
 
@@ -176,7 +217,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         end
       end)
 
-    dbg(question_params)
+    # dbg(question_params)
 
     save_question(socket, socket.assigns.action, question_params)
   end
@@ -187,14 +228,11 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         notify_parent({:saved, question})
         socket.assigns.on_saved.(question)
 
-        dbg(question)
-
         {:noreply,
          socket
          |> put_flash(:info, "Question updated successfully")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        dbg(changeset)
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end

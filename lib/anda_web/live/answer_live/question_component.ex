@@ -146,7 +146,6 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
        )}
     else
       {:error, changeset} ->
-        dbg(changeset)
         {:noreply, socket |> assign(form: to_form(changeset, as: "answer"), saved: false)}
     end
   end
