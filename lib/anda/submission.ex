@@ -149,7 +149,6 @@ defmodule Anda.Submission do
       for {score, ids} <- scores do
         num_ids = Enum.count(ids)
         answers = from a in Answer, where: a.id in ^ids
-        dbg(answers)
         {^num_ids, _} = Repo.update_all(answers, set: [score: score])
       end
 
@@ -213,7 +212,7 @@ defmodule Anda.Submission do
     |> Repo.update()
   end
 
-  def get_all_tags() do
-    Repo.all(from s in Submission, select: fragment("unnest(?)", s.tags), distinct: true)
+  def get_all_tags(quiz_id) do
+    Repo.all(from s in Submission, select: fragment("unnest(?)", s.tags), distinct: true, where: s.quiz_id == ^quiz_id)
   end
 end

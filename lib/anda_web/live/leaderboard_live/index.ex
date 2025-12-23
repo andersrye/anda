@@ -1,10 +1,7 @@
 defmodule AndaWeb.LeaderboardLive.Index do
-  alias Anda.Contest
   use AndaWeb, :live_view
-
+  alias Anda.Contest
   alias Anda.Submission
-
-
 
   @impl true
   @spec mount(any(), any(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -38,7 +35,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
   def handle_params(%{"quiz_id" => quiz_id} = params, uri, socket)
       when socket.assigns.live_action == :private do
     quiz = Contest.get_quiz!(quiz_id)
-    tags = Submission.get_all_tags()
+    tags = Submission.get_all_tags(quiz_id)
     selected_tag = Map.get(params, "tag")
 
     leaderboard =

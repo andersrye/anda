@@ -16,7 +16,7 @@ defmodule AndaWeb.SubmissionsLive.Index do
     submissions = Submission.get_submissions(quiz_id)
     dbg(submissions)
     submission_id = Map.get(params, "submission_id")
-    tags = if socket.assigns.live_action == :add_tag, do: Submission.get_all_tags(), else: nil
+    tags = if socket.assigns.live_action == :add_tag, do: Submission.get_all_tags(quiz_id), else: nil
 
     {:noreply,
      socket
