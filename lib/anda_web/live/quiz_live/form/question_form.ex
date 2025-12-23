@@ -20,7 +20,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:text]} type="text" label="Spørsmål" />
+        <.input field={@form[:text]} type="textarea" label="Spørsmål" />
 
         <fieldset class="fieldset">
           <legend class="label mb-1">Bilde (valgfritt)</legend>

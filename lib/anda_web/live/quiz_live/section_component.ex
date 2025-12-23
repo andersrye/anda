@@ -8,26 +8,42 @@ defmodule AndaWeb.QuizLive.Section do
     ~H"""
     <div class={"#{@class} bg-base-100 p-6 drop-shadow-xs"} id={@id}>
       <div class="flex border-stone-300 border-b-2 pb-4 border-dotted">
-      <div class="flex-grow">
-        <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
-        <div>{@section.description}</div>
-      </div>
+        <div class="flex-grow">
+          <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
+          <div>{@section.description}</div>
+        </div>
         <div class="flex flex-row gap-2">
-        <.link
-          patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
-          phx-click={JS.push_focus()}
-        >
-          <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
-        </.link>
-          <.button class="btn btn-square btn-outline" phx-click="move_section_up" phx-value-section_id={@section.id} phx-target={@myself}><.icon name="hero-arrow-up" /></.button>
-          <.button class="btn btn-square btn-outline" phx-click="move_section_down" phx-value-section_id={@section.id} phx-target={@myself}><.icon name="hero-arrow-down" /></.button>
+          <.link
+            patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
+            phx-click={JS.push_focus()}
+          >
+            <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
+          </.link>
+          <.button
+            class="btn btn-square btn-outline"
+            phx-click="move_section_up"
+            phx-value-section_id={@section.id}
+            phx-target={@myself}
+          >
+            <.icon name="hero-arrow-up" />
+          </.button>
+          <.button
+            class="btn btn-square btn-outline"
+            phx-click="move_section_down"
+            phx-value-section_id={@section.id}
+            phx-target={@myself}
+          >
+            <.icon name="hero-arrow-down" />
+          </.button>
 
-        <.link
-          _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
-          phx-click={JS.push_focus()}
-        >
-          <.button class="btn btn-square btn-outline btn-error"><.icon name="hero-trash" /></.button>
-        </.link>
+          <.link
+            _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
+            phx-click={JS.push_focus()}
+          >
+            <.button class="btn btn-square btn-outline btn-error">
+              <.icon name="hero-trash" />
+            </.button>
+          </.link>
         </div>
       </div>
 
@@ -42,7 +58,7 @@ defmodule AndaWeb.QuizLive.Section do
           class="flex -divide-stone-300 -divide-x-2  divide-dotted"
         >
           <div class="flex-grow py-6">
-            {question.text}
+            <p class="whitespace-pre-line">{question.text}</p>
             <img
               :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
               src={question.media_url}
@@ -80,8 +96,6 @@ defmodule AndaWeb.QuizLive.Section do
                   <.icon name="hero-trash" />
                 </.button>
               </.link>
-
-
             </div>
           </div>
         </div>

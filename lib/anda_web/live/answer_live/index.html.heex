@@ -51,9 +51,7 @@
 
         <div class="divide-stone-300 divide-y-2 divide-dotted flex flex-col gap-3">
           <div :for={{question, answers_by_index} <- questions_with_answers}>
-            <div class="text-lg mb-4 font-medium">
-              {question.text}
-            </div>
+            <div class="text-lg mb-4 font-medium whitespace-pre-line">{question.text}</div>
             <div
               :if={
                 !is_nil(question.media_url) && String.starts_with?(question.media_type, "image")
