@@ -46,7 +46,7 @@
         :for={{section, questions_with_answers} <- @sections}
         class="bg-base-100 p-6 drop-shadow-sm"
       >
-        <h2 class="text-xl font-bold mb-4">{section.title}</h2>
+        <h2 id={"section_#{section.id}"} class="text-xl font-bold mb-4">{section.title}</h2>
         <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
 
         <div class="divide-stone-300 divide-y-2 divide-dotted flex flex-col gap-3">
@@ -92,6 +92,18 @@
       <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
     </.modal>
   </div>
+  <details class="fixed top-5 right-5 dropdown dropdown-end ">
+            <summary class="btn m-1 btn-outline btn-square bg-base-200">
+              <.icon name="hero-list-bullet" />
+            </summary>
+            <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
+              <ul class="menu w-full">
+                  <li :for={{section, _} <- @sections}>
+                    <.link href={"#section_#{section.id}"}>{section.title}</.link>
+                  </li>
+              </ul>
+            </div>
+          </details>
 </Layouts.app>
 <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
   export default {

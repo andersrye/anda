@@ -32,7 +32,8 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_info({Form.SectionForm, {:saved, section}}, socket) do
-    {:noreply, stream_insert(socket, :sections, section)}
+    sections = socket.assigns.sections ++ [section]
+    {:noreply, assign(socket, :sections, sections)}
   end
 
   @impl true

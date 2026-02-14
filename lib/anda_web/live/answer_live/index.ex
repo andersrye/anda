@@ -211,6 +211,7 @@ defmodule AndaWeb.AnswerLive.Index do
     url = URI.parse(socket.assigns.current_uri)
      |> Map.put(:path, ~p"/quiz/#{socket.assigns.quiz.slug}")
      |> Map.put(:query, "secret=#{encoded_secret}")
+     |> Map.put(:fragment, nil)
       |> URI.to_string()
     {:noreply, socket |> assign(:show_copy_url, url)}
 
