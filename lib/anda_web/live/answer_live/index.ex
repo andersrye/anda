@@ -1,9 +1,11 @@
 defmodule AndaWeb.AnswerLive.Index do
   use AndaWeb, :live_view
+  use Phoenix.Component
   alias AndaWeb.Endpoint
   alias Phoenix.PubSub
   alias Anda.Contest
   alias Anda.Submission
+  import AndaWeb.AnswerLive.InputComponents
 
   defp assign_defaults(assigns) do
     assigns
@@ -127,7 +129,8 @@ defmodule AndaWeb.AnswerLive.Index do
   end
 
   @impl true
-  def mount(%{"slug" => slug, "name" => name}, _session, socket) when socket.assigns.live_action == :view_public do
+  def mount(%{"slug" => slug, "name" => name}, _session, socket)
+      when socket.assigns.live_action == :view_public do
     quiz = Contest.get_quiz_w_questions_by_slug(slug)
     dbg(name)
     submission = Submission.get_submission_by_name(quiz.id, name)
@@ -195,26 +198,28 @@ defmodule AndaWeb.AnswerLive.Index do
       when socket.assigns.live_action == :edit and socket.assigns.quiz.mode in ["open"] do
     case Submission.update_submission_name(socket.assigns.submission, name) do
       {:ok, submission} ->
-        {:reply, %{hello: "world"},
+        {:reply, %{success: true},
          socket
          |> assign(:submission, submission)
          |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
          |> assign(:saved, Ecto.UUID.generate())}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, name_form: to_form(changeset))}
+        {:reply, %{success: false}, assign(socket, name_form: to_form(changeset))}
     end
   end
 
   def handle_event("show_url", _, socket) do
     encoded_secret = secret_url(socket.assigns.submission.secret)
-    url = URI.parse(socket.assigns.current_uri)
-     |> Map.put(:path, ~p"/quiz/#{socket.assigns.quiz.slug}")
-     |> Map.put(:query, "secret=#{encoded_secret}")
-     |> Map.put(:fragment, nil)
-      |> URI.to_string()
-    {:noreply, socket |> assign(:show_copy_url, url)}
 
+    url =
+      URI.parse(socket.assigns.current_uri)
+      |> Map.put(:path, ~p"/quiz/#{socket.assigns.quiz.slug}")
+      |> Map.put(:query, "secret=#{encoded_secret}")
+      |> Map.put(:fragment, nil)
+      |> URI.to_string()
+
+    {:noreply, socket |> assign(:show_copy_url, url)}
   end
 
   def handle_event("hide_url", _, socket) do

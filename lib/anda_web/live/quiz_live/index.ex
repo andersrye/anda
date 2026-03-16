@@ -27,8 +27,7 @@ defmodule AndaWeb.QuizLive.Index do
     case Contest.create_quiz(%{title: "Ny quiz", mode: "hidden", slug: rand_slug}, socket.assigns.current_scope) do
        {:ok, %{id: id}} ->
         {:noreply, redirect(socket, to: ~p"/admin/quiz/#{id}")}
-       {:error, %Ecto.Changeset{} = changeset} ->
-        dbg(changeset)
+       {:error, %Ecto.Changeset{}} ->
         {:noreply, put_flash(socket, :error, "Oj sorry, det virka ikke.")}
        end
   end

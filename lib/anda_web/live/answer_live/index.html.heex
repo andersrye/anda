@@ -1,109 +1,127 @@
-<Layouts.app show_header={@live_action not in  [:edit, :view_public]} flash={@flash} current_scope={@current_scope}>
+<Layouts.app
+  show_header={@live_action not in [:edit, :view_public]}
+  flash={@flash}
+  current_scope={@current_scope}
+>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb :if={@live_action == :view_submissions}>
     <.link navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>Besvarelser</.link>
   </:breadcrumb>
-    <:breadcrumb :if={@live_action == :view_leaderboard}>
+  <:breadcrumb :if={@live_action == :view_leaderboard}>
     <.link navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}>Leaderboard</.link>
   </:breadcrumb>
-  <:breadcrumb :if={@live_action in [:view_submissions, :view_leaderboard]}>{@submission.name}</:breadcrumb>
+  <:breadcrumb :if={@live_action in [:view_submissions, :view_leaderboard]}>
+    {@submission.name}
+  </:breadcrumb>
   <:breadcrumb :if={@live_action == :preview}>Forhåndsvisning</:breadcrumb>
+
   <div :if={@quiz.mode == "hidden" && @live_action in [:edit]}>Oops, her er det ikke noe!</div>
+
   <div :if={@quiz.mode in ["open", "closed"] || @live_action in [:preview]}>
-    <div class="flex">
-      <div class="flex-grow">
-        <.header>
-          {@quiz.title}
-        </.header>
-      </div>
-      <div class="flex-none flex">
-      <.form for={@name_form} id="name-form" phx-hook=".Test">
-        <div class="flex items-center">
-          <div class="flex-grow"></div>
-          <div class="flex-base-50">
-            <.input type="text" label="Navn" field={@name_form[:name]} disabled={!@enabled} />
-          </div>
-          <div class="flex-none size-6 flex items-center">
-            <span class="loading loading-spinner size-6 flex-none hidden m-2"></span>
-            <.icon name="hero-check-circle" class="loading-done size-6 m-2 flex-none hidden" />
-          </div>
-        </div>
-        <button type="submit" class="hidden" disabled></button>
-      </.form>
-        <.button :if={@live_action in [:edit, :view_submissions, :view_leaderboard]} phx-click="show_url" class="btn btn-square mt-6">
+    <div class="flex flex-col">
+      <div class="sticky top-3 flex z-9 self-end">
+        <.button
+          :if={@live_action in [:edit, :view_submissions, :view_leaderboard]}
+          phx-click="show_url"
+          class="btn m-1 btn-square btn-outline  bg-base-200"
+        >
           <.icon name="hero-link" />
         </.button>
+        <details class=" dropdown dropdown-end ">
+          <summary class="btn m-1 btn-square btn-outline bg-base-200">
+            <.icon name="hero-numbered-list" />
+          </summary>
+          <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
+            <ul class="menu w-full">
+              <li :for={{section, _} <- @sections}>
+                <.link href={"#section_#{section.id}"}>{section.title}</.link>
+              </li>
+            </ul>
+          </div>
+        </details>
       </div>
-    </div>
-    <p class="p-6">
-    {@quiz.description}
-     </p>
-
-   
-    <div id="sections" class="flex flex-col gap-6">
-      <div
-        :for={{section, questions_with_answers} <- @sections}
-        class="bg-base-100 p-6 drop-shadow-sm"
-      >
-        <h2 id={"section_#{section.id}"} class="text-xl font-bold mb-4">{section.title}</h2>
-        <p :if={section.description != ""} class="text-md mb-4">{section.description}</p>
-
-        <div class="divide-stone-300 divide-y-2 divide-dotted flex flex-col gap-3">
-          <div :for={{question, answers_by_index} <- questions_with_answers}>
-            <div class="text-lg mb-4 font-medium whitespace-pre-line">{question.text}</div>
-            <div
-              :if={
-                !is_nil(question.media_url) && String.starts_with?(question.media_type, "image")
-              }
-              class="flex mx-5 max-h-50"
-            >
-              <img class="object-contain" src={question.media_url} />
+      <div class="flex flex-wrap mb-4">
+        <div class="flex-grow mt-6 mb-10">
+          <.header>
+            {@quiz.title}
+          </.header>
+        </div>
+        <div class="flex-none flex justify- self-end h-fit">
+          <.form for={@name_form} id="name-form" class="h-fit">
+            <div class="flex items-center">
+              <div class="flex-grow"></div>
+              <div class="flex-base-50">
+                <.name_input id="name-input" field={@name_form[:name]} disabled={!@enabled}/>
+              </div>
             </div>
-            <div class="flex flex-col gap2 mb-8">
-              <.live_component
-                :for={index <- 0..(question.num_answers - 1)}
-                module={AndaWeb.AnswerLive.QuestionComponent}
-                action={@live_action}
-                question={question}
-                answer={Map.get(answers_by_index, index)}
-                submission={@submission}
-                quiz_id={@quiz.id}
-                enabled={@enabled}
-                index={index}
-                id={"question-#{question.id}-#{index}"}
-              />
+            <button type="submit" class="hidden" disabled></button>
+          </.form>
+        </div>
+      </div>
+      <p :if={@quiz.description} class="py-6">
+        {@quiz.description}
+      </p>
+
+      <div id="sections" class="flex flex-col gap-8">
+        <div
+          :for={{section, questions_with_answers} <- @sections}
+          class="card bg-base-100 shadow-sm"
+        >
+          <div class="border-b-(--color-base-300) border-b-2 border-dotted">
+            <h2 id={"section_#{section.id}"} class="text-xl font-bold p-6">{section.title}</h2>
+            <p :if={section.description} class="text-md pb-4">
+              {section.description}
+            </p>
+          </div>
+          <div class="divide-(--color-base-300) divide-y-2 divide-dotted flex flex-col">
+            <div :for={{question, answers_by_index} <- questions_with_answers} class=" px-3 lg:px-6 py-6 lg:py-8">
+              <div class="text-lg mb-4 font-medium whitespace-pre-line">{question.text}</div>
+              <div
+                :if={
+                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "image")
+                }
+                class="flex my-5 justify-start"
+              >
+                <img class="object-contain max-h-64" src={question.media_url} />
+              </div>
+              <div class="flex flex-col gap2">
+                <.live_component
+                  :for={index <- 0..(question.num_answers - 1)}
+                  module={AndaWeb.AnswerLive.QuestionComponent}
+                  action={@live_action}
+                  question={question}
+                  answer={Map.get(answers_by_index, index)}
+                  submission={@submission}
+                  quiz_id={@quiz.id}
+                  enabled={@enabled}
+                  index={index}
+                  id={"question-#{question.id}-#{index}"}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
-      <p class="text-md mb-10">
-        Alle med denne linken kan endre denne besvarelsen. Bruk den til å fortsette utfyllingen fra en annen enhet, eller bokmerk den hvis du ikke stoler på cookies.
-      </p>
-      <div id="copy-input" class="join flex mr-10" phx-hook=".CopyInput">
-        <input type="text" readonly class="input join-item flex-grow" value={@show_copy_url} />
+      <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
+        <.header>Permanent lenke</.header>
+        <p class="text-md mb-4">
+          Med denne lenken kan du alltid komme tilbake til denne besvarelsen.
+        </p>
+        <p class="text-md mb-10">
+          Bruk den til å fortsette utfyllingen fra en annen enhet, eller bokmerk den så du er sikker på å ikke miste den.
+        </p>
+        <div id="copy-input" class="join flex mr-10" phx-hook=".CopyInput">
+          <input type="text" readonly class="input join-item flex-grow" value={@show_copy_url} />
 
-        <.button class="join-item btn btn-square flex-none" data-tip="Kopiert!">
-          <.icon name="hero-square-2-stack" />
-        </.button>
-      </div>
-      <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
-    </.modal>
+          <.button class="join-item btn btn-square flex-none" data-tip="Kopiert!">
+            <.icon name="hero-square-2-stack" />
+          </.button>
+        </div>
+        <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
+      </.modal>
+    </div>
   </div>
-  <details class="fixed top-5 right-5 dropdown dropdown-end ">
-            <summary class="btn m-1 btn-outline btn-square bg-base-200">
-              <.icon name="hero-list-bullet" />
-            </summary>
-            <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
-              <ul class="menu w-full">
-                  <li :for={{section, _} <- @sections}>
-                    <.link href={"#section_#{section.id}"}>{section.title}</.link>
-                  </li>
-              </ul>
-            </div>
-          </details>
 </Layouts.app>
 <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
   export default {
@@ -114,31 +132,6 @@
       button.addEventListener("click", () => {
        navigator.clipboard.writeText(input.value)
        button.classList.add("tooltip", "tooltip-open")
-      })
-    }
-  }
-</script>
-<script :type={Phoenix.LiveView.ColocatedHook} name=".Test">
-  let eventHandler
-  export default {
-    mounted() {
-      const input = this.el.getElementsByTagName("input")[0]
-      const loadingIcon = this.el.getElementsByClassName("loading")[0]
-      const loadingDone = this.el.getElementsByClassName("loading-done")[0]
-      let timer
-      input.addEventListener("input", e => {
-        loadingIcon.classList.remove('hidden')
-        loadingDone.classList.add('hidden')
-        clearTimeout(timer)
-        timer = setTimeout(()=> {
-          this.pushEvent("change_name", {"name": input.value}, (...args) => {
-            loadingIcon.classList.add('hidden')
-            loadingDone.classList.remove('hidden')
-            loadingDone.classList.add('fade-out') 
-
-            console.log('reply', ...args)
-          })
-        }, 600)
       })
     }
   }

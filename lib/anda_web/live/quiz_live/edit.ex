@@ -21,6 +21,7 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
+  @spec handle_params(any(), any(), any()) :: {:noreply, any()}
   def handle_params(params, _, socket) do
     parsed_params =
       for {k, v} when k in ["quiz_id", "section_id", "question_id"] <- params, into: %{} do

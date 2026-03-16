@@ -39,7 +39,7 @@ defmodule AndaWeb.Layouts do
   def app(assigns) do
     ~H"""
     <div class="main-container flex flex-col font-serif">
-      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8 drop-shadow-xs bg-base-300">
+      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8 shadow-sm z-10">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             Anders sin quizgreie
@@ -79,12 +79,12 @@ defmodule AndaWeb.Layouts do
       </header>
 
       <main class="px-4 pb-20 sm:px-6 lg:px-8 bg-base-200 flex-grow">
-        <div class="pt-4 pb-12 breadcrumbs text-sm">
-          <ul :if={@breadcrumb != [] && @show_header}>
+        <div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
+          <ul>
             <li :for={item <- @breadcrumb}>{render_slot(item)}</li>
           </ul>
         </div>
-        <div class="mx-auto max-w-3xl space-y-4">
+        <div class="mx-auto max-w-2xl space-y-4">
           {render_slot(@inner_block)}
         </div>
       </main>

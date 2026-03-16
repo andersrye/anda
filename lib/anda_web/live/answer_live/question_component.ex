@@ -2,6 +2,7 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   alias Anda.Submission.Answer
   use AndaWeb, :live_component
   alias Anda.Submission
+  import AndaWeb.AnswerLive.InputComponents
 
   defp score(assigns) do
     ~H"""
@@ -21,8 +22,6 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
 
   @impl true
   def update(%{answer_updated: answer}, socket) do
-    IO.puts "UPDATE answer_updated "
-
     changeset = Answer.changeset(answer)
 
     {:ok,
@@ -31,19 +30,19 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
      |> assign(:form, to_form(changeset, as: "answer"))}
   end
 
- @impl true
- def update(assigns, socket) do
-   answer =
-     assigns.answer || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
+  @impl true
+  def update(assigns, socket) do
+    answer =
+      assigns.answer || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
 
-   changeset = Answer.changeset(answer)
+    changeset = Answer.changeset(answer)
 
-   {:ok,
-    socket
-    |> assign(assigns)
-    |> assign(answer: answer)
-    |> assign_new(:saved, fn -> false end)
-    |> assign_new(:form, fn -> to_form(changeset, as: "answer") end)}
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(answer: answer)
+     |> assign_new(:saved, fn -> false end)
+     |> assign_new(:form, fn -> to_form(changeset, as: "answer") end)}
   end
 
   # @impl true
@@ -80,27 +79,39 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
           for={@form}
           phx-target={@myself}
           class="flex-grow"
-          phx-change="submit"
+          _phx-change="submit"
         >
-          <.input
+          <.radio_input
             :if={@question.type == "alternatives" && Enum.count(@question.alternatives || []) <= 6}
             id={"input-#{@id}"}
             field={@form[:text]}
             type="radiogroup"
+            class="max-w-3xs"
             disabled={!@enabled}
-            options={for a <- @question.alternatives || [], do: {a, a}}
+            options={@question.alternatives}
+            phx-target={@myself}
           />
-          <.input
+          <.select_input
             :if={@question.type == "alternatives" && Enum.count(@question.alternatives || []) > 6}
             id={"input-#{@id}"}
             class="max-w-3xs"
             field={@form[:text]}
             type="select"
             disabled={!@enabled}
-            options={for a <- @question.alternatives || [], do: {a, a}}
-            prompt="Velg"
+            phx-target={@myself}
+            options={@question.alternatives}
+            prompt="Velg et svar"
           />
-          <.input
+          <.text_input
+            :if={@question.type != "alternatives"}
+            id={"input-#{@id}"}
+            class="max-w-3xs"
+            disabled={!@enabled}
+            field={@form[:text]}
+            phx-target={@myself}
+            placeholder="Skriv et svar"
+          />
+          <!--<.input
             :if={@question.type != "alternatives"}
             id={"input-#{@id}"}
             type="text"
@@ -110,9 +121,10 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
             phx-debounce="500"
             phx-value-index="1"
           />
-        <button type="submit" class="hidden" disabled></button>
+          <.saved :if={@saved} id={"saved-#{@id}"} class="saved" />-->
+          <button type="submit" class="hidden" disabled></button>
         </.form>
-        <div class="flex-shrink">
+        <div class="flex-shrink mt-2 ml-1">
           <.score score={@answer.score} />
         </div>
       </div>
@@ -137,7 +149,7 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
            ) do
       changeset = Answer.changeset(answer)
 
-      {:noreply,
+      {:reply, %{success: true},
        socket
        |> assign(
          form: to_form(changeset, as: "answer"),
@@ -146,7 +158,12 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
        )}
     else
       {:error, changeset} ->
-        {:noreply, socket |> assign(form: to_form(changeset, as: "answer"), saved: false)}
+        {:reply, %{success: false},
+         socket
+         |> assign(
+           form: to_form(changeset, as: "answer"),
+           saved: false
+         )}
     end
   end
 end

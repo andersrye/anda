@@ -6,7 +6,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={"#{@class} bg-base-100 p-6 drop-shadow-xs"} id={@id}>
+    <div class={"#{@class} bg-base-100 p-6 card shadow-sm"} id={@id}>
       <div class="flex border-stone-300 border-b-2 pb-4 border-dotted">
         <div class="flex-grow">
           <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
@@ -61,6 +61,7 @@ defmodule AndaWeb.QuizLive.Section do
             <p class="whitespace-pre-line">{question.text}</p>
             <img
               :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
+              class="max-h-64 my-5"
               src={question.media_url}
             />
             <ul :if={!is_nil(question.alternatives)} class="list-disc ml-5">

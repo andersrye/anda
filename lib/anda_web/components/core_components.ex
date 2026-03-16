@@ -105,7 +105,7 @@ defmodule AndaWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-base">
+      <div class=" space-y-8 bg-base">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           {render_slot(action, f)}
@@ -156,7 +156,7 @@ defmodule AndaWeb.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-screen max-w-3xl p-2 md:p-4 lg:py-8">
+          <div class="w-screen max-w-2xl p-2 md:p-4 lg:py-8">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -538,6 +538,7 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
+  attr :class, :string, default: ""
   def saved(assigns) do
     ~H"""
     <p class={"mt-1.5 flex gap-2 items-center text-sm text-success fade-out #{@class}"}>
