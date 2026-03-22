@@ -23,12 +23,12 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         <.input field={@form[:text]} type="textarea" label="Spørsmål" />
 
         <fieldset class="fieldset">
-          <legend class="label mb-1">Bilde (valgfritt)</legend>
+          <legend class="label mb-1">Bilde/Lyd/Video (valgfritt)</legend>
           <figure :if={Enum.count(@uploads.file.entries) == 1}>
-            <.live_img_preview entry={Enum.at(@uploads.file.entries, 0)} />
+            <.live_img_preview entry={Enum.at(@uploads.file.entries, 0)}  class="max-h-50"/>
           </figure>
           <figure :if={Enum.count(@uploads.file.entries) == 0 && @question.media_url && !@remove_file}>
-            <img src={@question.media_url} />
+            <img src={@question.media_url} class="max-h-50"/>
           </figure>
           <p :for={err <- upload_errors(@uploads.file)} class="alert alert-danger">
             {error_to_string(err)}
@@ -67,7 +67,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
         <.input field={@form[:num_answers]} type="number" label="Antall svar" />
         <div>
-          <.button phx-disable-with="Saving...">Save</.button>
+          <.button phx-disable-with="Lagrer...">Lagre</.button>
         </div>
       </.form>
     </div>
@@ -102,7 +102,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
   def update(assigns, socket) do
     question =
       if assigns.action == :edit do
-        Contest.get_question!(assigns.question_id)
+        Contest.get_question!(assigns.question_id, assigns.current_scope)
       else
         %Question{
           section_id: assigns.section_id,
@@ -125,7 +125,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
        accept: ~w(.jpg .jpeg .png .mp4 .mp3),
        max_entries: 1,
        external: &presign_upload/2,
-       type: "text"
+       max_file_size: 8_000_000
      )}
   end
 
@@ -217,8 +217,6 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
         end
       end)
 
-    # dbg(question_params)
-
     save_question(socket, socket.assigns.action, question_params)
   end
 
@@ -242,7 +240,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
       question_params
       |> Map.put(:section_id, socket.assigns.section_id)
 
-    case Contest.create_question(question) do
+    case Contest.create_question(question, socket.assigns.current_scope) do
       {:ok, question} ->
         notify_parent({:saved, question})
         socket.assigns.on_saved.(question)

@@ -127,7 +127,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   @spec handle_event(any(), any(), any()) :: {:noreply, any()}
   def handle_event("edit_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id)
+    question = Contest.get_question!(id, socket.assigns.current_scope)
 
     {:noreply,
      socket
@@ -138,7 +138,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   @spec handle_event(any(), any(), any()) :: {:noreply, any()}
   def handle_event("score_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id)
+    question = Contest.get_question!(id, socket.assigns.current_scope)
 
     {:noreply,
      socket
@@ -149,7 +149,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   @spec handle_event(any(), any(), any()) :: {:noreply, any()}
   def handle_event("delete_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id)
+    question = Contest.get_question!(id, socket.assigns.current_scope)
 
     {:noreply,
      socket
@@ -174,6 +174,7 @@ defmodule AndaWeb.QuizLive.Section do
   @impl true
   def handle_event("confirm_delete", _value, socket) do
     question = socket.assigns.delete_question
+    dbg(question)
     _res = Contest.delete_question(question)
 
     {:noreply,
@@ -184,27 +185,25 @@ defmodule AndaWeb.QuizLive.Section do
 
   @impl true
   def handle_event("move_section_up", %{"section_id" => section_id}, socket) do
-    section = Contest.get_section!(section_id)
+    section = Contest.get_section!(section_id, socket.assigns.current_scope)
     Contest.move_section_up(section)
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("move_section_down", %{"section_id" => section_id}, socket) do
-    section = Contest.get_section!(section_id)
+    section = Contest.get_section!(section_id, socket.assigns.current_scope)
     Contest.move_section_down(section)
     {:noreply, socket}
   end
 
   @impl true
   def update(%{:section => section} = assigns, socket) do
-    questions = Contest.list_questions(section.id)
+    questions = Contest.list_questions(section.id, assigns.current_scope)
 
     answer_counts =
       Contest.answer_counts(section.id)
       |> Enum.reduce(%{}, fn v, acc -> Map.put(acc, v.question_id, v.count) end)
-
-    dbg(answer_counts)
 
     {:ok,
      socket
@@ -238,6 +237,6 @@ defmodule AndaWeb.QuizLive.Section do
      socket
      |> assign(:answer_counts, counts)
      # TODO: sukk!
-     |> stream_insert(:questions, Contest.get_question!(question_id))}
+     |> stream_insert(:questions, Contest.get_question!(question_id, socket.assigns.current_scope))}
   end
 end

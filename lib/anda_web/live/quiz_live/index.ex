@@ -15,7 +15,7 @@ defmodule AndaWeb.QuizLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    quiz = Contest.get_quiz!(id)
+    quiz = Contest.get_quiz!(id, socket.assigns.current_scope)
     {:ok, _} = Contest.delete_quiz(quiz, socket.assigns.current_scope)
 
     {:noreply, stream_delete(socket, :quiz_collection, quiz)}

@@ -28,18 +28,7 @@
         >
           <.icon name="hero-link" />
         </.button>
-        <details class=" dropdown dropdown-end ">
-          <summary class="btn m-1 btn-square btn-outline bg-base-200">
-            <.icon name="hero-numbered-list" />
-          </summary>
-          <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
-            <ul class="menu w-full">
-              <li :for={{section, _} <- @sections}>
-                <.link href={"#section_#{section.id}"}>{section.title}</.link>
-              </li>
-            </ul>
-          </div>
-        </details>
+        <.section_menu sections={@sections}/>
       </div>
       <div class="flex flex-wrap mb-4">
         <div class="flex-grow mt-6 mb-10">
@@ -52,7 +41,7 @@
             <div class="flex items-center">
               <div class="flex-grow"></div>
               <div class="flex-base-50">
-                <.name_input id="name-input" field={@name_form[:name]} disabled={!@enabled}/>
+                <.name_input id="name-input" field={@name_form[:name]} disabled={!@enabled} />
               </div>
             </div>
             <button type="submit" class="hidden" disabled></button>
@@ -70,12 +59,15 @@
         >
           <div class="border-b-(--color-base-300) border-b-2 border-dotted">
             <h2 id={"section_#{section.id}"} class="text-xl font-bold p-6">{section.title}</h2>
-            <p :if={section.description} class="text-md pb-4">
+            <p :if={section.description} class="text-md pb-4 px-6">
               {section.description}
             </p>
           </div>
           <div class="divide-(--color-base-300) divide-y-2 divide-dotted flex flex-col">
-            <div :for={{question, answers_by_index} <- questions_with_answers} class=" px-3 lg:px-6 py-6 lg:py-8">
+            <div
+              :for={{question, answers_by_index} <- questions_with_answers}
+              class=" px-3 lg:px-6 py-6 lg:py-8"
+            >
               <div class="text-lg mb-4 font-medium whitespace-pre-line">{question.text}</div>
               <div
                 :if={
@@ -84,6 +76,24 @@
                 class="flex my-5 justify-start"
               >
                 <img class="object-contain max-h-64" src={question.media_url} />
+              </div>
+              <div
+                :if={
+                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "audio")
+                }
+                class="flex my-5 justify-start"
+              >
+                <audio controls src={question.media_url} />
+              </div>
+              <div
+                :if={
+                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "video")
+                }
+                class="flex my-5 justify-start"
+              >
+                <video controls>
+                  <source src={question.media_url} type={question.media_type} />
+                </video>
               </div>
               <div class="flex flex-col gap2">
                 <.live_component
@@ -106,7 +116,7 @@
       <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
         <.header>Permanent lenke</.header>
         <p class="text-md mb-4">
-          Med denne lenken kan du alltid komme tilbake til denne besvarelsen.
+          Med denne lenken kan du redigere denne besvarelsen.
         </p>
         <p class="text-md mb-10">
           Bruk den til å fortsette utfyllingen fra en annen enhet, eller bokmerk den så du er sikker på å ikke miste den.

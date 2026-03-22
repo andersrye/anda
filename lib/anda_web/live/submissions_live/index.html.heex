@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-<:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
-<:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
-<:breadcrumb>Besvarelser</:breadcrumb>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
+  <:breadcrumb>Besvarelser</:breadcrumb>
   <.header>
     Besvarelser
   </.header>
@@ -30,18 +30,21 @@
       <tbody>
         <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
           <td>
-          <.link class="link" navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}>
-          <span :if={submission.name != ""}>{submission.name}</span>
-          <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
-            
+            <.link
+              class="link"
+              navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}
+            >
+              <span :if={submission.name != ""}>{submission.name}</span>
+              <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
             </.link>
           </td>
           <td>
-          {trunc(submission.num_answers/@quiz.question_count*100)}%
-            
+            {trunc(submission.num_answers / @quiz.question_count * 100)}%
           </td>
           <td>
-          {if submission.num_answers > 0, do: trunc(submission.num_scored/submission.num_answers*100), else: 0}%
+            {if submission.num_answers > 0,
+              do: trunc(submission.num_scored / submission.num_answers * 100),
+              else: 0}%
           </td>
           <td class="">
             <div class="flex flex-wrap gap-1 ">
@@ -52,7 +55,7 @@
                         do:
                           {t, RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
                 }
-                class="badge badge-primary pr-0"
+                class="badge badge-sm badge-primary pr-0 text-black"
                 style={"--badge-color: #{color}; --btn-color: #{color}"}
               >
                 {tag}

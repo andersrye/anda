@@ -1,10 +1,11 @@
-defmodule AndaWeb.AnswerLive.InputComponents do
+defmodule AndaWeb.AnswerLive.AnswerComponents do
   use Phoenix.Component
   use AndaWeb, :html
 
   attr :field, Phoenix.HTML.FormField
   attr :id, :string
   attr :class, :string, default: ""
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step id class)
@@ -144,6 +145,7 @@ defmodule AndaWeb.AnswerLive.InputComponents do
   attr :field, Phoenix.HTML.FormField
   attr :id, :string
   attr :class, :string, default: ""
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step id class)
@@ -182,6 +184,44 @@ defmodule AndaWeb.AnswerLive.InputComponents do
               })
             }, 600)
           })
+        }
+      }
+    </script>
+    """
+  end
+
+  def section_menu(assigns) do
+    ~H"""
+    <details id="section-menu" class="dropdown dropdown-end" phx-hook=".SectionMenu">
+      <summary class="btn m-1 btn-square btn-outline bg-base-200">
+        <.icon name="hero-numbered-list" />
+      </summary>
+      <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
+        <p class="text-sm px-5 pt-3 font-bold">Gå til...</p>
+        <ul class="menu w-full">
+          <li :for={{section, _} <- @sections}>
+            <.link href="" data-section={"section_#{section.id}"}>{section.title}</.link>
+          </li>
+        </ul>
+      </div>
+    </details>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".SectionMenu">
+          export default {
+        mounted() {
+          const details = this.el
+          const links = this.el.getElementsByTagName('a')
+          console.log('links', links)
+          for(const link of links) {
+            link.addEventListener('click', e => {
+              e.preventDefault()
+              const section = e.target.getAttribute("data-section")
+              const el = document.getElementById(section)
+              console.log(section, el)
+              el?.scrollIntoView(true)
+              console.log('e.target', )
+              details.open=false
+            })
+          }
         }
       }
     </script>

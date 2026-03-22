@@ -12,9 +12,8 @@ defmodule AndaWeb.SubmissionsLive.Index do
 
   @impl true
   def handle_params(%{"quiz_id" => quiz_id} = params, _uri, socket) do
-    quiz = Contest.get_quiz_w_question_count(quiz_id)
+    quiz = Contest.get_quiz_w_question_count(quiz_id, socket.assigns.current_scope)
     submissions = Submission.get_submissions(quiz_id)
-    dbg(submissions)
     submission_id = Map.get(params, "submission_id")
     tags = if socket.assigns.live_action == :add_tag, do: Submission.get_all_tags(quiz_id), else: nil
 

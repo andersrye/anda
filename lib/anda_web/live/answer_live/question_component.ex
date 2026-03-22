@@ -2,7 +2,7 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
   alias Anda.Submission.Answer
   use AndaWeb, :live_component
   alias Anda.Submission
-  import AndaWeb.AnswerLive.InputComponents
+  import AndaWeb.AnswerLive.AnswerComponents
 
   defp score(assigns) do
     ~H"""
@@ -111,17 +111,6 @@ defmodule AndaWeb.AnswerLive.QuestionComponent do
             phx-target={@myself}
             placeholder="Skriv et svar"
           />
-          <!--<.input
-            :if={@question.type != "alternatives"}
-            id={"input-#{@id}"}
-            type="text"
-            class={["max-w-3xs", @saved && "input-success"]}
-            disabled={!@enabled}
-            field={@form[:text]}
-            phx-debounce="500"
-            phx-value-index="1"
-          />
-          <.saved :if={@saved} id={"saved-#{@id}"} class="saved" />-->
           <button type="submit" class="hidden" disabled></button>
         </.form>
         <div class="flex-shrink mt-2 ml-1">

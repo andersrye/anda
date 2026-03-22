@@ -32,7 +32,7 @@ alias Anda.Contest.Section
   @impl true
   def update(assigns, socket) do
     section = if assigns.action == :edit_section do
-      Contest.get_section!(assigns.section_id)
+      Contest.get_section!(assigns.section_id, socket.assigns.current_scope)
     else
       %Section{quiz_id: assigns.quiz.id}
     end
@@ -75,7 +75,7 @@ alias Anda.Contest.Section
 
   defp save_section(socket, :new_section, section_params) do
     section = Map.put(section_params, "quiz_id", socket.assigns.quiz.id)
-    case Contest.create_section(section) do
+    case Contest.create_section(section, socket.assigns.current_scope) do
       {:ok, section} ->
         notify_parent({:saved, section})
 

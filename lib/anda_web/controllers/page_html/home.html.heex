@@ -2,13 +2,25 @@
   <div class="hero bg-base-200 ">
     <div class="hero-content text-center">
       <div class="max-w-md">
-        <h1 class="text-5xl font-bold">Hallois</h1>
-        <p class="py-6">
-          Her kan du lage din egen quiz. Hvis du heller ville delta på en quiz eller no sånt så er du på feil sted, sorry!
-        </p>
-        <.link href={~p"/admin"}>
-          <button class="btn btn-outline">Sett i gang</button>
-        </.link>
+        <h1 class="text-5xl font-bold">Hallo!</h1>
+        <%= if @current_scope do %>
+          <p class="py-6">
+            Her kan du lage din egen quiz.
+          </p>
+          <.link href={~p"/admin"}>
+            <button class="btn btn-primary">Mine quizer</button>
+          </.link>
+        <% else %>
+          <p class="py-6">
+            Her kan du lage din egen quiz, men du trenger en konto først.
+          </p>
+          <.link href={~p"/users/log-in"}>
+            <button class="btn btn-primary">Logg inn</button>
+          </.link>
+          <.link href={~p"/users/register"}>
+            <button class="btn btn-primary ml-4">Lag konto</button>
+          </.link>
+        <% end %>
       </div>
     </div>
   </div>

@@ -20,7 +20,7 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
           <span class="text-sm">Hvor mange poeng? </span>
           <.input type="number" field={@form[:points]} class="max-w-20" />
         </label>
-        <.button phx-disable-with="Saving...">Save</.button>
+        <.button phx-disable-with="Lagrer...">Lagre</.button>
       </.form>
     </div>
     """
@@ -30,10 +30,9 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
   @spec update(maybe_improper_list() | map(), any()) :: {:ok, map()}
   def update(assigns, socket) do
     id = assigns.question_id
-    question = Contest.get_question!(id)
+    question = Contest.get_question!(id, assigns.current_scope)
 
     unique_answers = Submission.get_all_unique_answers2(id)
-    dbg(unique_answers)
 
     options =
       unique_answers
@@ -68,7 +67,7 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
 
   @impl true
   def handle_event("validate", unsigned_params, socket) do
-    dbg(unsigned_params)
+    #dbg(unsigned_params)
     {:noreply, socket}
   end
 

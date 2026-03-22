@@ -14,8 +14,8 @@ defmodule Anda.Submission do
     |> Repo.insert()
   end
 
-  def get_submission(submission_id) do
-    Repo.get(Submission, submission_id)
+  def get_submission(quiz_id, submission_id) do
+    Repo.get_by(Submission, id: submission_id, quiz_id: quiz_id)
   end
 
   def get_submission_by_secret(quiz_id, secret) do

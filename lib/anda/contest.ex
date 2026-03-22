@@ -1,55 +1,32 @@
 defmodule Anda.Contest do
+  import Ecto.Query, warn: false
   alias AndaWeb.Endpoint
   alias Anda.Accounts.Scope
-
-  @moduledoc """
-  The Contest context.
-  """
-
-  import Ecto.Query, warn: false
   alias Ecto.Multi
   alias Anda.Submission.Answer
   alias Anda.Repo
-
   alias Anda.Contest.Quiz
   alias Anda.Contest.Section
   alias Anda.Contest.Question
 
-  @doc """
-  Returns the list of quiz.
+  ### QUIZ ###
 
-  ## Examples
-
-      iex> list_quiz()
-      [%Quiz{}, ...]
-
-  """
   def list_quiz(%Scope{} = scope) do
     Repo.all(from quiz in Quiz, where: quiz.user_id == ^scope.user.id)
   end
 
-  @doc """
-  Gets a single quiz.
+  def get_quiz!(id, %Scope{} = scope) do
+    Repo.get_by!(Quiz, id: id, user_id: scope.user.id)
+  end
 
-  Raises `Ecto.NoResultsError` if the Quiz does not exist.
+  def get_quiz_by_slug!(slug) do
+    Repo.get_by!(Quiz, slug: slug)
+  end
 
-  ## Examples
-
-      iex> get_quiz!(123)
-      %Quiz{}
-
-      iex> get_quiz!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_quiz!(id), do: Repo.get!(Quiz, id)
-
-  def get_quiz_by_slug!(slug), do: Repo.get_by!(Quiz, slug: slug)
-
-  def get_quiz_w_questions(id) do
+  def get_quiz_w_questions(id, %Scope{} = scope) do
     query =
       from quiz in Quiz,
-        where: quiz.id == ^id,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
         left_join: s in Section,
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
@@ -74,10 +51,10 @@ defmodule Anda.Contest do
     Repo.all(query) |> Enum.at(0)
   end
 
-  def get_quiz_w_question_count(id) do
+  def get_quiz_w_question_count(id, %Scope{} = scope) do
     query =
       from quiz in Quiz,
-        where: quiz.id == ^id,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
         left_join: s in Section,
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
@@ -92,36 +69,12 @@ defmodule Anda.Contest do
     Repo.one(from quiz in Quiz, select: quiz.id, where: quiz.slug == ^slug)
   end
 
-  @doc """
-  Creates a quiz.
-
-  ## Examples
-
-      iex> create_quiz(%{field: value})
-      {:ok, %Quiz{}}
-
-      iex> create_quiz(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def create_quiz(attrs \\ %{}, %Scope{} = scope) do
     %Quiz{user_id: scope.user.id}
     |> Quiz.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a quiz.
-
-  ## Examples
-
-      iex> update_quiz(quiz, %{field: new_value})
-      {:ok, %Quiz{}}
-
-      iex> update_quiz(quiz, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_quiz(%Quiz{} = quiz, attrs, %Scope{} = scope) do
     if quiz.user_id != scope.user.id, do: raise("Forbidden!")
 
@@ -134,48 +87,29 @@ defmodule Anda.Contest do
     end
   end
 
-  @doc """
-  Deletes a quiz.
-
-  ## Examples
-
-      iex> delete_quiz(quiz)
-      {:ok, %Quiz{}}
-
-      iex> delete_quiz(quiz)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_quiz(%Quiz{} = quiz, %Scope{} = scope) do
     # TODO!
     if quiz.user_id != scope.user.id, do: raise("Forbidden!")
     Repo.delete(quiz)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking quiz changes.
-
-  ## Examples
-
-      iex> change_quiz(quiz)
-      %Ecto.Changeset{data: %Quiz{}}
-
-  """
   def change_quiz(%Quiz{} = quiz, attrs \\ %{}) do
     Quiz.changeset(quiz, attrs)
   end
 
-  @doc """
-  Returns the list of questions.
+  ### QUESTIONS ###
 
-  ## Examples
+  def list_questions(section_id, %Scope{} = scope) do
+    query =
+      from q in Question,
+        select: q,
+        join: s in Section,
+        on: s.id == q.section_id,
+        join: quiz in Quiz,
+        on: quiz.id == s.quiz_id,
+        where: q.section_id == ^section_id and quiz.user_id == ^scope.user.id
 
-      iex> list_questions()
-      [%Question{}, ...]
-
-  """
-  def list_questions(section_id) do
-    Repo.all(from q in Question, where: q.section_id == ^section_id, order_by: q.id)
+    Repo.all(query)
   end
 
   def answer_counts(section_id) do
@@ -190,134 +124,74 @@ defmodule Anda.Contest do
     Repo.all(query)
   end
 
-  @doc """
-  Gets a single question.
+  def get_question!(id, %Scope{} = scope) do
+    query =
+      from q in Question,
+        select: q,
+        join: s in Section,
+        on: s.id == q.section_id,
+        join: quiz in Quiz,
+        on: quiz.id == s.quiz_id,
+        where: q.id == ^id and quiz.user_id == ^scope.user.id
 
-  Raises `Ecto.NoResultsError` if the Question does not exist.
+    Repo.one!(query)
+  end
 
-  ## Examples
+  def create_question(attrs \\ %{}, %Scope{} = scope) do
+    # sjekk om section tilhører riktig scope
+    get_section!(attrs.section_id, %Scope{} = scope)
 
-      iex> get_question!(123)
-      %Question{}
-
-      iex> get_question!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_question!(id), do: Repo.get!(Question, id)
-
-  @doc """
-  Creates a question.
-
-  ## Examples
-
-      iex> create_question(%{field: value})
-      {:ok, %Question{}}
-
-      iex> create_question(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_question(attrs \\ %{}) do
     %Question{}
     |> Question.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a question.
-
-  ## Examples
-
-      iex> update_question(question, %{field: new_value})
-      {:ok, %Question{}}
-
-      iex> update_question(question, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_question(%Question{} = question, attrs) do
     question
     |> Question.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a question.
-
-  ## Examples
-
-      iex> delete_question(question)
-      {:ok, %Question{}}
-
-      iex> delete_question(question)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_question(%Question{} = question) do
     Repo.delete(question)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking question changes.
-
-  ## Examples
-
-      iex> change_question(question)
-      %Ecto.Changeset{data: %Question{}}
-
-  """
   def change_question(%Question{} = question, attrs \\ %{}) do
     Question.changeset(question, attrs)
   end
 
-  alias Anda.Contest.Section
+  ### SECTIONS ###
 
-  @doc """
-  Returns the list of sections.
+  def list_sections(quiz_id, %Scope{} = scope) do
+    query =
+      from s in Section,
+        select: s,
+        join: quiz in Quiz,
+        on: quiz.id == s.quiz_id,
+        where: s.quiz_id == ^quiz_id and quiz.user_id == ^scope.user.id,
+        order_by: s.position
 
-  ## Examples
-
-      iex> list_sections()
-      [%Section{}, ...]
-
-  """
-  def list_sections(quiz_id) do
-    Repo.all(from s in Section, where: s.quiz_id == ^quiz_id, order_by: s.position)
+    Repo.all(query)
   end
 
-  @doc """
-  Gets a single section.
+  def get_section!(id, %Scope{} = scope) do
+    query =
+      from s in Section,
+        select: s,
+        join: quiz in Quiz,
+        on: quiz.id == s.quiz_id,
+        where: s.id == ^id and quiz.user_id == ^scope.user.id
 
-  Raises `Ecto.NoResultsError` if the Section does not exist.
+    Repo.one!(query)
+  end
 
-  ## Examples
 
-      iex> get_section!(123)
-      %Section{}
-
-      iex> get_section!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_section!(id), do: Repo.get!(Section, id)
-
-  @doc """
-  Creates a section.
-
-  ## Examples
-
-      iex> create_section(%{field: value})
-      {:ok, %Section{}}
-
-      iex> create_section(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_section(attrs \\ %{}) do
+  def create_section(attrs \\ %{}, %Scope{} = scope) do
     # TODO: rydd opp, ta inn faste parametre, ikke attrs
     Repo.transact(fn ->
       quiz_id = Map.get(attrs, "quiz_id")
+      #sjekk om quiz tilhører scope
+      get_quiz!(quiz_id, scope)
       max = Repo.one(from s in Section, select: max(s.position), where: s.quiz_id == ^quiz_id)
       position = if max, do: max + 1, else: 0
       attrs = Map.put(attrs, "position", position)
@@ -328,49 +202,16 @@ defmodule Anda.Contest do
     end)
   end
 
-  @doc """
-  Updates a section.
-
-  ## Examples
-
-      iex> update_section(section, %{field: new_value})
-      {:ok, %Section{}}
-
-      iex> update_section(section, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_section(%Section{} = section, attrs) do
     section
     |> Section.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a section.
-
-  ## Examples
-
-      iex> delete_section(section)
-      {:ok, %Section{}}
-
-      iex> delete_section(section)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_section(%Section{} = section) do
     Repo.delete(section)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking section changes.
-
-  ## Examples
-
-      iex> change_section(section)
-      %Ecto.Changeset{data: %Section{}}
-
-  """
   def change_section(%Section{} = section, attrs \\ %{}) do
     Section.changeset(section, attrs)
   end

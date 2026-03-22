@@ -5,7 +5,7 @@ defmodule AndaWeb.AnswerLive.Index do
   alias Phoenix.PubSub
   alias Anda.Contest
   alias Anda.Submission
-  import AndaWeb.AnswerLive.InputComponents
+  import AndaWeb.AnswerLive.AnswerComponents
 
   defp assign_defaults(assigns) do
     assigns
@@ -54,9 +54,10 @@ defmodule AndaWeb.AnswerLive.Index do
     end
   end
 
+  # edit -> forhåndsvisning
   def mount(%{"quiz_id" => quiz_id}, _session, socket)
       when socket.assigns.live_action == :preview do
-    quiz = Contest.get_quiz_w_questions(quiz_id)
+    quiz = Contest.get_quiz_w_questions(quiz_id, socket.assigns.current_scope)
     sections = sections_with_questions_with_answers(quiz.sections)
     subscribe_to_updates(socket, quiz)
     submission = %Submission.Submission{answers: []}
@@ -71,10 +72,11 @@ defmodule AndaWeb.AnswerLive.Index do
      |> assign(:sections, sections)}
   end
 
+  # edit -> vis besvarelse
   def mount(%{"quiz_id" => quiz_id, "submission_id" => submission_id}, _session, socket)
       when socket.assigns.live_action in [:view_submissions, :view_leaderboard] do
-    quiz = Contest.get_quiz_w_questions(quiz_id)
-    submission = Submission.get_submission(submission_id)
+    quiz = Contest.get_quiz_w_questions(quiz_id, socket.assigns.current_scope)
+    submission = Submission.get_submission(quiz_id, submission_id)
     answers = Submission.get_answers(submission.id)
     sections = sections_with_questions_with_answers(quiz.sections, answers)
     subscribe_to_updates(socket, quiz)
@@ -89,10 +91,10 @@ defmodule AndaWeb.AnswerLive.Index do
      |> assign(:sections, sections)}
   end
 
+  # innsending via secret
   @impl true
   def mount(%{"slug" => slug, "secret" => encoded_secret}, _session, socket)
       when socket.assigns.live_action == :edit do
-    IO.puts("MOUNT secret")
     quiz = Contest.get_quiz_w_questions_by_slug(slug)
 
     with {:ok, decoded_secret} <- verify_secret_url(encoded_secret),
@@ -106,6 +108,7 @@ defmodule AndaWeb.AnswerLive.Index do
        socket
        |> assign_defaults()
        |> assign(:quiz, quiz)
+       |> assign(:page_title, quiz.title)
        |> assign(:submission, submission)
        |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
        |> assign(:enabled, quiz.mode == "open")
@@ -120,6 +123,7 @@ defmodule AndaWeb.AnswerLive.Index do
          socket
          |> assign_defaults()
          |> assign(:quiz, quiz)
+         |> assign(:page_title, quiz.title)
          |> assign(:submission, submission)
          |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
          |> assign(:enabled, false)
@@ -128,16 +132,13 @@ defmodule AndaWeb.AnswerLive.Index do
     end
   end
 
+  # se annens innsending
   @impl true
   def mount(%{"slug" => slug, "name" => name}, _session, socket)
       when socket.assigns.live_action == :view_public do
     quiz = Contest.get_quiz_w_questions_by_slug(slug)
-    dbg(name)
     submission = Submission.get_submission_by_name(quiz.id, name)
-
-    dbg(submission)
     answers = Submission.get_answers(submission.id)
-
     sections = sections_with_questions_with_answers(quiz.sections, answers)
 
     subscribe_to_updates(socket, quiz, submission)
@@ -146,12 +147,14 @@ defmodule AndaWeb.AnswerLive.Index do
      socket
      |> assign_defaults()
      |> assign(:quiz, quiz)
+     |> assign(:page_title, quiz.title)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:enabled, false)
      |> assign(:sections, sections)}
   end
 
+  #innsending via cookie
   @impl true
   def mount(%{"slug" => slug}, session, socket) when socket.assigns.live_action == :edit do
     quiz = Contest.get_quiz_w_questions_by_slug(slug)
@@ -176,6 +179,7 @@ defmodule AndaWeb.AnswerLive.Index do
      socket
      |> assign_defaults()
      |> assign(:quiz, quiz)
+     |> assign(:page_title, quiz.title)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:enabled, quiz.mode in ["open"])

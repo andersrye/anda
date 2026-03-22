@@ -34,9 +34,8 @@ defmodule Anda.Submission.Answer do
     |> validate_format(:text, regex, message: "Skriv inn typ \"1-0\"")
     |> update_change(:text, fn ans ->
       match = Regex.run(regex, ans)
-      dbg(match)
       if match do
-        match |> Enum.drop(1) |> Enum.join("-") |> dbg()
+        match |> Enum.drop(1) |> Enum.join("-")
       else
         ans
       end

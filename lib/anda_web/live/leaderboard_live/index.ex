@@ -34,7 +34,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
   @impl true
   def handle_params(%{"quiz_id" => quiz_id} = params, uri, socket)
       when socket.assigns.live_action == :private do
-    quiz = Contest.get_quiz!(quiz_id)
+    quiz = Contest.get_quiz!(quiz_id, socket.assigns.current_scope)
     tags = Submission.get_all_tags(quiz_id)
     selected_tag = Map.get(params, "tag")
 

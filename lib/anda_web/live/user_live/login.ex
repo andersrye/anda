@@ -10,16 +10,16 @@ defmodule AndaWeb.UserLive.Login do
       <div class="mx-auto max-w-sm space-y-4">
         <div class="text-center">
           <.header>
-            <p>Log in</p>
+            <p>Logg inn</p>
             <:subtitle>
               <%= if @current_scope do %>
                 You need to reauthenticate to perform sensitive actions on your account.
               <% else %>
-                Don't have an account? <.link
+                Har du ikke en konto? <.link
                   navigate={~p"/users/register"}
                   class="font-semibold text-brand hover:underline"
                   phx-no-format
-                >Sign up</.link> for an account now.
+                >Registrer deg her</.link>.
               <% end %>
             </:subtitle>
           </.header>
@@ -52,11 +52,11 @@ defmodule AndaWeb.UserLive.Login do
             phx-mounted={JS.focus()}
           />
           <.button class="btn btn-primary w-full">
-            Log in with email <span aria-hidden="true">→</span>
+            Logg inn med e-post <span aria-hidden="true">→</span>
           </.button>
         </.form>
 
-        <div class="divider">or</div>
+        <div class="divider">eller</div>
 
         <.form
           :let={f}
@@ -70,22 +70,22 @@ defmodule AndaWeb.UserLive.Login do
             readonly={!!@current_scope}
             field={f[:email]}
             type="email"
-            label="Email"
+            label="E-post"
             autocomplete="username"
             required
           />
           <.input
             field={@form[:password]}
             type="password"
-            label="Password"
+            label="Passord"
             autocomplete="current-password"
           />
           <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
-            Log in and stay logged in <span aria-hidden="true">→</span>
+            Logg inn med passord <span aria-hidden="true">→</span>
           </.button>
-          <.button class="btn btn-primary btn-soft w-full mt-2">
+          <!--<.button class="btn btn-primary btn-soft w-full mt-2">
             Log in only this time
-          </.button>
+          </.button>-->
         </.form>
       </div>
     </Layouts.app>
@@ -116,12 +116,9 @@ defmodule AndaWeb.UserLive.Login do
       )
     end
 
-    info =
-      "If your email is in our system, you will receive instructions for logging in shortly."
-
     {:noreply,
      socket
-     |> put_flash(:info, info)
+     |> put_flash(:info, "Hvis e-posten din er registrert så får du en epost som lar deg logge inn straks")
      |> push_navigate(to: ~p"/users/log-in")}
   end
 

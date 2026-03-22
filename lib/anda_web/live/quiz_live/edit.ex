@@ -12,12 +12,13 @@ defmodule AndaWeb.QuizLive.Edit do
       PubSub.subscribe(Anda.PubSub, "quiz:#{id}:new_answer")
       Endpoint.subscribe("quiz:#{id}:section")
     end
+    quiz = Contest.get_quiz!(id, socket.assigns.current_scope)
 
     {:ok,
      socket
-     |> assign(:page_title, "Quiz")
-     |> assign(:quiz, Contest.get_quiz!(id))
-     |> assign(:sections, Contest.list_sections(id))}
+     |> assign(:page_title, quiz.title)
+     |> assign(:quiz, quiz)
+     |> assign(:sections, Contest.list_sections(id, socket.assigns.current_scope))}
   end
 
   @impl true
@@ -78,7 +79,7 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_event("delete_question", %{"question_id" => question_id}, socket) do
-    question = Contest.get_question!(question_id)
+    question = Contest.get_question!(question_id, socket.assigns.current_scope)
     Contest.delete_question(question)
 
     send_update(AndaWeb.QuizLive.Section,

@@ -59,12 +59,13 @@
       class="mt-10"
       section={section}
       quiz_id={@quiz.id}
+      current_scope={@current_scope}
       new_question={@live_action == :new_question && section.id == @section_id}
     />
   </div>
 
   <.link patch={~p"/admin/quiz/#{@quiz.id}/section/new"} phx-click={JS.push_focus()}>
-    <.button class="btn btn-outline"><.icon name="hero-plus" />Legg til seksjon</.button>
+    <.button class="btn btn-outline bg-base-100"><.icon name="hero-plus" />Legg til seksjon</.button>
   </.link>
 
   <.modal
@@ -80,6 +81,7 @@
       title={@page_title}
       action={@live_action}
       section_id={if @live_action == :edit_section, do: @section_id, else: nil}
+      current_scope={@current_scope}
       patch={~p"/admin/quiz/#{@quiz}"}
     />
   </.modal>
@@ -126,6 +128,7 @@
       module={AndaWeb.QuizLive.Form.ScoreForm}
       id={@quiz.id}
       title="ASD"
+      current_scope={@current_scope}
       question_id={@question_id}
       on_saved={
         fn ->
@@ -147,6 +150,7 @@
       title="test"
       question_id={@question_id}
       action={:edit}
+      current_scope={@current_scope}
       on_saved={
         fn q ->
           send(self(), {:updated_question, q})
@@ -166,6 +170,7 @@
       title="test"
       action={:new}
       section_id={@section_id}
+      current_scope={@current_scope}
       on_saved={
         fn q ->
           send(self(), {:updated_question, q})
