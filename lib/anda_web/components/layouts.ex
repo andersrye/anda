@@ -79,11 +79,11 @@ defmodule AndaWeb.Layouts do
       </header>
 
       <main class="px-4 pb-20 sm:px-6 lg:px-8 bg-base-200 flex-grow">
-        <div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
+        <!--<div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
           <ul>
             <li :for={item <- @breadcrumb}>{render_slot(item)}</li>
           </ul>
-        </div>
+        </div>-->
         <div class="mx-auto max-w-2xl space-y-4">
           {render_slot(@inner_block)}
         </div>

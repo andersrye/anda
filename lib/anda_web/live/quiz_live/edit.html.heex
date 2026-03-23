@@ -1,6 +1,15 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb>{@quiz.title}</:breadcrumb>
+
+  <div role="tablist" class="tabs tabs-border w-full overflow-x-auto overflow-y-clip flex-nowrap mb-2" style="box-shadow: 0 2px 2px -2px gray">
+    <a role="tab" class="tab">Rediger</a>
+    <a role="tab" class="tab tab-active">Forhåndsvisning</a>
+    <a role="tab" class="tab">Retting</a>
+    <a role="tab" class="tab">Besvarelser</a>
+    <a role="tab" class="tab">Leaderboard</a>
+    <!--<span class="grow border-b border-base-300"></span>-->
+  </div>
   <div class="flex gap-2 flex-wrap">
     <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>
       Besvarelser
@@ -65,7 +74,9 @@
   </div>
 
   <.link patch={~p"/admin/quiz/#{@quiz.id}/section/new"} phx-click={JS.push_focus()}>
-    <.button class="btn btn-outline bg-base-100"><.icon name="hero-plus" />Legg til seksjon</.button>
+    <.button class="btn btn-outline bg-base-100">
+      <.icon name="hero-plus" />Legg til seksjon
+    </.button>
   </.link>
 
   <.modal
