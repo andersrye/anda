@@ -18,7 +18,7 @@ defmodule Anda.Submission.Answer do
     |> cast(attrs, [:text, :submission_id, :question_id, :index, :score])
     |> validate_required([:text, :submission_id, :question_id, :index])
     |> update_change(:text, &String.trim/1)
-    |> unique_constraint([:text, :question_id, :submission_id], message: "Du kan ikke skrive det samme flere ganger")
+    |> unique_constraint([:text, :question_id, :submission_id], message: "Du kan ikke svare det samme flere ganger")
   end
 
   def changeset(answer, "number", attrs) do

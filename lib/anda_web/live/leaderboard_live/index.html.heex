@@ -1,10 +1,18 @@
-<Layouts.app show_header={@live_action == :private} flash={@flash} current_scope={@current_scope}>
+<Layouts.quiz_app
+  show_header={@live_action == :private}
+  flash={@flash}
+  current_scope={@current_scope}
+  current_tab={:leaderboard}
+  quiz={@quiz}
+>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb>Leaderboard</:breadcrumb>
-  <.header>
-    Leaderboard
-  </.header>
+  <div :if={@live_action == :public} class="mt-10">
+    <.header>
+      {@quiz.title}
+    </.header>
+  </div>
 
   <div>
     <div :if={@live_action == :private} class="flex justify-end mb-2">
@@ -72,7 +80,7 @@
     </div>
     <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
   </.modal>
-</Layouts.app>
+</Layouts.quiz_app>
 <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
   export default {
     mounted() {

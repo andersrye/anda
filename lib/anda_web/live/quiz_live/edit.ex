@@ -9,16 +9,28 @@ defmodule AndaWeb.QuizLive.Edit do
   @impl true
   def mount(%{"quiz_id" => id}, _session, socket) do
     if connected?(socket) do
-      PubSub.subscribe(Anda.PubSub, "quiz:#{id}:new_answer")
       Endpoint.subscribe("quiz:#{id}:section")
     end
+
     quiz = Contest.get_quiz!(id, socket.assigns.current_scope)
+    sections = Contest.list_sections(id, socket.assigns.current_scope)
+
+    mode =
+      if (socket.assigns.live_action in [:score, :score_question]) do
+        :score
+      else
+        :edit
+      end
+
+    dbg(socket.assigns.live_action)
+    dbg(mode)
 
     {:ok,
      socket
      |> assign(:page_title, quiz.title)
      |> assign(:quiz, quiz)
-     |> assign(:sections, Contest.list_sections(id, socket.assigns.current_scope))}
+     |> assign(:mode, mode)
+     |> assign(:sections, sections)}
   end
 
   @impl true
@@ -49,15 +61,6 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
-  def handle_info(
-        {:new_answer, %{:section_id => section_id, :question_id => question_id}},
-        socket
-      ) do
-    send_update(AndaWeb.QuizLive.Section, id: "sections-#{section_id}", new_answer: question_id)
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_info({:updated_question, question}, socket) do
     send_update(AndaWeb.QuizLive.Section,
       id: "sections-#{question.section_id}",
@@ -69,7 +72,7 @@ defmodule AndaWeb.QuizLive.Edit do
 
   @impl true
   def handle_info({:scored_question}, socket) do
-    {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
+    {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}/scoring")}
   end
 
   @impl true

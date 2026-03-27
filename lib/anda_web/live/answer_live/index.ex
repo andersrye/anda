@@ -7,9 +7,16 @@ defmodule AndaWeb.AnswerLive.Index do
   alias Anda.Submission
   import AndaWeb.AnswerLive.AnswerComponents
 
-  defp assign_defaults(assigns) do
-    assigns
+  defp assign_defaults(socket) do
+    current_tab = case socket.assigns.live_action do
+      :preview -> :preview
+      :view_submissions -> :submissions
+      :view_leaderboard -> :leaderboard
+      _ -> nil
+    end
+    socket
     |> assign(:show_copy_url, nil)
+    |> assign(:current_tab, current_tab)
     |> assign_new(:current_scope, fn -> nil end)
   end
 

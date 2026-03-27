@@ -1,12 +1,12 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
+<Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:submissions} quiz={@quiz}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb>Besvarelser</:breadcrumb>
-  <.header>
+  <%!-- <.header>
     Besvarelser
-  </.header>
+  </.header> --%>
 
-  <div class="card bg-base-100 shadow-sm">
+  <div class="card bg-base-100 shadow-sm mt-10 overflow-scroll">
     <table class="table">
       <thead>
         <tr>
@@ -104,4 +104,4 @@
       <.button type="submit">Lagre</.button>
     </form>
   </.modal>
-</Layouts.app>
+</Layouts.quiz_app>

@@ -1,30 +1,8 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
+<Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={@mode} quiz={@quiz}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb>{@quiz.title}</:breadcrumb>
-
-  <div role="tablist" class="tabs tabs-border w-full overflow-x-auto overflow-y-clip flex-nowrap mb-2" style="box-shadow: 0 2px 2px -2px gray">
-    <a role="tab" class="tab">Rediger</a>
-    <a role="tab" class="tab tab-active">Forhåndsvisning</a>
-    <a role="tab" class="tab">Retting</a>
-    <a role="tab" class="tab">Besvarelser</a>
-    <a role="tab" class="tab">Leaderboard</a>
-    <!--<span class="grow border-b border-base-300"></span>-->
-  </div>
-  <div class="flex gap-2 flex-wrap">
-    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}>
-      Besvarelser
-    </.link>
-    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}>
-      Leaderboard
-    </.link>
-    <.link class="btn btn-xs btn-outline" navigate={~p"/admin/quiz/#{@quiz.id}/preview"}>
-      Forhåndsvisning
-    </.link>
-    <.link class="btn btn-xs btn-outline" href={~p"/quiz/#{@quiz.slug}"} target="_blank">
-      Åpne quiz <.icon name="hero-arrow-top-right-on-square" />
-    </.link>
-    <div class="flex-grow"></div>
-    <form phx-change="change_mode" class="join join-horizontal z-0">
+  <div :if={@mode == :edit} class="flex gap-2 flex-wrap">
+    <form phx-change="change_mode" class="join join-horizontal z-0 m-1">
       <input
         type="radio"
         name="mode"
@@ -50,16 +28,15 @@
         value="closed"
       />
     </form>
-  </div>
-  <div class="flex justify-between">
-    <.header>
-      {@quiz.title}
-      <:subtitle>{@quiz.description}</:subtitle>
-    </.header>
-    <.link patch={~p"/admin/quiz/#{@quiz.id}/edit"} phx-click={JS.push_focus()}>
-      <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
+    <.link class="btn btn-xs btn-outline m-1" href={~p"/admin/quiz/#{@quiz.id}/preview"} target="_blank">
+      Forhåndsvisning <.icon name="hero-arrow-top-right-on-square" />
+    </.link>
+    <div class="flex-grow"></div>
+    <.link patch={~p"/admin/quiz/#{@quiz.id}/edit"} phx-click={JS.push_focus()} class="self-end">
+      <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-pencil" /></.button>
     </.link>
   </div>
+  <p>{@quiz.description}</p>
   <div id="sections">
     <.live_component
       :for={section <- @sections}
@@ -67,14 +44,20 @@
       module={AndaWeb.QuizLive.Section}
       class="mt-10"
       section={section}
+      live_action={@live_action}
       quiz_id={@quiz.id}
+      mode={@mode}
       current_scope={@current_scope}
       new_question={@live_action == :new_question && section.id == @section_id}
     />
   </div>
 
-  <.link patch={~p"/admin/quiz/#{@quiz.id}/section/new"} phx-click={JS.push_focus()}>
-    <.button class="btn btn-outline bg-base-100">
+  <.link
+    :if={@mode == :edit}
+    patch={~p"/admin/quiz/#{@quiz.id}/section/new"}
+    phx-click={JS.push_focus()}
+  >
+    <.button class="btn btn-outline">
       <.icon name="hero-plus" />Legg til seksjon
     </.button>
   </.link>
@@ -133,7 +116,7 @@
     :if={@live_action == :score_question}
     id="score-question-modal"
     show
-    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}")}
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/scoring")}
   >
     <.live_component
       module={AndaWeb.QuizLive.Form.ScoreForm}
@@ -189,4 +172,4 @@
       }
     />
   </.modal>
-</Layouts.app>
+</Layouts.quiz_app>

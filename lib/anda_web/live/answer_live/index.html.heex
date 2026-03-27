@@ -1,7 +1,9 @@
-<Layouts.app
-  show_header={@live_action not in [:edit, :view_public]}
+<Layouts.quiz_app
+  show_header={@live_action not in [:edit, :view_public, :preview]}
   flash={@flash}
   current_scope={@current_scope}
+  current_tab={@current_tab}
+  quiz={@quiz}
 >
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
@@ -20,11 +22,10 @@
 
   <div :if={@quiz.mode in ["open", "closed"] || @live_action in [:preview]}>
     <div class="flex flex-col">
-      <div class="sticky top-3 flex z-9 self-end">
+      <div :if={@live_action in [:edit]} class="sticky top-3 flex z-9 self-end">
         <.button
-          :if={@live_action in [:edit, :view_submissions, :view_leaderboard]}
           phx-click="show_url"
-          class="btn m-1 btn-square btn-outline  bg-base-200"
+          class="btn m-1 btn-square btn-outline bg-base-200"
         >
           <.icon name="hero-link" />
         </.button>
@@ -32,7 +33,7 @@
       </div>
       <div class="flex flex-wrap mb-4">
         <div class="flex-grow mt-6 mb-10">
-          <.header>
+          <.header :if={@live_action in [:edit, :preview]}>
             {@quiz.title}
           </.header>
         </div>
@@ -132,7 +133,7 @@
       </.modal>
     </div>
   </div>
-</Layouts.app>
+</Layouts.quiz_app>
 <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
   export default {
     mounted() {

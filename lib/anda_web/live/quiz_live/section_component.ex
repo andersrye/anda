@@ -12,15 +12,17 @@ defmodule AndaWeb.QuizLive.Section do
           <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
           <div>{@section.description}</div>
         </div>
-        <div class="flex flex-row gap-2">
+        <div :if={@mode == :edit} class="flex flex-row gap-2">
           <.link
+            :if={@mode == :edit}
             patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
             phx-click={JS.push_focus()}
           >
-            <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
+            <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-pencil" /></.button>
           </.link>
           <.button
-            class="btn btn-square btn-outline"
+            :if={@mode == :edit}
+            class="btn btn-square btn-outline btn-sm"
             phx-click="move_section_up"
             phx-value-section_id={@section.id}
             phx-target={@myself}
@@ -28,7 +30,8 @@ defmodule AndaWeb.QuizLive.Section do
             <.icon name="hero-arrow-up" />
           </.button>
           <.button
-            class="btn btn-square btn-outline"
+            :if={@mode == :edit}
+            class="btn btn-square btn-outline btn-sm"
             phx-click="move_section_down"
             phx-value-section_id={@section.id}
             phx-target={@myself}
@@ -37,10 +40,11 @@ defmodule AndaWeb.QuizLive.Section do
           </.button>
 
           <.link
+            :if={@mode == :edit}
             _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
             phx-click={JS.push_focus()}
           >
-            <.button class="btn btn-square btn-outline btn-error">
+            <.button class="btn btn-square btn-outline btn-error btn-sm">
               <.icon name="hero-trash" />
             </.button>
           </.link>
@@ -74,27 +78,39 @@ defmodule AndaWeb.QuizLive.Section do
             </span>
           </div>
           <div class="flex-shrink ml-5">
-            <div class=" py-6 grid grid-cols-1 md:grid-cols-3 gap-2">
-              <.link
-                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/score"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline">
-                  <.icon name="hero-document-check" />
-                </.button>
-              </.link>
+            <div :if={@mode == :edit} class=" py-6 grid grid-cols-1 md:grid-cols-2 gap-2">
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
                 phx-click={JS.push_focus()}
               >
-                <.button class="btn btn-square btn-outline"><.icon name="hero-pencil" /></.button>
+                <.button class="btn btn-square btn-outline btn-sm">
+                  <.icon name="hero-pencil" />
+                </.button>
               </.link>
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
                 phx-click={JS.push_focus()}
               >
-                <.button class="btn btn-square btn-outline btn-error">
+                <.button class="btn btn-square btn-outline btn-error btn-sm">
                   <.icon name="hero-trash" />
+                </.button>
+              </.link>
+            </div>
+            <div :if={@mode == :score} class=" py-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+              <.link
+                patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{question.id}"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline btn-sm">
+                  <.icon name="hero-document-check" />
+                </.button>
+              </.link>
+              <.link
+                _patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{question.id}"}
+                phx-click={JS.push_focus()}
+              >
+                <.button class="btn btn-square btn-outline btn-sm">
+                  <.icon name="hero-eye" />
                 </.button>
               </.link>
             </div>
@@ -102,6 +118,7 @@ defmodule AndaWeb.QuizLive.Section do
         </div>
       </div>
       <.link
+        :if={@mode == :edit}
         patch={~p"/admin/quiz/#{@section.quiz_id}/question/new?section_id=#{@section.id}"}
         phx-click={JS.push_focus()}
       >
@@ -109,78 +126,6 @@ defmodule AndaWeb.QuizLive.Section do
       </.link>
     </div>
     """
-  end
-
-  @impl true
-  @spec handle_event(any(), any(), any()) :: {:noreply, any()}
-  def handle_event("new_question", _value, socket) do
-    {:noreply,
-     socket
-     |> assign(:edit_question, %Question{
-       section_id: socket.assigns.section.id,
-       num_answers: 1,
-       alternatives: []
-     })
-     |> assign(:edit_action, :new_question)}
-  end
-
-  @impl true
-  @spec handle_event(any(), any(), any()) :: {:noreply, any()}
-  def handle_event("edit_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id, socket.assigns.current_scope)
-
-    {:noreply,
-     socket
-     |> assign(:edit_question, question)
-     |> assign(:edit_action, :edit_question)}
-  end
-
-  @impl true
-  @spec handle_event(any(), any(), any()) :: {:noreply, any()}
-  def handle_event("score_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id, socket.assigns.current_scope)
-
-    {:noreply,
-     socket
-     |> assign(:score_question, question)
-     |> assign(:edit_action, :score_question)}
-  end
-
-  @impl true
-  @spec handle_event(any(), any(), any()) :: {:noreply, any()}
-  def handle_event("delete_question", %{"id" => id}, socket) do
-    question = Contest.get_question!(id, socket.assigns.current_scope)
-
-    {:noreply,
-     socket
-     |> assign(:delete_question, question)}
-  end
-
-  @impl true
-  def handle_event("cancel_edit", _value, socket) do
-    {:noreply, assign(socket, :edit_question, nil)}
-  end
-
-  @impl true
-  def handle_event("cancel_score", _value, socket) do
-    {:noreply, assign(socket, :score_question, nil)}
-  end
-
-  @impl true
-  def handle_event("cancel_delete", _value, socket) do
-    {:noreply, assign(socket, :delete_question, nil)}
-  end
-
-  @impl true
-  def handle_event("confirm_delete", _value, socket) do
-    question = socket.assigns.delete_question
-    dbg(question)
-    _res = Contest.delete_question(question)
-
-    {:noreply,
-     socket
-     |> assign(:delete_question, nil)
-     |> stream_delete(:questions, question)}
   end
 
   @impl true
@@ -201,17 +146,9 @@ defmodule AndaWeb.QuizLive.Section do
   def update(%{:section => section} = assigns, socket) do
     questions = Contest.list_questions(section.id, assigns.current_scope)
 
-    answer_counts =
-      Contest.answer_counts(section.id)
-      |> Enum.reduce(%{}, fn v, acc -> Map.put(acc, v.question_id, v.count) end)
-
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:answer_counts, answer_counts)
-     |> assign(:edit_question, nil)
-     |> assign(:delete_question, nil)
-     |> assign(:score_question, nil)
      |> stream(:questions, questions)}
   end
 
@@ -227,16 +164,5 @@ defmodule AndaWeb.QuizLive.Section do
     {:ok,
      socket
      |> stream_delete(:questions, question)}
-  end
-
-  @impl true
-  def update(%{:new_answer => question_id}, socket) do
-    counts = socket.assigns.answer_counts |> Map.update(question_id, 1, fn n -> n + 1 end)
-
-    {:ok,
-     socket
-     |> assign(:answer_counts, counts)
-     # TODO: sukk!
-     |> stream_insert(:questions, Contest.get_question!(question_id, socket.assigns.current_scope))}
   end
 end

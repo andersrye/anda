@@ -55,7 +55,8 @@ defmodule AndaWeb.Router do
           live "/question/new", QuizLive.Edit, :new_question
           live "/question/:question_id/edit", QuizLive.Edit, :edit_question
           live "/question/:question_id/delete", QuizLive.Edit, :delete_question
-          live "/question/:question_id/score", QuizLive.Edit, :score_question
+          live "/scoring", QuizLive.Edit, :score
+          live "/scoring/:question_id", QuizLive.Edit, :score_question
           live "/section/new", QuizLive.Edit, :new_section
           live "/section/:section_id/edit", QuizLive.Edit, :edit_section
           live "/leaderboard", LeaderboardLive.Index, :private

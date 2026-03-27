@@ -3,6 +3,7 @@ defmodule AndaWeb.Layouts do
   This module holds layouts and related functionality
   used by your application.
   """
+  alias Anda.Contest.Quiz
   use AndaWeb, :html
 
   # Embed all files in layouts/* within this module.
@@ -11,20 +12,6 @@ defmodule AndaWeb.Layouts do
   # and other static content.
   embed_templates "layouts/*"
 
-  @doc """
-  Renders your app layout.
-
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar.
-
-  ## Examples
-
-      <Layouts.app flash={@flash}>
-        <h1>Content</h1>
-      </Layouts.app>
-
-  """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :show_header, :boolean, default: true
 
@@ -54,7 +41,7 @@ defmodule AndaWeb.Layouts do
             <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100">
               <div :if={@current_scope} class="text-sm p-3">
                 Logget inn som {@current_scope.user.email}
-              <hr class="h-px my-2 bg-neutral border-0"/>
+                <hr class="h-px my-2 bg-neutral border-0" />
               </div>
               <ul class="menu w-full">
                 <%= if @current_scope do %>
@@ -91,6 +78,88 @@ defmodule AndaWeb.Layouts do
     </div>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :show_header, :boolean, default: true
+
+  attr :current_scope, :map,
+    default: nil,
+    doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+
+  attr :current_tab, :atom, required: true
+  attr :quiz, :map, required: true
+
+  slot :inner_block, required: true
+
+  slot :breadcrumb, required: false
+
+  def quiz_app(assigns) do
+    ~H"""
+    <.app current_scope={@current_scope} show_header={@show_header} flash={@flash}>
+      <div :if={@show_header} class="flex justify-between mt-6">
+        <.header>
+          {@quiz.title}
+        </.header>
+        <.link class="btn btn-xs btn-outline m-3" href={~p"/quiz/#{@quiz.slug}"} target="_blank">
+          Åpne quiz <.icon name="hero-arrow-top-right-on-square" />
+        </.link>
+      </div>
+      <div
+        :if={@show_header}
+        id="header-menu"
+        phx-hook=".MenuScroll"
+        role="tablist"
+        class="tabs tabs-border w-full overflow-x-auto overflow-y-clip flex-nowrap mb-8"
+        style="box-shadow: 0 2px 2px -2px gray"
+      >
+        <.link
+          role="tab"
+          class={["tab", @current_tab == :edit && "tab-active"]}
+          navigate={~p"/admin/quiz/#{@quiz.id}/"}
+        >
+          Rediger
+        </.link>
+        <.link
+          role="tab"
+          class={["tab", @current_tab == :score && "tab-active"]}
+          navigate={~p"/admin/quiz/#{@quiz.id}/scoring"}
+        >
+          Retting
+        </.link>
+        <!--<.link
+          role="tab"
+          class={["tab", @current_tab == :preview && "tab-active"]}
+          navigate={~p"/admin/quiz/#{@quiz.id}/preview"}
+        >
+          Forhåndsvisning
+        </.link>-->
+        <.link
+          role="tab"
+          class={["tab", @current_tab == :submissions && "tab-active"]}
+          navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}
+        >
+          Besvarelser
+        </.link>
+        <.link
+          role="tab"
+          class={["tab", @current_tab == :leaderboard && "tab-active"]}
+          navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}
+        >
+          Leaderboard
+        </.link>
+      </div>
+      {render_slot(@inner_block)}
+    </.app>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".MenuScroll">
+      export default {
+          mounted() {
+            const active = this.el.getElementsByClassName('tab-active')[0]
+            active?.scrollIntoView({inline: 'center'})
+            }
+          }
+    </script>
     """
   end
 

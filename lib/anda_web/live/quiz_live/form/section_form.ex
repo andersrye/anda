@@ -32,7 +32,7 @@ alias Anda.Contest.Section
   @impl true
   def update(assigns, socket) do
     section = if assigns.action == :edit_section do
-      Contest.get_section!(assigns.section_id, socket.assigns.current_scope)
+      Contest.get_section!(assigns.section_id, assigns.current_scope)
     else
       %Section{quiz_id: assigns.quiz.id}
     end
