@@ -3,20 +3,20 @@ defmodule AndaWeb.QuizLive.Edit do
   use AndaWeb, :live_view
 
   alias Anda.Contest
-  alias Phoenix.PubSub
   alias AndaWeb.QuizLive.Form
 
   @impl true
   def mount(%{"quiz_id" => id}, _session, socket) do
     if connected?(socket) do
       Endpoint.subscribe("quiz:#{id}:section")
+      Endpoint.subscribe("quiz:#{id}:question")
     end
 
     quiz = Contest.get_quiz!(id, socket.assigns.current_scope)
     sections = Contest.list_sections(id, socket.assigns.current_scope)
 
     mode =
-      if (socket.assigns.live_action in [:score, :score_question]) do
+      if socket.assigns.live_action in [:score, :score_question] do
         :score
       else
         :edit
@@ -63,7 +63,7 @@ defmodule AndaWeb.QuizLive.Edit do
   @impl true
   def handle_info({:updated_question, question}, socket) do
     send_update(AndaWeb.QuizLive.Section,
-      id: "sections-#{question.section_id}",
+      id: "section-#{question.section_id}",
       updated_question: question
     )
 
@@ -81,12 +81,22 @@ defmodule AndaWeb.QuizLive.Edit do
   end
 
   @impl true
+  def handle_info(%{event: "questions_updated", payload: {section_id, questions}}, socket) do
+    send_update(AndaWeb.QuizLive.Section,
+      id: "section-#{section_id}",
+      updated_questions: questions
+    )
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("delete_question", %{"question_id" => question_id}, socket) do
     question = Contest.get_question!(question_id, socket.assigns.current_scope)
     Contest.delete_question(question)
 
     send_update(AndaWeb.QuizLive.Section,
-      id: "sections-#{question.section_id}",
+      id: "section-#{question.section_id}",
       deleted_question: question
     )
 
@@ -101,17 +111,20 @@ defmodule AndaWeb.QuizLive.Edit do
              %{"mode" => mode},
              socket.assigns.current_scope
            ) do
+      mode_text =
+        case mode do
+          "hidden" -> "skjult"
+          "open" -> "åpen"
+          "closed" -> "stengt"
+          _ -> "??"
+        end
+
       {:noreply,
        socket
        |> assign(quiz: quiz)
        |> put_flash(
          :info,
-         "Quizen er nå #{case mode do
-           "hidden" -> "skjult"
-           "open" -> "åpen"
-           "closed" -> "stengt"
-           _ -> "??"
-         end}!"
+         "Quizen er nå #{mode_text}!"
        )}
     else
       {:error, _} ->

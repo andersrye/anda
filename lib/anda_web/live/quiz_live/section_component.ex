@@ -78,7 +78,7 @@ defmodule AndaWeb.QuizLive.Section do
             </span>
           </div>
           <div class="flex-shrink ml-5">
-            <div :if={@mode == :edit} class=" py-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div :if={@mode == :edit} class=" py-6 grid grid-cols-1 md:grid-cols-4 gap-2">
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
                 phx-click={JS.push_focus()}
@@ -87,6 +87,24 @@ defmodule AndaWeb.QuizLive.Section do
                   <.icon name="hero-pencil" />
                 </.button>
               </.link>
+              <.button
+                :if={@mode == :edit}
+                class="btn btn-square btn-outline btn-sm"
+                phx-click="move_question_up"
+                phx-value-question_id={question.id}
+                phx-target={@myself}
+              >
+                <.icon name="hero-arrow-up" />
+              </.button>
+              <.button
+                :if={@mode == :edit}
+                class="btn btn-square btn-outline btn-sm"
+                phx-click="move_question_down"
+                phx-value-question_id={question.id}
+                phx-target={@myself}
+              >
+                <.icon name="hero-arrow-down" />
+              </.button>
               <.link
                 patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
                 phx-click={JS.push_focus()}
@@ -143,6 +161,20 @@ defmodule AndaWeb.QuizLive.Section do
   end
 
   @impl true
+  def handle_event("move_question_up", %{"question_id" => question_id}, socket) do
+    question = Contest.get_question!(question_id, socket.assigns.current_scope)
+    Contest.move_question_up(question)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("move_question_down", %{"question_id" => question_id}, socket) do
+    question = Contest.get_question!(question_id, socket.assigns.current_scope)
+    Contest.move_question_down(question)
+    {:noreply, socket}
+  end
+
+  @impl true
   def update(%{:section => section} = assigns, socket) do
     questions = Contest.list_questions(section.id, assigns.current_scope)
 
@@ -157,6 +189,15 @@ defmodule AndaWeb.QuizLive.Section do
     {:ok,
      socket
      |> stream_insert(:questions, question)}
+  end
+
+  @impl true
+  def update(%{:updated_questions => questions}, socket) do
+    IO.puts("UPDATED!")
+    dbg(questions)
+    {:ok,
+     socket
+     |> stream(:questions, questions, reset: true)}
   end
 
   @impl true

@@ -32,7 +32,7 @@ defmodule Anda.Contest do
         left_join: q in Question,
         on: q.section_id == s.id,
         preload: [sections: {s, questions: q}],
-        order_by: [s.position, q.id]
+        order_by: [s.position, q.position]
 
     Repo.all(query) |> Enum.at(0)
   end
@@ -46,7 +46,7 @@ defmodule Anda.Contest do
         left_join: q in Question,
         on: q.section_id == s.id,
         preload: [sections: {s, questions: q}],
-        order_by: [s.position, q.id]
+        order_by: [s.position, q.position]
 
     Repo.all(query) |> Enum.at(0)
   end
@@ -59,7 +59,12 @@ defmodule Anda.Contest do
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
         on: q.section_id == s.id,
-        select: %{id: quiz.id, title: quiz.title, slug: quiz.slug, question_count: sum(q.num_answers)},
+        select: %{
+          id: quiz.id,
+          title: quiz.title,
+          slug: quiz.slug,
+          question_count: sum(q.num_answers)
+        },
         group_by: quiz.id
 
     Repo.all(query) |> Enum.at(0)
@@ -107,7 +112,8 @@ defmodule Anda.Contest do
         on: s.id == q.section_id,
         join: quiz in Quiz,
         on: quiz.id == s.quiz_id,
-        where: q.section_id == ^section_id and quiz.user_id == ^scope.user.id
+        where: q.section_id == ^section_id and quiz.user_id == ^scope.user.id,
+        order_by: q.position
 
     Repo.all(query)
   end
@@ -139,11 +145,21 @@ defmodule Anda.Contest do
 
   def create_question(attrs \\ %{}, %Scope{} = scope) do
     # sjekk om section tilhører riktig scope
-    get_section!(attrs.section_id, %Scope{} = scope)
 
-    %Question{}
-    |> Question.changeset(attrs)
-    |> Repo.insert()
+    Repo.transact(fn ->
+      section_id = attrs.section_id
+      get_section!(section_id, scope)
+
+      max =
+        Repo.one(from q in Question, select: max(q.position), where: q.section_id == ^section_id)
+
+      position = if max, do: max + 1, else: 0
+      attrs = Map.put(attrs, :position, position)
+
+      %Question{}
+      |> Question.changeset(attrs)
+      |> Repo.insert()
+    end)
   end
 
   def update_question(%Question{} = question, attrs) do
@@ -185,12 +201,11 @@ defmodule Anda.Contest do
     Repo.one!(query)
   end
 
-
   def create_section(attrs \\ %{}, %Scope{} = scope) do
     # TODO: rydd opp, ta inn faste parametre, ikke attrs
     Repo.transact(fn ->
       quiz_id = Map.get(attrs, "quiz_id")
-      #sjekk om quiz tilhører scope
+      # sjekk om quiz tilhører scope
       get_quiz!(quiz_id, scope)
       max = Repo.one(from s in Section, select: max(s.position), where: s.quiz_id == ^quiz_id)
       position = if max, do: max + 1, else: 0
@@ -245,5 +260,46 @@ defmodule Anda.Contest do
 
   def move_section_down(%Section{} = section) do
     move_section_by(section, 1)
+  end
+
+  def move_question_by(%Question{} = question, offset) do
+    quiz_id = Repo.one(from s in Section, select: s.quiz_id, where: s.id == ^question.section_id)
+    dbg(quiz_id)
+
+    questions =
+      Repo.all(
+        from q in Question, where: q.section_id == ^question.section_id, order_by: q.position
+      )
+
+    current_index = Enum.find_index(questions, fn q -> q.id == question.id end)
+
+    new_index = max(0, min(Enum.count(questions) - 1, current_index + offset))
+
+    {:ok, res} =
+      questions
+      |> List.delete_at(current_index)
+      |> List.insert_at(new_index, question)
+      |> Enum.with_index()
+      |> Enum.reduce(Multi.new(), fn {q, i}, m ->
+        changeset = Question.changeset(q, %{"position" => i})
+        Multi.update(m, {:update, i}, changeset)
+      end)
+      |> Repo.transact()
+
+    changed = Map.values(res)
+
+    Endpoint.broadcast(
+      "quiz:#{quiz_id}:question",
+      "questions_updated",
+      {question.section_id, changed}
+    )
+  end
+
+  def move_question_up(%Question{} = question) do
+    move_question_by(question, -1)
+  end
+
+  def move_question_down(%Question{} = question) do
+    move_question_by(question, 1)
   end
 end
