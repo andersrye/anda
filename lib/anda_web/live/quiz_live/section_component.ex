@@ -1,7 +1,6 @@
 defmodule AndaWeb.QuizLive.Section do
   use AndaWeb, :live_component
   alias Anda.Contest
-  alias Anda.Contest.Question
 
   @impl true
   def render(assigns) do
@@ -63,10 +62,13 @@ defmodule AndaWeb.QuizLive.Section do
         >
           <div class="flex-grow py-6">
             <p class="whitespace-pre-line">{question.text}</p>
-            <img
-              :if={!is_nil(question.media_url) && String.starts_with?(question.media_type, "image")}
-              class="max-h-64 my-5"
+            <.media_view
+              :if={question.media_url}
+              id={"media-#{question.id}"}
+              class="my-5"
               src={question.media_url}
+              type={question.media_type}
+              aspect_ratio={question.media_aspect_ratio}
             />
             <ul :if={!is_nil(question.alternatives)} class="list-disc ml-5">
               <li :for={alternative <- Enum.take(question.alternatives, 6)}>
@@ -193,8 +195,6 @@ defmodule AndaWeb.QuizLive.Section do
 
   @impl true
   def update(%{:updated_questions => questions}, socket) do
-    IO.puts("UPDATED!")
-    dbg(questions)
     {:ok,
      socket
      |> stream(:questions, questions, reset: true)}

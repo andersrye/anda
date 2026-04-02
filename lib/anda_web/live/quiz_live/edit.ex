@@ -22,9 +22,6 @@ defmodule AndaWeb.QuizLive.Edit do
         :edit
       end
 
-    dbg(socket.assigns.live_action)
-    dbg(mode)
-
     {:ok,
      socket
      |> assign(:page_title, quiz.title)

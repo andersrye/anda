@@ -29,7 +29,7 @@
         >
           <.icon name="hero-link" />
         </.button>
-        <.section_menu sections={@sections}/>
+        <.section_menu sections={@sections} />
       </div>
       <div class="flex flex-wrap mb-4">
         <div class="flex-grow mt-6 mb-10">
@@ -54,67 +54,43 @@
       </p>
 
       <div id="sections" class="flex flex-col gap-8">
-        <div
+        <.section
           :for={{section, questions_with_answers} <- @sections}
-          class="card bg-base-100 shadow-sm"
+          id={"section_#{section.id}"}
+          title={section.title}
+          description={section.description}
         >
-          <div class="border-b-(--color-base-300) border-b-2 border-dotted">
-            <h2 id={"section_#{section.id}"} class="text-xl font-bold p-6">{section.title}</h2>
-            <p :if={section.description} class="text-md pb-4 px-6">
-              {section.description}
-            </p>
-          </div>
-          <div class="divide-(--color-base-300) divide-y-2 divide-dotted flex flex-col">
-            <div
-              :for={{question, answers_by_index} <- questions_with_answers}
-              class=" px-3 lg:px-6 py-6 lg:py-8"
-            >
-              <div class="text-lg mb-4 font-medium whitespace-pre-line">{question.text}</div>
-              <div
-                :if={
-                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "image")
-                }
-                class="flex my-5 justify-start"
-              >
-                <img class="object-contain max-h-64" src={question.media_url} />
-              </div>
-              <div
-                :if={
-                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "audio")
-                }
-                class="flex my-5 justify-start"
-              >
-                <audio controls src={question.media_url} />
-              </div>
-              <div
-                :if={
-                  !is_nil(question.media_url) && String.starts_with?(question.media_type, "video")
-                }
-                class="flex my-5 justify-start"
-              >
-                <video controls>
-                  <source src={question.media_url} type={question.media_type} />
-                </video>
-              </div>
-              <div class="flex flex-col gap2">
-                <.live_component
-                  :for={index <- 0..(question.num_answers - 1)}
-                  module={AndaWeb.AnswerLive.QuestionComponent}
-                  action={@live_action}
-                  question={question}
-                  answer={Map.get(answers_by_index, index)}
-                  submission={@submission}
-                  quiz_id={@quiz.id}
-                  enabled={@enabled}
-                  index={index}
-                  id={"question-#{question.id}-#{index}"}
-                />
+          <:content :for={{question, answers} <- questions_with_answers}>
+            <div class="text-md mb-4 font-medium whitespace-pre-line">{question.text}</div>
+            <.media_view
+              :if={question.media_url}
+              id={"media-#{question.id}"}
+              class="mb-5"
+              src={question.media_url}
+              type={question.media_type}
+              aspect_ratio={question.media_aspect_ratio}
+            />
+            <div :for={{index, answer} <- answers} class="flex">
+              <.live_component
+                module={AndaWeb.AnswerLive.QuestionInput}
+                class="flex-grow"
+                action={@live_action}
+                question={question}
+                answer={answer}
+                submission={@submission}
+                quiz_id={@quiz.id}
+                enabled={@enabled}
+                index={index}
+                id={"question-#{question.id}-#{index}"}
+              />
+              <div class="flex-shrink mt-2 ml-1">
+                <.score score={answer && answer.score} />
               </div>
             </div>
-          </div>
-        </div>
+          </:content>
+        </.section>
       </div>
-      <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
+      <.modal :if={@show_copy_url} id="show_copy_url" show on_cancel={JS.push("hide_url")}>
         <.header>Permanent lenke</.header>
         <p class="text-md mb-4">
           Med denne lenken kan du redigere denne besvarelsen.

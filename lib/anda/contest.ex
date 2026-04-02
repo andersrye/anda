@@ -144,10 +144,9 @@ defmodule Anda.Contest do
   end
 
   def create_question(attrs \\ %{}, %Scope{} = scope) do
-    # sjekk om section tilhører riktig scope
-
     Repo.transact(fn ->
       section_id = attrs.section_id
+      # sjekk om section tilhører riktig scope
       get_section!(section_id, scope)
 
       max =
@@ -264,7 +263,6 @@ defmodule Anda.Contest do
 
   def move_question_by(%Question{} = question, offset) do
     quiz_id = Repo.one(from s in Section, select: s.quiz_id, where: s.id == ^question.section_id)
-    dbg(quiz_id)
 
     questions =
       Repo.all(

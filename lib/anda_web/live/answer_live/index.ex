@@ -8,12 +8,14 @@ defmodule AndaWeb.AnswerLive.Index do
   import AndaWeb.AnswerLive.AnswerComponents
 
   defp assign_defaults(socket) do
-    current_tab = case socket.assigns.live_action do
-      :preview -> :preview
-      :view_submissions -> :submissions
-      :view_leaderboard -> :leaderboard
-      _ -> nil
-    end
+    current_tab =
+      case socket.assigns.live_action do
+        :preview -> :preview
+        :view_submissions -> :submissions
+        :view_leaderboard -> :leaderboard
+        _ -> nil
+      end
+
     socket
     |> assign(:show_copy_url, nil)
     |> assign(:current_tab, current_tab)
@@ -39,7 +41,15 @@ defmodule AndaWeb.AnswerLive.Index do
   end
 
   defp questions_with_answers(questions, answers_by_question_id) do
-    Enum.map(questions, fn q -> {q, Map.get(answers_by_question_id, q.id, %{})} end)
+    Enum.map(questions, fn q ->
+      answers_by_index = Map.get(answers_by_question_id, q.id, %{})
+
+      answers_with_index =
+        0..(q.num_answers - 1)
+        |> Enum.map(fn i -> {i, Map.get(answers_by_index, i)} end)
+
+      {q, answers_with_index}
+    end)
   end
 
   defp sections_with_questions_with_answers(sections, answers \\ []) do
@@ -161,7 +171,7 @@ defmodule AndaWeb.AnswerLive.Index do
      |> assign(:sections, sections)}
   end
 
-  #innsending via cookie
+  # innsending via cookie
   @impl true
   def mount(%{"slug" => slug}, session, socket) when socket.assigns.live_action == :edit do
     quiz = Contest.get_quiz_w_questions_by_slug(slug)
@@ -256,7 +266,7 @@ defmodule AndaWeb.AnswerLive.Index do
 
   @impl true
   def handle_info({:answer_updated, answer}, socket) do
-    send_update(AndaWeb.AnswerLive.QuestionComponent,
+    send_update(AndaWeb.AnswerLive.QuestionInput,
       id: "question-#{answer.question_id}-#{answer.index}",
       answer_updated: answer
     )
