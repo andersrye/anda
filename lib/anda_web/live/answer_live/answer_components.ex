@@ -206,25 +206,40 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
       </div>
     </details>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".SectionMenu">
-          export default {
+      export default {
         mounted() {
           const details = this.el
           const links = this.el.getElementsByTagName('a')
-          console.log('links', links)
           for(const link of links) {
             link.addEventListener('click', e => {
               e.preventDefault()
               const section = e.target.getAttribute("data-section")
               const el = document.getElementById(section)
-              console.log(section, el)
               el?.scrollIntoView(true)
-              console.log('e.target', )
               details.open=false
             })
           }
         }
       }
     </script>
+    """
+  end
+
+  attr :score, :integer
+
+  def score(assigns) do
+    ~H"""
+    <div class="font-mono">
+      <div
+        :if={@score != nil && @score > 0}
+        class="text-green-700 outline-green-700 outline-solid outline-2 rounded-full p-2 w-8 h-8 flex justify-center items-center -font-semibold"
+      >
+        {@score}p
+      </div>
+      <div :if={@score != nil && @score == 0}>
+        <.icon name="hero-x-mark" class="w-8 h-8 p-2 bg-red-700" />
+      </div>
+    </div>
     """
   end
 end

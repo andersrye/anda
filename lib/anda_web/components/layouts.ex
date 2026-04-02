@@ -156,7 +156,8 @@ defmodule AndaWeb.Layouts do
       export default {
           mounted() {
             const active = this.el.getElementsByClassName('tab-active')[0]
-            active?.scrollIntoView({inline: 'center'})
+            //TODO: scroll bare i tab-baren uten å scrolle hele siden
+            //active?.scrollIntoView({inline: 'center', container: 'nearest'})
             }
           }
     </script>

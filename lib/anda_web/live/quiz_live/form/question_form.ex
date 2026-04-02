@@ -7,6 +7,8 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   @impl true
   def render(assigns) do
+    assigns = assign(assigns, selected_file: Enum.at(assigns.uploads.file.entries, 0))
+
     ~H"""
     <div>
       <.header>
@@ -24,11 +26,20 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
         <fieldset class="fieldset">
           <legend class="label mb-1">Bilde/Lyd/Video (valgfritt)</legend>
-          <figure :if={Enum.count(@uploads.file.entries) == 1}>
-            <.live_img_preview entry={Enum.at(@uploads.file.entries, 0)}  class="max-h-50"/>
+          <figure :if={@selected_file}>
+            <.media_preview
+              field={@form[:aspect_ratio]}
+              entry={@selected_file}
+              class="max-h-50 mb-3 mt-1"
+            />
           </figure>
-          <figure :if={Enum.count(@uploads.file.entries) == 0 && @question.media_url && !@remove_file}>
-            <img src={@question.media_url} class="max-h-50"/>
+          <figure :if={!@selected_file && @question.media_url && !@remove_file}>
+            <.simple_media_view
+              id={"media-preview-#{@question.id}"}
+              src={@question.media_url}
+              type={@question.media_type}
+              aspect_ratio={@question.media_aspect_ratio}
+            />
           </figure>
           <p :for={err <- upload_errors(@uploads.file)} class="alert alert-danger">
             {error_to_string(err)}
@@ -36,14 +47,15 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
           <div class="mb-8 flex gap-2">
             <.live_file_input upload={@uploads.file} class="file-input" />
             <.button
-            :if={Enum.count(@uploads.file.entries) == 1 || (@question.media_url && !@remove_file)}
-            type="button"
-            phx-click="remove-file"
-            phx-target={@myself}
-            aria-label="Fjern fil"
-          >
-            <.icon name="hero-trash" /> Fjern fil
-          </.button>
+              :if={@selected_file || (@question.media_url && !@remove_file)}
+              type="button"
+              class="btn btn-soft"
+              phx-click="remove-file"
+              phx-target={@myself}
+              aria-label="Fjern fil"
+            >
+              <.icon name="hero-trash" /> Fjern fil
+            </.button>
           </div>
         </fieldset>
         <.input
@@ -74,18 +86,102 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
     """
   end
 
+  attr :id, :string, default: nil
+
+  attr :entry, Phoenix.LiveView.UploadEntry,
+    required: true,
+    doc: "The `Phoenix.LiveView.UploadEntry` struct"
+
+  attr :field, Phoenix.HTML.FormField
+  attr :rest, :global
+
+  def media_preview(assigns) do
+    ~H"""
+    <div
+      id={@id || "phx-preview-#{@entry.ref}"}
+      data-upload-ref={@entry.upload_ref}
+      data-entry-ref={@entry.ref}
+      data-type={@entry.client_type}
+      phx-hook=".LiveMediaPreview"
+      phx-update="ignore"
+      {@rest}
+    >
+      <.input field={@field} type="hidden" />
+      <img
+        :if={String.starts_with?(@entry.client_type, "image")}
+        class="max-w-[inherit] max-h-[inherit]"
+      />
+      <video
+        :if={String.starts_with?(@entry.client_type, "video")}
+        controls
+        controlslist="nodownload nofullscreen noremoteplayback"
+        class="max-w-[inherit] max-h-[inherit]"
+      >
+        <source />
+      </video>
+      <audio
+        :if={String.starts_with?(@entry.client_type, "audio")}
+        controls
+        controlslist="nodownload nofullscreen noremoteplayback"
+        class="max-w-[inherit] max-h-[inherit]"
+      >
+        <source />
+      </audio>
+    </div>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".LiveMediaPreview">
+      export default {
+      mounted() {
+          const ref = this.el.getAttribute("data-entry-ref")
+          const uploadRef = this.el.getAttribute("data-upload-ref")
+          const type = this.el.getAttribute("data-type")
+          const fileInput = document.getElementById(uploadRef)
+          const arInput = this.el.getElementsByTagName('input')[0]
+          const file = Array.from(fileInput.files).find(f => f._phxRef == ref)
+          this.url = URL.createObjectURL(file)
+          if(type.startsWith("image")) {
+            const img = this.el.getElementsByTagName('img')[0]
+            img.src = this.url
+            img.onload = (e) => {
+              const aspectRatio = e.target.width / e.target.height
+              arInput.value = aspectRatio.toString()
+              arInput.dispatchEvent(new Event("input", {bubbles: true}))
+          }
+          } else if(type.startsWith("video")) {
+            const video = this.el.getElementsByTagName('video')[0]
+            const source = this.el.getElementsByTagName('source')[0]
+            source.src = this.url
+            video.onloadeddata = (e) => {
+              const aspectRatio = e.target.videoWidth / e.target.videoHeight
+              arInput.value = aspectRatio.toString()
+              arInput.dispatchEvent(new Event("input", {bubbles: true}))
+          }
+          } else if(type.startsWith("audio")) {
+            const source = this.el.getElementsByTagName('source')[0]
+            source.src = this.url
+          }
+        },
+        destroyed() {
+          URL.revokeObjectURL(this.url);
+        }
+      }
+    </script>
+    """
+  end
+
   defp form_types() do
     %{
       text: :string,
       alternatives: :string,
       type: :string,
-      num_answers: :integer
+      num_answers: :integer,
+      aspect_ratio: :float
     }
   end
 
   defp to_params(question) do
     question
-    |> Map.take([:text, :alternatives, :type, :num_answers])
+    |> Map.take([:text, :alternatives, :type, :num_answers, :aspect_ratio])
     |> Map.update(:alternatives, [], fn val ->
       if !is_nil(val), do: Enum.join(val, "\n"), else: nil
     end)
@@ -94,7 +190,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
 
   defp changeset(changeset, params) do
     changeset
-    |> Changeset.cast(params, [:text, :alternatives, :type, :num_answers])
+    |> Changeset.cast(params, [:text, :alternatives, :type, :num_answers, :aspect_ratio])
     |> Changeset.validate_required([:text])
   end
 
@@ -201,6 +297,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
           q
           |> Map.put(:media_url, nil)
           |> Map.put(:media_type, nil)
+          |> Map.put(:media_aspect_ratio, nil)
         else
           q
         end
@@ -212,6 +309,7 @@ defmodule AndaWeb.QuizLive.Form.QuestionForm do
           q
           |> Map.put(:media_url, media_url)
           |> Map.put(:media_type, media_type)
+          |> Map.put(:media_aspect_ratio, question_params.aspect_ratio)
         else
           q
         end

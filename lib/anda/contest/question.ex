@@ -9,6 +9,7 @@ defmodule Anda.Contest.Question do
     field :alternatives, {:array, :string}
     field :media_url, :string
     field :media_type, :string
+    field :media_aspect_ratio, :float
     field :position, :integer
     belongs_to :section, Anda.Contest.Section
     has_many :answers, Anda.Submission.Answer
@@ -19,7 +20,7 @@ defmodule Anda.Contest.Question do
   @doc false
   def changeset(question, attrs) do
     question
-    |> cast(attrs, [:text, :num_answers, :alternatives, :section_id, :media_url, :media_type, :type, :position])
+    |> cast(attrs, [:text, :num_answers, :alternatives, :section_id, :media_url, :media_type, :media_aspect_ratio, :type, :position])
     |> validate_required([:text, :num_answers, :section_id, :type, :position])
   end
 end

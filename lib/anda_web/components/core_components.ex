@@ -146,7 +146,11 @@ defmodule AndaWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-base-200/80 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-base-200/80 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -479,6 +483,24 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "hidden"} = assigns) do
+    ~H"""
+    <input
+      type={@type}
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+      class={[
+        @class,
+        "w-full input",
+        @errors != [] && (@error_class || "input-error")
+      ]}
+      {@rest}
+    />
+    <.error :for={msg <- @errors}>{msg}</.error>
+    """
+  end
+
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
@@ -539,6 +561,7 @@ defmodule AndaWeb.CoreComponents do
   end
 
   attr :class, :string, default: ""
+
   def saved(assigns) do
     ~H"""
     <p class={"mt-1.5 flex gap-2 items-center text-sm text-success fade-out #{@class}"}>
@@ -688,10 +711,11 @@ defmodule AndaWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :string, default: "size-4"
+  attr :rest, :global
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <span class={[@name, @class]} {@rest} />
     """
   end
 
@@ -744,5 +768,190 @@ defmodule AndaWeb.CoreComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  attr :title, :string, required: true
+  attr :description, :string
+  attr :id, :string
+  slot :content
+  slot :controls
+
+  def section(assigns) do
+    ~H"""
+    <div id={@id} class="card bg-base-100 shadow-sm">
+      <div class="divide-(--color-base-300) divide-y-2 divide-dotted flex flex-col">
+        <div>
+          <h2 class="text-xl font-bold p-6">{@title}</h2>
+          <p :if={@description} class="text-md pb-4 px-6">
+            {@description}
+          </p>
+        </div>
+        <div
+          :for={content <- @content}
+          class="px-3 lg:px-6 py-6 lg:py-8"
+        >
+          {render_slot(content)}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :src, :string, required: true
+  attr :type, :string, required: true
+  attr :size, :integer, default: 300
+  attr :aspect_ratio, :float, default: nil
+  attr :id, :string
+  attr :rest, :global
+
+  def simple_media_view(assigns) do
+    ~H"""
+    <div :if={!is_nil(@src)} id={@id} {@rest}>
+      <img
+        :if={String.starts_with?(@type, "image")}
+        loading="lazy"
+        class="object-contain object-left"
+        style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
+        src={@src}
+      />
+      <video
+        :if={String.starts_with?(@type, "video")}
+        loading="lazy"
+        class="object-contain object-left"
+        controls
+        style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
+      >
+        <source src={@src} type={@type} />
+      </video>
+      <audio
+        :if={String.starts_with?(@type, "audio")}
+        loading="lazy"
+        class="object-contain"
+        style={"width: 100%; max-width: #{@size}px;"}
+        controls
+        controlslist="nodownload nofullscreen noremoteplayback"
+        src={@src}
+      />
+    </div>
+    """
+  end
+
+  attr :src, :string, required: true
+  attr :type, :string, required: true
+  attr :size, :integer, default: 300
+  attr :aspect_ratio, :float, default: nil
+  attr :id, :string
+  attr :rest, :global
+
+  def media_view(assigns) do
+    ~H"""
+    <div :if={!is_nil(@src)} id={@id} {@rest} phx-hook=".MediaView">
+      <a :if={String.starts_with?(@type, "image")} href={"#show-#{@id}"}>
+        <img
+          loading="lazy"
+          class="object-contain object-left"
+          style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
+          src={@src}
+        />
+      </a>
+      <a
+        :if={String.starts_with?(@type, "video")}
+        class="block relative w-fit h-fit"
+        href={"#show-#{@id}"}
+      >
+        <video
+          loading="lazy"
+          class="object-contain object-left"
+          style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
+        >
+          <source src={@src} type={@type} />
+        </video>
+        <.icon
+          name="hero-play-solid"
+          class="block absolute bg-white/70 h-12 w-12"
+          style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
+        />
+      </a>
+      <audio
+        :if={String.starts_with?(@type, "audio")}
+        loading="lazy"
+        class="object-contain"
+        style={"width: 100%; max-width: #{@size}px;"}
+        controls
+        controlslist="nodownload nofullscreen noremoteplayback"
+        src={@src}
+      />
+      <dialog
+        class="backdrop:bg-gray-900/70 max-w-3xl w-fit max-h-full max-w-full bg-transparent"
+        style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
+      >
+        <div class=" flex flex-col items-center p-2">
+          <button class="btn btn-square btn-soft mb-2 self-end">
+            <.icon name="hero-x-mark" />
+          </button>
+          <img
+            :if={String.starts_with?(@type, "image")}
+            loading="lazy"
+            class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
+            src={@src}
+          />
+          <video
+            :if={String.starts_with?(@type, "video")}
+            loading="lazy"
+            controls
+            controlslist="nodownload nofullscreen noremoteplayback"
+            class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
+          >
+            <source src={@src} type={@type} />
+          </video>
+        </div>
+      </dialog>
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".MediaView">
+      export default {
+        mounted() {
+          const dialog = this.el.querySelector("dialog")
+          const video = this.el.querySelector("dialog video")
+          const button = this.el.querySelector("dialog button")
+
+          this.handleDialogClose = () => {
+            if(window.location.hash) {
+              const url = new URL(window.location)
+              url.hash = ""
+              window.history.pushState({}, "", url)
+            }
+            if(video) {
+              video.pause()
+              video.currentTime = 0
+            }
+          }
+
+          this.handleButtonClick = () => {
+            dialog.close()
+          }
+
+          this.handleHashChange = () => {
+            if(window.location.hash === id) {
+              dialog.showModal()
+            } else {
+              dialog.close()
+            }
+          }
+
+          const id = "#show-"+this.el.id
+          if(window.location.hash === id) {
+            dialog.showModal()
+          }
+
+          dialog.addEventListener("close", this.handleDialogClose)
+          button.addEventListener("click", this.handleButtonClick)
+          window.addEventListener("hashchange", this.handleHashChange)
+        },
+        destroyed() {
+          window.removeEventListener("hashchange", this.handleHashChange)
+        }
+      }
+    </script>
+    """
   end
 end
