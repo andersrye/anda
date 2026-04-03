@@ -19,7 +19,7 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
         phx-submit="save"
       >
         <.input field={@form[:title]} type="text" label="Tittel" />
-        <.input field={@form[:description]} type="text" label="Beskrivelse" />
+        <.input field={@form[:description]} type="textarea" label="Beskrivelse" />
         <.input class="join-item input" field={@form[:slug]} type="text" label="Url-id" />
         <div class="text-xs label">
           <span class="mr-1">Url:</span>

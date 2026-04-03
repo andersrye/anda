@@ -102,6 +102,30 @@ defmodule AndaWeb.QuizLive.Section do
     """
   end
 
+  def question_details(assigns) do
+    type_text =
+      case assigns.question.type do
+        "alternatives" -> "#{Enum.count(assigns.question.alternatives)} alternativer"
+        "text" -> "Fritekst"
+        "number" -> "Tall"
+        "football-score" -> "Fotball-resultat"
+        _ -> "??"
+      end
+
+    assigns = assign(assigns, type_text: type_text)
+
+    ~H"""
+    <div class="mt-4">
+      <div class="badge badge-sm badge-soft">
+        {@type_text}
+      </div>
+      <div :if={@question.num_answers > 1} class="badge badge-sm badge-soft">
+        {"#{@question.num_answers} svar"}
+      </div>
+    </div>
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -122,7 +146,7 @@ defmodule AndaWeb.QuizLive.Section do
         <div
           :for={{id, question} <- @streams.questions}
           id={id}
-          class="flex -divide-stone-300 -divide-x-2  divide-dotted"
+          class="flex"
         >
           <div class="flex-grow py-6">
             <p class="whitespace-pre-line">{question.text}</p>
@@ -134,14 +158,7 @@ defmodule AndaWeb.QuizLive.Section do
               type={question.media_type}
               aspect_ratio={question.media_aspect_ratio}
             />
-            <ul :if={!is_nil(question.alternatives)} class="list-disc ml-5">
-              <li :for={alternative <- Enum.take(question.alternatives, 6)}>
-                {alternative}
-              </li>
-            </ul>
-            <span :if={Enum.count(question.alternatives || []) > 6} class="ml-1">
-              + {Enum.count(question.alternatives || []) - 6} til
-            </span>
+            <.question_details question={question} />
           </div>
           <div class="flex-shrink ml-5">
             <.question_edit_controls
