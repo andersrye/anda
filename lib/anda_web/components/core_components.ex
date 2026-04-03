@@ -349,6 +349,7 @@ defmodule AndaWeb.CoreComponents do
   attr :class, :string, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
   attr :num_inputs, :integer, default: 1
+  attr :col, :boolean, default: false
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -392,23 +393,31 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
+
   def input(%{type: "radiogroup"} = assigns) do
     ~H"""
     <fieldset class="fieldset mb-2 w-full">
-      <label>{@label}</label>
+      <label class="label mb-1">{@label}</label>
       <input type="hidden" name={@name} value="" />
-      <div class="flex flex-row flex-wrap gap-3 w-full">
-        <label :for={{label, value} <- @options} class="label text-base min-w-35">
+      <div class={["flex", (if @col, do: "flex-col", else: "flex-row"),  "flex-wrap gap-5 w-full"]}>
+        <label :for={option <- @options} class="label text-base min-w-40">
           <input
             type="radio"
-            id={"#{@id}-#{@name}-#{value}"}
+            id={"#{@id}-#{@name}-#{option.value}"}
             name={@name}
-            value={value}
-            checked={value == @value}
+            value={option.value}
+            checked={option.value == @value}
             class="radio radio-sm"
             {@rest}
           />
-          {label}
+          <div>
+            <div>
+              {option.label}
+            </div>
+            <div :if={Map.get(option, :helptext)} class="text-xs">
+              {Map.get(option, :helptext)}
+            </div>
+          </div>
         </label>
       </div>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -499,6 +508,32 @@ defmodule AndaWeb.CoreComponents do
       {@rest}
     />
     <.error :for={msg <- @errors}>{msg}</.error>
+    """
+  end
+
+  def input(%{type: "radio"} = assigns) do
+    dbg(assigns)
+
+    ~H"""
+    <div class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="label mb-1">{@label}</span>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            @class,
+            "radio",
+            @errors != [] && (@error_class || "input-error")
+          ]}
+          {@rest}
+        />
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+      <.saved :if={Enum.empty?(@errors) && @saved} />
+    </div>
     """
   end
 

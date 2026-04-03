@@ -20,10 +20,23 @@ defmodule AndaWeb.QuizLive.Form.QuizForm do
       >
         <.input field={@form[:title]} type="text" label="Tittel" />
         <.input field={@form[:description]} type="text" label="Beskrivelse" />
-        <div class="join">
-          <div class="join-item text-sm mt-9 mr-1">{@base_url}</div>
-          <.input class="join-item input" field={@form[:slug]} type="text" label="Url" />
+        <.input class="join-item input" field={@form[:slug]} type="text" label="Url-id" />
+        <div class="text-xs label">
+          <span class="mr-1">Url:</span>
+          <span class="font-mono">{@base_url}{@form[:slug].value}</span>
         </div>
+        <.input
+          field={@form[:mode]}
+          type="radiogroup"
+          label="Status"
+          col={true}
+          options={[
+            %{label: "Skjult", value: "hidden", helptext: "Ikke synlig og kan ikke besvares"},
+            %{label: "Åpen", value: "open", helptext: "Synlig for alle og åpen for besvarelser"},
+            %{label: "Stengt", value: "closed", helptext: "Synlig for alle, men kan ikke besvares"}
+          ]}
+        />
+
         <:actions>
           <.button phx-disable-with="Saving...">Lagre</.button>
         </:actions>

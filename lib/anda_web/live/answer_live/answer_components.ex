@@ -111,7 +111,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         id={"input-#{@id}"}
         field={@field}
         type="radiogroup"
-        options={for a <- @options || [], do: {a, a}}
+        options={for a <- @options || [], do: %{label: a, value: a}}
         {@rest}
       />
       <.saved class="saved hidden" />

@@ -1,39 +1,12 @@
 <Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={@mode} quiz={@quiz}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb>{@quiz.title}</:breadcrumb>
-  <div :if={@mode == :edit} class="flex gap-2 flex-wrap">
-    <form phx-change="change_mode" class="join join-horizontal z-0 m-1">
-      <input
-        type="radio"
-        name="mode"
-        class={["btn join-item btn-xs btn-outline btn-info"]}
-        aria-label="Skjult"
-        checked={@quiz.mode == "hidden"}
-        value="hidden"
-      />
-      <input
-        type="radio"
-        name="mode"
-        class="btn join-item btn-xs btn-outline btn-success"
-        aria-label="Åpen"
-        checked={@quiz.mode == "open"}
-        value="open"
-      />
-      <input
-        type="radio"
-        name="mode"
-        class="btn join-item btn-xs btn-outline btn-error"
-        aria-label="Stengt"
-        checked={@quiz.mode == "closed"}
-        value="closed"
-      />
-    </form>
+  <div :if={@mode == :edit} class="flex gap-2 flex-wrap justify-end">
     <.link class="btn btn-xs btn-outline m-1" href={~p"/admin/quiz/#{@quiz.id}/preview"} target="_blank">
       Forhåndsvisning <.icon name="hero-arrow-top-right-on-square" />
     </.link>
-    <div class="flex-grow"></div>
     <.link patch={~p"/admin/quiz/#{@quiz.id}/edit"} phx-click={JS.push_focus()} class="self-end">
-      <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-pencil" /></.button>
+      <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-cog-6-tooth" /></.button>
     </.link>
   </div>
   <p>{@quiz.description}</p>
@@ -88,7 +61,7 @@
     <.live_component
       module={AndaWeb.QuizLive.Form.QuizForm}
       id={@quiz.id || :new}
-      title={@page_title}
+      title={@quiz.title}
       action={@live_action}
       quiz={@quiz}
       current_scope={@current_scope}

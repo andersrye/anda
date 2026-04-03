@@ -100,34 +100,4 @@ defmodule AndaWeb.QuizLive.Edit do
     {:noreply, socket |> push_patch(to: ~p"/admin/quiz/#{socket.assigns.quiz_id}")}
   end
 
-  @impl true
-  def handle_event("change_mode", %{"mode" => mode}, socket) do
-    with {:ok, quiz} =
-           Contest.update_quiz(
-             socket.assigns.quiz,
-             %{"mode" => mode},
-             socket.assigns.current_scope
-           ) do
-      mode_text =
-        case mode do
-          "hidden" -> "skjult"
-          "open" -> "åpen"
-          "closed" -> "stengt"
-          _ -> "??"
-        end
-
-      {:noreply,
-       socket
-       |> assign(quiz: quiz)
-       |> put_flash(
-         :info,
-         "Quizen er nå #{mode_text}!"
-       )}
-    else
-      {:error, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Oops, det funka ikke!")}
-    end
-  end
 end

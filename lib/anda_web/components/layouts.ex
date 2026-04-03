@@ -95,13 +95,32 @@ defmodule AndaWeb.Layouts do
   slot :breadcrumb, required: false
 
   def quiz_app(assigns) do
+    {mode_text, mode_status} =
+      case assigns.quiz.mode do
+        "hidden" -> {"Skjult", "status-info"}
+        "open" -> {"Åpen", "status-success"}
+        "closed" -> {"Stengt", "status-error"}
+        _ -> {"??", "status-neutral"}
+      end
+
+    assigns = assign(assigns, mode_text: mode_text, mode_status: mode_status)
+
     ~H"""
     <.app current_scope={@current_scope} show_header={@show_header} flash={@flash}>
-      <div :if={@show_header} class="flex justify-between mt-6">
+      <div :if={@show_header} class="flex mt-6">
         <.header>
           {@quiz.title}
         </.header>
-        <.link class="btn btn-xs btn-outline m-3" href={~p"/quiz/#{@quiz.slug}"} target="_blank">
+        <span class="badge badge-sm badge-ghost m-1">
+          <span class={"status #{@mode_status}"}></span>
+          {@mode_text}
+        </span>
+        <span class="flex-grow"></span>
+        <.link
+          class="btn btn-xs btn-outline m-3 place-self-end"
+          href={~p"/quiz/#{@quiz.slug}"}
+          target="_blank"
+        >
           Åpne quiz <.icon name="hero-arrow-top-right-on-square" />
         </.link>
       </div>
