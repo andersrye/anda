@@ -66,7 +66,7 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
   end
 
   @impl true
-  def handle_event("validate", unsigned_params, socket) do
+  def handle_event("validate", _unsigned_params, socket) do
     #dbg(unsigned_params)
     {:noreply, socket}
   end

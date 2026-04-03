@@ -333,8 +333,9 @@ defmodule AndaWeb.CoreComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file month number password
-               search select tel text textarea time url week checkgroup radiogroup textgroup)
+    values:
+      ~w(checkbox color date datetime-local email file month number password
+               search select tel text textarea time url week checkgroup radiogroup textgroup hidden)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -521,7 +522,7 @@ defmodule AndaWeb.CoreComponents do
         />
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
-      <.saved :if={Enum.empty?(@errors) && @saved}></.saved>
+      <.saved :if={Enum.empty?(@errors) && @saved} />
     </div>
     """
   end
@@ -774,6 +775,7 @@ defmodule AndaWeb.CoreComponents do
   attr :description, :string
   attr :id, :string
   slot :content
+  slot :streamed_content
   slot :controls
 
   def section(assigns) do
@@ -785,6 +787,14 @@ defmodule AndaWeb.CoreComponents do
           <p :if={@description} class="text-md pb-4 px-6">
             {@description}
           </p>
+        </div>
+        <div id={"streamed-content-#{@id}"} phx-update="stream">
+          <div
+            :for={content <- @streamed_content}
+            class="px-3 lg:px-6 py-6 lg:py-8"
+          >
+            {render_slot(content)}
+          </div>
         </div>
         <div
           :for={content <- @content}

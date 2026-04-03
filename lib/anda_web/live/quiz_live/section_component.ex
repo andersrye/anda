@@ -2,6 +2,106 @@ defmodule AndaWeb.QuizLive.Section do
   use AndaWeb, :live_component
   alias Anda.Contest
 
+  def section_edit_controls(assigns) do
+    ~H"""
+    <div class="flex flex-row gap-2">
+      <.link
+        patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-pencil" /></.button>
+      </.link>
+      <.button
+        class="btn btn-square btn-outline btn-sm"
+        phx-click="move_section_up"
+        phx-value-section_id={@section.id}
+        phx-target={@myself}
+      >
+        <.icon name="hero-arrow-up" />
+      </.button>
+      <.button
+        class="btn btn-square btn-outline btn-sm"
+        phx-click="move_section_down"
+        phx-value-section_id={@section.id}
+        phx-target={@myself}
+      >
+        <.icon name="hero-arrow-down" />
+      </.button>
+
+      <.link
+        _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-error btn-sm">
+          <.icon name="hero-trash" />
+        </.button>
+      </.link>
+    </div>
+    """
+  end
+
+  def question_edit_controls(assigns) do
+    ~H"""
+    <div class=" py-6 grid grid-cols-1 md:grid-cols-4 gap-2">
+      <.link
+        patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{@question.id}/edit"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-sm">
+          <.icon name="hero-pencil" />
+        </.button>
+      </.link>
+      <.button
+        class="btn btn-square btn-outline btn-sm"
+        phx-click="move_question_up"
+        phx-value-question_id={@question.id}
+        phx-target={@myself}
+      >
+        <.icon name="hero-arrow-up" />
+      </.button>
+      <.button
+        class="btn btn-square btn-outline btn-sm"
+        phx-click="move_question_down"
+        phx-value-question_id={@question.id}
+        phx-target={@myself}
+      >
+        <.icon name="hero-arrow-down" />
+      </.button>
+      <.link
+        patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{@question.id}/delete"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-error btn-sm">
+          <.icon name="hero-trash" />
+        </.button>
+      </.link>
+    </div>
+    """
+  end
+
+  def scoring_controls(assigns) do
+    ~H"""
+    <div class=" py-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+      <.link
+        patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{@question.id}"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-sm">
+          <.icon name="hero-document-check" />
+        </.button>
+      </.link>
+      <.link
+        _patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{@question.id}"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-square btn-outline btn-sm">
+          <.icon name="hero-eye" />
+        </.button>
+      </.link>
+    </div>
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -11,43 +111,7 @@ defmodule AndaWeb.QuizLive.Section do
           <h2 class="text-xl font-semibold mb-2">{@section.title}</h2>
           <div>{@section.description}</div>
         </div>
-        <div :if={@mode == :edit} class="flex flex-row gap-2">
-          <.link
-            :if={@mode == :edit}
-            patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/edit"}
-            phx-click={JS.push_focus()}
-          >
-            <.button class="btn btn-square btn-outline btn-sm"><.icon name="hero-pencil" /></.button>
-          </.link>
-          <.button
-            :if={@mode == :edit}
-            class="btn btn-square btn-outline btn-sm"
-            phx-click="move_section_up"
-            phx-value-section_id={@section.id}
-            phx-target={@myself}
-          >
-            <.icon name="hero-arrow-up" />
-          </.button>
-          <.button
-            :if={@mode == :edit}
-            class="btn btn-square btn-outline btn-sm"
-            phx-click="move_section_down"
-            phx-value-section_id={@section.id}
-            phx-target={@myself}
-          >
-            <.icon name="hero-arrow-down" />
-          </.button>
-
-          <.link
-            :if={@mode == :edit}
-            _patch={~p"/admin/quiz/#{@section.quiz_id}/section/#{@section.id}/delete"}
-            phx-click={JS.push_focus()}
-          >
-            <.button class="btn btn-square btn-outline btn-error btn-sm">
-              <.icon name="hero-trash" />
-            </.button>
-          </.link>
-        </div>
+        <.section_edit_controls :if={@mode == :edit} section={@section} myself={@myself} />
       </div>
 
       <div
@@ -80,60 +144,17 @@ defmodule AndaWeb.QuizLive.Section do
             </span>
           </div>
           <div class="flex-shrink ml-5">
-            <div :if={@mode == :edit} class=" py-6 grid grid-cols-1 md:grid-cols-4 gap-2">
-              <.link
-                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/edit"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline btn-sm">
-                  <.icon name="hero-pencil" />
-                </.button>
-              </.link>
-              <.button
-                :if={@mode == :edit}
-                class="btn btn-square btn-outline btn-sm"
-                phx-click="move_question_up"
-                phx-value-question_id={question.id}
-                phx-target={@myself}
-              >
-                <.icon name="hero-arrow-up" />
-              </.button>
-              <.button
-                :if={@mode == :edit}
-                class="btn btn-square btn-outline btn-sm"
-                phx-click="move_question_down"
-                phx-value-question_id={question.id}
-                phx-target={@myself}
-              >
-                <.icon name="hero-arrow-down" />
-              </.button>
-              <.link
-                patch={~p"/admin/quiz/#{@section.quiz_id}/question/#{question.id}/delete"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline btn-error btn-sm">
-                  <.icon name="hero-trash" />
-                </.button>
-              </.link>
-            </div>
-            <div :if={@mode == :score} class=" py-6 grid grid-cols-1 md:grid-cols-2 gap-2">
-              <.link
-                patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{question.id}"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline btn-sm">
-                  <.icon name="hero-document-check" />
-                </.button>
-              </.link>
-              <.link
-                _patch={~p"/admin/quiz/#{@section.quiz_id}/scoring/#{question.id}"}
-                phx-click={JS.push_focus()}
-              >
-                <.button class="btn btn-square btn-outline btn-sm">
-                  <.icon name="hero-eye" />
-                </.button>
-              </.link>
-            </div>
+            <.question_edit_controls
+              :if={@mode == :edit}
+              question={question}
+              section={@section}
+              myself={@myself}
+            />
+            <.scoring_controls
+              :if={@mode == :score}
+              question={question}
+              section={@section}
+            />
           </div>
         </div>
       </div>

@@ -3,7 +3,6 @@ defmodule AndaWeb.Layouts do
   This module holds layouts and related functionality
   used by your application.
   """
-  alias Anda.Contest.Quiz
   use AndaWeb, :html
 
   # Embed all files in layouts/* within this module.

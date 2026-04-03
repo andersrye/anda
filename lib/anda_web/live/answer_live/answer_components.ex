@@ -53,6 +53,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
   attr :id, :string
   attr :class, :string, default: ""
   attr :options, :list
+  attr :prompt, :string
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -67,7 +68,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         class={@class}
         type="select"
         options={for a <- @options || [], do: {a, a}}
-        prompt="Velg et svar"
+        prompt={@prompt}
         {@rest}
       />
       <.saved class="saved hidden" />
