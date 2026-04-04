@@ -34,7 +34,7 @@ defmodule Anda.Contest do
         preload: [sections: {s, questions: q}],
         order_by: [s.position, q.position]
 
-    Repo.all(query) |> Enum.at(0)
+    Repo.one(query)
   end
 
   def get_quiz_w_questions_by_slug(slug) do
@@ -48,7 +48,7 @@ defmodule Anda.Contest do
         preload: [sections: {s, questions: q}],
         order_by: [s.position, q.position]
 
-    Repo.all(query) |> Enum.at(0)
+    Repo.one(query)
   end
 
   def get_quiz_w_question_count(id, %Scope{} = scope) do
@@ -63,11 +63,12 @@ defmodule Anda.Contest do
           id: quiz.id,
           title: quiz.title,
           slug: quiz.slug,
+          mode: quiz.mode,
           question_count: sum(q.num_answers)
         },
         group_by: quiz.id
 
-    Repo.all(query) |> Enum.at(0)
+    Repo.one(query)
   end
 
   def get_quiz_id_from_slug(slug) do
@@ -250,7 +251,7 @@ defmodule Anda.Contest do
       |> Repo.transact()
 
     changed = Map.values(res)
-    Endpoint.broadcast("quiz:#{section.quiz_id}:section", "section_updated", changed)
+    Endpoint.broadcast("quiz:#{section.quiz_id}:section", "sections_updated", changed)
   end
 
   def move_section_up(%Section{} = section) do
@@ -289,7 +290,7 @@ defmodule Anda.Contest do
     Endpoint.broadcast(
       "quiz:#{quiz_id}:question",
       "questions_updated",
-      {question.section_id, changed}
+      changed
     )
   end
 

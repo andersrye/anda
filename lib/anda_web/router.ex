@@ -34,7 +34,6 @@ defmodule AndaWeb.Router do
         live "/", AnswerLive.Index, :edit
         live "/leaderboard/:tag_with_mac", LeaderboardLive.Index, :public
         live "/leaderboard/:tag_with_mac/:name", AnswerLive.Index, :view_public
-
       end
     end
 
@@ -50,15 +49,19 @@ defmodule AndaWeb.Router do
         live "/", QuizLive.Index
 
         scope "/quiz/:quiz_id" do
-          live "/", QuizLive.Edit, :index
-          live "/edit", QuizLive.Edit, :edit_quiz
-          live "/question/new", QuizLive.Edit, :new_question
-          live "/question/:question_id/edit", QuizLive.Edit, :edit_question
-          live "/question/:question_id/delete", QuizLive.Edit, :delete_question
+          scope "/edit", EditLive do
+            live "/", Edit, :index
+            live "/settings", Edit, :edit_quiz
+            live "/question/new", Edit, :new_question
+            live "/question/:question_id", Edit, :edit_question
+            live "/question/:question_id/delete", Edit, :delete_question
+            live "/section/new", Edit, :new_section
+            live "/section/:section_id", Edit, :edit_section
+            live "/section/:section_id/delete", Edit, :delete_section
+          end
+
           live "/scoring", QuizLive.Edit, :score
           live "/scoring/:question_id", QuizLive.Edit, :score_question
-          live "/section/new", QuizLive.Edit, :new_section
-          live "/section/:section_id/edit", QuizLive.Edit, :edit_section
           live "/leaderboard", LeaderboardLive.Index, :private
           live "/leaderboard/:submission_id", AnswerLive.Index, :view_leaderboard
           live "/submissions", SubmissionsLive.Index, :index

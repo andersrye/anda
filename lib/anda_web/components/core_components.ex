@@ -393,13 +393,12 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
-
   def input(%{type: "radiogroup"} = assigns) do
     ~H"""
     <fieldset class="fieldset mb-2 w-full">
       <label class="label mb-1">{@label}</label>
       <input type="hidden" name={@name} value="" />
-      <div class={["flex", (if @col, do: "flex-col", else: "flex-row"),  "flex-wrap gap-5 w-full"]}>
+      <div class={["flex", if(@col, do: "flex-col", else: "flex-row"), "flex-wrap gap-5 w-full"]}>
         <label :for={option <- @options} class="label text-base min-w-40">
           <input
             type="radio"
@@ -810,7 +809,6 @@ defmodule AndaWeb.CoreComponents do
   attr :description, :string
   attr :id, :string
   slot :content
-  slot :streamed_content
   slot :controls
 
   def section(assigns) do
@@ -818,17 +816,16 @@ defmodule AndaWeb.CoreComponents do
     <div id={@id} class="card bg-base-100 shadow-sm">
       <div class="divide-(--color-base-300) divide-y-2 divide-dotted flex flex-col">
         <div>
-          <h2 class="text-xl font-bold p-6">{@title}</h2>
-          <p :if={@description} class="text-md pb-4 px-6">
-            {@description}
-          </p>
-        </div>
-        <div id={"streamed-content-#{@id}"} phx-update="stream">
-          <div
-            :for={content <- @streamed_content}
-            class="px-3 lg:px-6 py-6 lg:py-8"
-          >
-            {render_slot(content)}
+          <div class="flex">
+            <div class="flex-grow">
+              <h2 class="text-xl font-bold p-6">{@title}</h2>
+              <p :if={@description} class="text-md pb-4 px-6">
+                {@description}
+              </p>
+            </div>
+            <div :if={@controls} class="p-6">
+              {render_slot(@controls)}
+            </div>
           </div>
         </div>
         <div

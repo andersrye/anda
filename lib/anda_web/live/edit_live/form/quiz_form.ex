@@ -1,4 +1,4 @@
-defmodule AndaWeb.QuizLive.Form.QuizForm do
+defmodule AndaWeb.EditLive.Form.QuizForm do
   use AndaWeb, :live_component
 
   alias Anda.Contest

@@ -135,7 +135,7 @@ defmodule AndaWeb.Layouts do
         <.link
           role="tab"
           class={["tab", @current_tab == :edit && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/"}
+          navigate={~p"/admin/quiz/#{@quiz.id}/edit"}
         >
           Rediger
         </.link>

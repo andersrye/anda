@@ -1,0 +1,169 @@
+<Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:edit} quiz={@quiz}>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb>{@quiz.title}</:breadcrumb>
+  <div class="flex gap-2 flex-wrap justify-end">
+    <.link
+      class="btn btn-xs btn-outline m-1"
+      href={~p"/admin/quiz/#{@quiz.id}/preview"}
+      target="_blank"
+    >
+      Forhåndsvisning <.icon name="hero-arrow-top-right-on-square" />
+    </.link>
+    <.link
+      patch={~p"/admin/quiz/#{@quiz.id}/edit/settings"}
+      phx-click={JS.push_focus()}
+      class="self-end"
+    >
+      <.button class="btn btn-square btn-outline btn-sm">
+        <.icon name="hero-cog-6-tooth" />
+      </.button>
+    </.link>
+  </div>
+  <div class="flex flex-col gap-8">
+    <.section
+      :for={section <- @quiz.sections}
+      id={"section_#{section.id}"}
+      title={section.title}
+      description={section.description}
+    >
+      <:controls>
+        <.section_edit_controls section={section} />
+      </:controls>
+      <:content :for={question <- section.questions}>
+        <div class="flex">
+          <div class="flex-grow">
+            <p class="whitespace-pre-line">{question.text}</p>
+            <.media_view
+              :if={question.media_url}
+              id={"media-#{question.id}"}
+              class="my-5"
+              src={question.media_url}
+              type={question.media_type}
+              aspect_ratio={question.media_aspect_ratio}
+            />
+            <.question_details question={question} />
+          </div>
+          <div class="flex-shrink ml-5">
+            <.question_edit_controls
+              question={question}
+              section={section}
+            />
+          </div>
+        </div>
+      </:content>
+      <:content>
+        <.link
+          patch={~p"/admin/quiz/#{section.quiz_id}/edit/question/new?section_id=#{section.id}"}
+          phx-click={JS.push_focus()}
+        >
+          <.button class="btn btn-outline">
+            <.icon name="hero-plus" />Legg til spørsmål
+          </.button>
+        </.link>
+      </:content>
+    </.section>
+  </div>
+
+  <.link
+    patch={~p"/admin/quiz/#{@quiz.id}/edit/section/new"}
+    phx-click={JS.push_focus()}
+  >
+    <.button class="btn btn-outline">
+      <.icon name="hero-plus" />Legg til seksjon
+    </.button>
+  </.link>
+
+  <.modal
+    :if={@live_action in [:new_section, :edit_section]}
+    id="quiz-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz}/edit")}
+  >
+    <.live_component
+      module={Form.SectionForm}
+      id="new_section"
+      quiz={@quiz}
+      title={@page_title}
+      action={@live_action}
+      section_id={if @live_action == :edit_section, do: @section_id, else: nil}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz}/edit"}
+    />
+  </.modal>
+
+  <.modal
+    :if={@live_action in [:new_quiz, :edit_quiz]}
+    id="quiz-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/edit")}
+  >
+    <.live_component
+      module={Form.QuizForm}
+      id={@quiz.id || :new}
+      title={@quiz.title}
+      action={@live_action}
+      quiz={@quiz}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz.id}/edit"}
+    />
+  </.modal>
+
+  <.modal
+    :if={@live_action in [:edit_question]}
+    id="edit-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/edit")}
+  >
+    <.live_component
+      module={Form.QuestionForm}
+      id={@quiz_id}
+      question_id={@question_id}
+      action={:edit}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz.id}/edit"}
+    />
+  </.modal>
+  <.modal
+    :if={@live_action in [:new_question]}
+    id="edit-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/edit")}
+  >
+    <.live_component
+      module={Form.QuestionForm}
+      id={@quiz_id}
+      action={:new}
+      section_id={@section_id}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz.id}/edit"}
+    />
+  </.modal>
+  <.modal
+    :if={@live_action in [:delete_section]}
+    id="delete-section-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/edit")}
+  >
+    <.live_component
+      module={Form.DeleteSectionForm}
+      id={@quiz_id}
+      section_id={@section_id}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz.id}/edit"}
+    />
+  </.modal>
+  <.modal
+    :if={@live_action in [:delete_question]}
+    id="delete-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/edit")}
+  >
+    <.live_component
+      module={Form.DeleteQuestionForm}
+      id={@quiz_id}
+      question_id={@question_id}
+      current_scope={@current_scope}
+      patch={~p"/admin/quiz/#{@quiz.id}/edit"}
+    />
+  </.modal>
+</Layouts.quiz_app>
