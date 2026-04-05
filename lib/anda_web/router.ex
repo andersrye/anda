@@ -60,8 +60,12 @@ defmodule AndaWeb.Router do
             live "/section/:section_id/delete", Edit, :delete_section
           end
 
-          live "/scoring", QuizLive.Edit, :score
-          live "/scoring/:question_id", QuizLive.Edit, :score_question
+          scope "/scoring", ScoringLive do
+            live "/", Index, :score
+            live "/question/:question_id", Index, :score_question
+            live "/question/:question_id/answers", Index, :list_answers
+          end
+
           live "/leaderboard", LeaderboardLive.Index, :private
           live "/leaderboard/:submission_id", AnswerLive.Index, :view_leaderboard
           live "/submissions", SubmissionsLive.Index, :index

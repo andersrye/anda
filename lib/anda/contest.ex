@@ -37,6 +37,52 @@ defmodule Anda.Contest do
     Repo.one(query)
   end
 
+
+  def get_quiz_w_questions_w_answer_stats(id, %Scope{} = scope) do
+    subquery =
+      from q in Question,
+        left_join: a in Answer,
+        on: a.question_id == q.id,
+        select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score)},
+        group_by: [q.id]
+
+    query =
+      from quiz in Quiz,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_join: q in subquery(subquery),
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: q}],
+        order_by: [s.position, q.position]
+
+    Repo.one(query)
+  end
+
+  def get_quiz_w_questions2(id, %Scope{} = scope) do
+    subquery =
+      from q in Question,
+        left_join: a in Answer,
+        on: a.question_id == q.id,
+        left_join: s in Section,
+        on: s.id == q.section_id,
+        select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score), number: over(dense_rank(), :number)},
+        windows: [number: [order_by: [s.position, q.position]]],
+        group_by: [s.id, q.id]
+
+    query =
+      from quiz in Quiz,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_join: q in subquery(subquery),
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: q}],
+        order_by: [s.position, q.position]
+
+    Repo.one(query)
+  end
+
   def get_quiz_w_questions_by_slug(slug) do
     query =
       from quiz in Quiz,
@@ -59,13 +105,7 @@ defmodule Anda.Contest do
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
         on: q.section_id == s.id,
-        select: %{
-          id: quiz.id,
-          title: quiz.title,
-          slug: quiz.slug,
-          mode: quiz.mode,
-          question_count: sum(q.num_answers)
-        },
+        select: %{quiz | question_count: sum(q.num_answers)},
         group_by: quiz.id
 
     Repo.one(query)

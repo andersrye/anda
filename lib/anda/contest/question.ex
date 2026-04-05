@@ -14,6 +14,10 @@ defmodule Anda.Contest.Question do
     belongs_to :section, Anda.Contest.Section
     has_many :answers, Anda.Submission.Answer
 
+    field :total_answer_count, :integer, virtual: true
+    field :scored_answer_count, :integer, virtual: true
+    field :rank, :integer, virtual: true
+
     timestamps(type: :utc_datetime)
   end
 

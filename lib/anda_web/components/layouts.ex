@@ -146,13 +146,6 @@ defmodule AndaWeb.Layouts do
         >
           Retting
         </.link>
-        <!--<.link
-          role="tab"
-          class={["tab", @current_tab == :preview && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/preview"}
-        >
-          Forhåndsvisning
-        </.link>-->
         <.link
           role="tab"
           class={["tab", @current_tab == :submissions && "tab-active"]}

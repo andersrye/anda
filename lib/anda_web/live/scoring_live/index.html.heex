@@ -1,0 +1,63 @@
+<Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:score} quiz={@quiz}>
+  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
+  <:breadcrumb>{@quiz.title}</:breadcrumb>
+  <div class="flex flex-col gap-8">
+    <.section
+      :for={section <- @quiz.sections}
+      id={"section_#{section.id}"}
+      title={section.title}
+      description={section.description}
+    >
+      <:content :for={question <- section.questions}>
+        <div class="flex">
+          <div class="flex-grow">
+            <p class="whitespace-pre-line">{question.text}</p>
+            <.media_view
+              :if={question.media_url}
+              id={"media-#{question.id}"}
+              class="my-5"
+              src={question.media_url}
+              type={question.media_type}
+              aspect_ratio={question.media_aspect_ratio}
+            />
+            <.question_details question={question} />
+          </div>
+          <div class="shrink-0 ml-5">
+            <.scoring_controls
+              question={question}
+              section={section}
+            />
+          </div>
+        </div>
+      </:content>
+    </.section>
+  </div>
+  <.modal
+    :if={@live_action == :score_question}
+    id="score-question-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/scoring")}
+  >
+    <.live_component
+      module={Form.ScoreForm}
+      id={@quiz.id}
+      current_scope={@current_scope}
+      question_id={@question_id}
+      patch={~p"/admin/quiz/#{@quiz.id}/scoring"}
+    />
+  </.modal>
+  <.modal
+    :if={@live_action == :list_answers}
+    id="list-answers-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/quiz/#{@quiz.id}/scoring")}
+  >
+    <.live_component
+      module={Form.AnswersList}
+      id={@quiz.id}
+      current_scope={@current_scope}
+      question_id={@question_id}
+      patch={~p"/admin/quiz/#{@quiz.id}/scoring"}
+    />
+  </.modal>
+</Layouts.quiz_app>

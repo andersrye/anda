@@ -71,6 +71,7 @@ defmodule Anda.Contest.QuizUtils do
 
   def update_questions(quiz, questions) do
     section_id = Enum.at(questions, 0).section_id
+
     Enum.reduce(questions, quiz, &update_question(&2, &1))
     |> update_in(
       [
@@ -96,6 +97,47 @@ defmodule Anda.Contest.QuizUtils do
         ]
       )
 
+    quiz
+  end
+
+  def update_question_scored_count(quiz, question, new_count) do
+    test =
+      get_in(
+        quiz,
+        [
+          Access.key!(:sections),
+          Access.find(&(&1.id == question.section_id)),
+          Access.key!(:questions),
+          Access.find(&(&1.id == question.id))
+        ]
+      )
+
+    dbg(test)
+
+    quiz = put_in(
+      quiz,
+      [
+        Access.key!(:sections),
+        Access.find(&(&1.id == question.section_id)),
+        Access.key!(:questions),
+        Access.find(&(&1.id == question.id)),
+        Access.key(:scored_answer_count)
+      ],
+      new_count
+    )
+
+    test =
+      get_in(
+        quiz,
+        [
+          Access.key!(:sections),
+          Access.find(&(&1.id == question.section_id)),
+          Access.key!(:questions),
+          Access.find(&(&1.id == question.id))
+        ]
+      )
+
+    dbg(test)
     quiz
   end
 end

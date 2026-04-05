@@ -125,20 +125,39 @@ defmodule Anda.Submission do
   def get_all_unique_answers(question_id) do
     Repo.all(
       from(a in Answer,
-        select: fragment("lower(?)", a.answer),
-        distinct: fragment("lower(?)", a.answer),
-        # distinct: a.answer,
-        order_by: a.answer,
+        select: %{
+          text: a.text,
+          ids: fragment("array_agg(?)", a.id),
+          score: coalesce(max(a.score), 0),
+          count: count(a)
+        },
+        group_by: a.text,
         where: a.question_id == ^question_id
       )
     )
   end
 
-  def get_all_unique_answers2(question_id) do
+  def get_all_answers(question_id, sort_order \\ "text_desc") do
+    order_by = case sort_order do
+      "text_asc" -> [asc: dynamic([a, s], a.text)]
+      "text_desc" -> [desc: dynamic([a, s], a.text)]
+      "name_asc" -> [asc: dynamic([a, s], s.name)]
+      "name_desc" -> [desc: dynamic([a, s], s.name)]
+      "score_asc" -> [asc: dynamic([a, s], a.score)]
+      "score_desc" -> [desc: dynamic([a, s], a.score)]
+      _ -> [desc: dynamic([a, s], s.name)]
+
+    end
     Repo.all(
       from(a in Answer,
-        select: {a.text, fragment("array_agg(?)", a.id), coalesce(max(a.score), 0)},
-        group_by: a.text,
+      left_join: s in Submission, on: a.submission_id == s.id,
+        select: %{
+          text: a.text,
+          name: s.name,
+          score: a.score,
+        },
+        group_by: [a.text, a.score, s.name],
+        order_by: ^order_by,
         where: a.question_id == ^question_id
       )
     )
@@ -146,13 +165,15 @@ defmodule Anda.Submission do
 
   def set_scores(scores) do
     Repo.transact(fn ->
-      for {score, ids} <- scores do
-        num_ids = Enum.count(ids)
-        answers = from a in Answer, where: a.id in ^ids
-        {^num_ids, _} = Repo.update_all(answers, set: [score: score])
-      end
+      num_changed =
+        for {score, ids} <- scores do
+          num_ids = Enum.count(ids)
+          answers = from a in Answer, where: a.id in ^ids
+          {^num_ids, _} = Repo.update_all(answers, set: [score: score])
+          num_ids
+        end
 
-      {:ok, nil}
+      {:ok, Enum.sum(num_changed)}
     end)
   end
 
@@ -213,6 +234,11 @@ defmodule Anda.Submission do
   end
 
   def get_all_tags(quiz_id) do
-    Repo.all(from s in Submission, select: fragment("unnest(?)", s.tags), distinct: true, where: s.quiz_id == ^quiz_id)
+    Repo.all(
+      from s in Submission,
+        select: fragment("unnest(?)", s.tags),
+        distinct: true,
+        where: s.quiz_id == ^quiz_id
+    )
   end
 end

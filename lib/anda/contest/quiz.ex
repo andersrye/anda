@@ -8,7 +8,10 @@ defmodule Anda.Contest.Quiz do
     field :mode, :string
     field :slug, :string
     has_many :sections, Anda.Contest.Section
+    has_many :submissions, Anda.Submission.Submission
     belongs_to :user, Anda.Accounts.User
+    field :question_count, :integer, virtual: true
+    field :submission_count, :integer, virtual: true
 
     timestamps(type: :utc_datetime)
   end

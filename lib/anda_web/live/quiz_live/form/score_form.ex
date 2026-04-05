@@ -92,8 +92,6 @@ defmodule AndaWeb.QuizLive.Form.ScoreForm do
       end)
 
     Submission.set_scores(scores)
-    socket.assigns.on_saved.()
-
     {:noreply, socket}
   end
 end
