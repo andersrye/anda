@@ -1,9 +1,11 @@
 defmodule Anda.Contest do
   import Ecto.Query, warn: false
+  alias Anda.Contest.QuizUtils
   alias AndaWeb.Endpoint
   alias Anda.Accounts.Scope
   alias Ecto.Multi
   alias Anda.Submission.Answer
+  alias Anda.Submission.Submission
   alias Anda.Repo
   alias Anda.Contest.Quiz
   alias Anda.Contest.Section
@@ -37,6 +39,25 @@ defmodule Anda.Contest do
     Repo.one(query)
   end
 
+  def get_quiz_w_questions_and_empty_answers(id, %Scope{} = scope) do
+    get_quiz_w_questions(id, scope)
+    |> update_in(
+      [
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.all()
+      ],
+      fn question ->
+        struct(question,
+          answers:
+            Enum.map(0..(question.num_answers - 1), fn index ->
+              Answer.create(question.id, -1, index)
+            end)
+        )
+      end
+    )
+  end
 
   def get_quiz_w_questions_w_answer_stats(id, %Scope{} = scope) do
     subquery =
@@ -59,6 +80,27 @@ defmodule Anda.Contest do
     Repo.one(query)
   end
 
+  def get_quiz_w_questions_w_answers(id, submission_id, %Scope{} = scope) do
+    subquery =
+      from q in Question,
+        left_join: a in Answer,
+        on: a.question_id == q.id and a.submission_id == ^submission_id,
+        select: %{q | answers: a},
+        group_by: [q.id]
+
+    query =
+      from quiz in Quiz,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_join: q in subquery(subquery),
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: q}],
+        order_by: [s.position, q.position]
+
+    Repo.one(query)
+  end
+
   def get_quiz_w_questions2(id, %Scope{} = scope) do
     subquery =
       from q in Question,
@@ -66,7 +108,12 @@ defmodule Anda.Contest do
         on: a.question_id == q.id,
         left_join: s in Section,
         on: s.id == q.section_id,
-        select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score), number: over(dense_rank(), :number)},
+        select: %{
+          q
+          | total_answer_count: count(a),
+            scored_answer_count: count(a.score),
+            number: over(dense_rank(), :number)
+        },
         windows: [number: [order_by: [s.position, q.position]]],
         group_by: [s.id, q.id]
 
@@ -95,6 +142,49 @@ defmodule Anda.Contest do
         order_by: [s.position, q.position]
 
     Repo.one(query)
+  end
+
+  def get_quiz_w_questions_and_answers(quiz_id, submission_id) do
+    answers_query =
+      from a in Answer,
+        where: a.submission_id == ^submission_id,
+        order_by: a.index
+
+    query =
+      from quiz in Quiz,
+        where: quiz.id == ^quiz_id,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_join: q in Question,
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: {q, answers: ^answers_query}}],
+        order_by: [s.position, q.position]
+
+    quiz = Repo.one(query)
+
+    update_in(
+      quiz,
+      [
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.all()
+      ],
+      fn question ->
+        answers =
+          Enum.map(0..(question.num_answers - 1), fn index ->
+            exisiting_answer = Enum.find(question.answers, &(&1.index == index))
+
+            if(exisiting_answer) do
+              exisiting_answer
+            else
+              Answer.create(question.id, submission_id, index)
+            end
+          end)
+
+        struct(question, answers: answers)
+      end
+    )
   end
 
   def get_quiz_w_question_count(id, %Scope{} = scope) do

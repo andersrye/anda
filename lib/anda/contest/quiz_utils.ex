@@ -101,20 +101,7 @@ defmodule Anda.Contest.QuizUtils do
   end
 
   def update_question_scored_count(quiz, question, new_count) do
-    test =
-      get_in(
-        quiz,
-        [
-          Access.key!(:sections),
-          Access.find(&(&1.id == question.section_id)),
-          Access.key!(:questions),
-          Access.find(&(&1.id == question.id))
-        ]
-      )
-
-    dbg(test)
-
-    quiz = put_in(
+    put_in(
       quiz,
       [
         Access.key!(:sections),
@@ -125,19 +112,20 @@ defmodule Anda.Contest.QuizUtils do
       ],
       new_count
     )
+  end
 
-    test =
-      get_in(
-        quiz,
-        [
-          Access.key!(:sections),
-          Access.find(&(&1.id == question.section_id)),
-          Access.key!(:questions),
-          Access.find(&(&1.id == question.id))
-        ]
-      )
-
-    dbg(test)
-    quiz
+  def update_answer(quiz, answer) do
+    put_in(
+      quiz,
+      [
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.find(&(&1.id == answer.question_id)),
+        Access.key(:answers),
+        Access.find(&(&1.index == answer.index))
+      ],
+      answer
+    )
   end
 end

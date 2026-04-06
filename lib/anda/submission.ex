@@ -1,5 +1,6 @@
 defmodule Anda.Submission do
   import Ecto.Query, warn: false
+  alias AndaWeb.Endpoint
   alias Ecto.Multi
   alias Anda.Contest.Quiz
   alias Anda.Submission
@@ -22,6 +23,17 @@ defmodule Anda.Submission do
     Repo.get_by(Submission, secret: secret, quiz_id: quiz_id)
   end
 
+  def get_or_create_submission(quiz_id, secret) do
+    submission = Repo.get_by(Submission, secret: secret, quiz_id: quiz_id)
+
+    if submission == nil do
+      {:ok, new_submission} = create_submission(quiz_id, secret)
+      new_submission
+    else
+      submission
+    end
+  end
+
   def get_submission_by_name(quiz_id, name) do
     Repo.get_by(Submission, name: name, quiz_id: quiz_id)
   end
@@ -35,10 +47,10 @@ defmodule Anda.Submission do
            submission
            |> Submission.changeset(%{"name" => name})
            |> Repo.update() do
-      Phoenix.PubSub.broadcast(
-        Anda.PubSub,
+      Endpoint.broadcast(
         "submission:#{submission.id}",
-        {:submission_updated, new_submission}
+        "submission_updated",
+        new_submission
       )
 
       {:ok, new_submission}
@@ -63,11 +75,12 @@ defmodule Anda.Submission do
 
     case res do
       {:ok, inserted_answer} ->
-        Phoenix.PubSub.broadcast(
-          Anda.PubSub,
-          "answer:#{answer.submission_id}",
-          {:answer_updated, inserted_answer}
-        )
+              Endpoint.broadcast(
+        "submission:#{submission.id}",
+        "answer_updated",
+        inserted_answer
+      )
+
 
         if is_nil(answer.id) do
           Phoenix.PubSub.broadcast(
@@ -138,23 +151,24 @@ defmodule Anda.Submission do
   end
 
   def get_all_answers(question_id, sort_order \\ "text_desc") do
-    order_by = case sort_order do
-      "text_asc" -> [asc: dynamic([a, s], a.text)]
-      "text_desc" -> [desc: dynamic([a, s], a.text)]
-      "name_asc" -> [asc: dynamic([a, s], s.name)]
-      "name_desc" -> [desc: dynamic([a, s], s.name)]
-      "score_asc" -> [asc: dynamic([a, s], a.score)]
-      "score_desc" -> [desc: dynamic([a, s], a.score)]
-      _ -> [desc: dynamic([a, s], s.name)]
+    order_by =
+      case sort_order do
+        "text_asc" -> [asc: dynamic([a, s], a.text)]
+        "text_desc" -> [desc: dynamic([a, s], a.text)]
+        "name_asc" -> [asc: dynamic([a, s], s.name)]
+        "name_desc" -> [desc: dynamic([a, s], s.name)]
+        "score_asc" -> [asc_nulls_first: dynamic([a, s], a.score)]
+        "score_desc" -> [desc_nulls_last: dynamic([a, s], a.score)]
+      end
 
-    end
     Repo.all(
       from(a in Answer,
-      left_join: s in Submission, on: a.submission_id == s.id,
+        left_join: s in Submission,
+        on: a.submission_id == s.id,
         select: %{
           text: a.text,
           name: s.name,
-          score: a.score,
+          score: a.score
         },
         group_by: [a.text, a.score, s.name],
         order_by: ^order_by,

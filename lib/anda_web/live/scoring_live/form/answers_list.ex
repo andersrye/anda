@@ -43,7 +43,7 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
             <tr>
               <.sortable_header key="name" title="Name" sort_order={@sort_order} phx-target={@myself} />
               <.sortable_header key="svar" title="Svar" sort_order={@sort_order} phx-target={@myself} />
-              <.sortable_header key="score" title="Score" sort_order={@sort_order} phx-target={@myself} />
+              <.sortable_header key="score" title="Poeng" sort_order={@sort_order} phx-target={@myself} />
             </tr>
           </thead>
           <tbody>

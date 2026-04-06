@@ -1,17 +1,25 @@
 defmodule SubmissionPlug do
-  alias Anda.Contest
+  import Plug.Conn
   def init([]), do: false
 
-  def call(%{path_params: %{"slug" => slug}} = conn, _opts) do
-    quiz_id = Contest.get_quiz_id_from_slug(slug)
+  def call(conn, _opts) do
+    #legacy:
     submissions_map =
-      Plug.Conn.fetch_cookies(conn, signed: ~w"submissions")
-      |> Plug.Conn.get_cookies()
+      fetch_cookies(conn, signed: ~w"submissions")
+      |> get_cookies()
       |> Map.get("submissions", %{})
-      |> Map.put_new(quiz_id, Ecto.UUID.generate())
+
+    secret_salt =
+      fetch_cookies(conn, signed: ~w"secret_salt")
+      |> get_cookies()
+      |> Map.get("secret_salt") ||
+        :crypto.strong_rand_bytes(32) |> Base.encode64()
+
+    dbg(secret_salt)
 
     conn
-    |> Plug.Conn.put_session(:submissions, submissions_map)
-    |> Plug.Conn.put_resp_cookie("submissions", submissions_map, sign: true, max_age: 34_560_000)
+    |> put_session(:submissions, submissions_map)
+    |> put_session(:secret_salt, secret_salt)
+    |> put_resp_cookie("secret_salt", secret_salt, sign: true, max_age: 34_560_000)
   end
 end

@@ -888,32 +888,33 @@ defmodule AndaWeb.CoreComponents do
   def media_view(assigns) do
     ~H"""
     <div :if={!is_nil(@src)} id={@id} {@rest} phx-hook=".MediaView">
-      <a :if={String.starts_with?(@type, "image")} href={"#show-#{@id}"}>
-        <img
-          loading="lazy"
-          class="object-contain object-left"
-          style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
-          src={@src}
-        />
-      </a>
-      <a
-        :if={String.starts_with?(@type, "video")}
-        class="block relative w-fit h-fit"
-        href={"#show-#{@id}"}
-      >
-        <video
-          loading="lazy"
-          class="object-contain object-left"
-          style={"aspect-ratio: auto #{@aspect_ratio || ""}; width: 100%; max-width: #{@size}px; max-height: #{@size}px"}
+      <div style={"aspect-ratio: auto #{@aspect_ratio || ""}; _width: 100%; max-width: #{@size}px; max-height: #{@size}px"}>
+        <a :if={String.starts_with?(@type, "image")} href={"#show-#{@id}"}>
+          <img
+            loading="lazy"
+            class="object-contain object-left max-w-full max-h-full"
+            src={@src}
+          />
+        </a>
+        <a
+          :if={String.starts_with?(@type, "video")}
+          class="block relative w-fit h-fit"
+          href={"#show-#{@id}"}
         >
-          <source src={@src} type={@type} />
-        </video>
-        <.icon
-          name="hero-play-solid"
-          class="block absolute bg-white/70 h-12 w-12"
-          style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
-        />
-      </a>
+          <video
+            loading="lazy"
+            class="object-contain object-left max-w-full max-h-full"
+          >
+            <source src={@src} type={@type} />
+          </video>
+          <.icon
+            name="hero-play-solid"
+            class="block absolute bg-white/70 h-12 w-12"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
+          />
+        </a>
+      </div>
+
       <audio
         :if={String.starts_with?(@type, "audio")}
         loading="lazy"

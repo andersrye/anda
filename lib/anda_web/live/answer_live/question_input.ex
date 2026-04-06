@@ -5,16 +5,6 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
   import AndaWeb.AnswerLive.AnswerComponents
 
   @impl true
-  def update(%{answer_updated: answer}, socket) do
-    changeset = Answer.changeset(answer)
-
-    {:ok,
-     socket
-     |> assign(answer: answer)
-     |> assign(:form, to_form(changeset, as: "answer"))}
-  end
-
-  @impl true
   def update(assigns, socket) do
     answer =
       assigns.answer || Answer.create(assigns.question.id, assigns.submission.id, assigns.index)
@@ -25,8 +15,7 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
      socket
      |> assign(assigns)
      |> assign(answer: answer)
-     |> assign_new(:saved, fn -> false end)
-     |> assign_new(:form, fn -> to_form(changeset, as: "answer") end)}
+     |> assign(:form, to_form(changeset, as: "answer"))}
   end
 
   @impl true
@@ -73,7 +62,6 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
           />
           <button type="submit" class="hidden" disabled></button>
         </.form>
-
       </div>
     </div>
     """
