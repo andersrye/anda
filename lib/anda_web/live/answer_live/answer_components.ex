@@ -191,17 +191,34 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
     """
   end
 
+  defp num_answers(section) do
+    section.questions
+    |> Enum.filter(fn question ->
+      question.num_answers == Enum.count(question.answers, & &1.id)
+    end)
+    |> Enum.count()
+  end
+
+  defp num_questions(section) do
+    Enum.count(section.questions)
+  end
+
   def section_menu(assigns) do
     ~H"""
     <details id="section-menu" class="dropdown dropdown-end" phx-hook=".SectionMenu">
       <summary class="btn m-1 btn-square btn-outline bg-base-200">
         <.icon name="hero-numbered-list" />
       </summary>
-      <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto">
+      <div class="dropdown-content  bg-base-100 rounded-box z-1 w-64 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto outline outline-black">
         <p class="text-sm px-5 pt-3 font-bold">Gå til...</p>
         <ul class="menu w-full">
-          <li :for={{section, _} <- @sections}>
-            <.link href="" data-section={"section_#{section.id}"}>{section.title}</.link>
+          <li :for={section <- @sections}>
+            <a href="" class="inline" data-section={"section_#{section.id}"}>
+            <span>{section.title}</span>
+            <span class={if num_answers(section) == num_questions(section), do: "text-green-700", else: "text-gray-400"}>
+            ({num_answers(section)}/{num_questions(section)})
+            </span>
+            </a>
           </li>
         </ul>
       </div>

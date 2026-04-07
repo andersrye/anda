@@ -1,5 +1,5 @@
 defmodule AndaWeb.ScoringLive.Index do
-alias Anda.Contest.QuizUtils
+  alias Anda.Contest.QuizUtils
   use AndaWeb, :live_view
   alias Anda.Contest
   alias AndaWeb.ScoringLive.Form
@@ -71,7 +71,9 @@ alias Anda.Contest.QuizUtils
 
   @impl true
   def mount(%{"quiz_id" => id}, _session, socket) do
-    quiz = Contest.get_quiz_w_questions_w_answer_stats(id, socket.assigns.current_scope)
+    quiz =
+      Contest.get_quiz_w_questions_w_answer_stats(id, socket.assigns.current_scope)
+      |> QuizUtils.calculate_ranks()
 
     {
       :ok,

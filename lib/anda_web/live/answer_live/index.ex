@@ -1,5 +1,5 @@
 defmodule AndaWeb.AnswerLive.Index do
-alias Anda.Contest.QuizUtils
+  alias Anda.Contest.QuizUtils
   use AndaWeb, :live_view
   use Phoenix.Component
   alias AndaWeb.Endpoint
@@ -34,15 +34,10 @@ alias Anda.Contest.QuizUtils
   end
 
   defp verify_secret_url(string) do
-    dbg(Mac.decode(string))
-
-    res =
-      case Mac.decode(string) do
-        {:ok, <<1, uuid_bytes::binary>>} -> Ecto.UUID.cast(uuid_bytes)
-        {:ok, <<2, hash_bytes::binary>>} -> {:ok, Base.encode64(hash_bytes)}
-      end
-
-    dbg(res)
+    case Mac.decode(string) do
+      {:ok, <<1, uuid_bytes::binary>>} -> Ecto.UUID.cast(uuid_bytes)
+      {:ok, <<2, hash_bytes::binary>>} -> {:ok, Base.encode64(hash_bytes)}
+    end
   end
 
   defp subscribe_to_updates(socket, quiz, submission \\ nil) do
@@ -148,9 +143,11 @@ alias Anda.Contest.QuizUtils
   def mount(%{"slug" => slug}, session, socket) when socket.assigns.live_action == :edit do
     quiz_id = Contest.get_quiz_id_from_slug(slug)
     secret = get_secret(session, quiz_id)
-    dbg(secret)
     submission = Submission.get_or_create_submission(quiz_id, secret)
-    quiz = Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+
+    quiz =
+      Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+      |> QuizUtils.calculate_ranks()
 
     subscribe_to_updates(socket, quiz, submission)
 

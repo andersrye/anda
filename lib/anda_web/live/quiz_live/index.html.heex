@@ -14,18 +14,11 @@
   <.table
     id="quiz"
     rows={@streams.quiz_collection}
-    row_click={fn {_id, quiz} -> JS.navigate(~p"/admin/quiz/#{quiz}") end}
+    row_click={fn {_id, quiz} -> JS.navigate(~p"/admin/quiz/#{quiz}/edit") end}
   >
     <:col :let={{_id, quiz}} label="Title">{quiz.title}</:col>
     <:col :let={{_id, quiz}} label="Description">{quiz.description}</:col>
-    <:action :let={{id, quiz}}>
-      <.link
-        phx-click={JS.push("delete", value: %{id: quiz.id}) |> hide("##{id}")}
-        data-confirm="Sikker?"
-      >
-        Slett
-      </.link>
-    </:action>
+
   </.table>
   </div>
 </Layouts.app>

@@ -15,8 +15,6 @@ defmodule SubmissionPlug do
       |> Map.get("secret_salt") ||
         :crypto.strong_rand_bytes(32) |> Base.encode64()
 
-    dbg(secret_salt)
-
     conn
     |> put_session(:submissions, submissions_map)
     |> put_session(:secret_salt, secret_salt)

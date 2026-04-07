@@ -57,7 +57,7 @@ defmodule Anda.Contest.QuizUtils do
   end
 
   def update_question(quiz, question) do
-    put_in(
+    update_in(
       quiz,
       [
         Access.key!(:sections),
@@ -65,7 +65,13 @@ defmodule Anda.Contest.QuizUtils do
         Access.key!(:questions),
         Access.find(&(&1.id == question.id))
       ],
-      question
+      fn old_question ->
+        if is_nil(question.rank) do
+          struct(question, rank: old_question.rank)
+        else
+          question
+        end
+      end
     )
   end
 
@@ -127,5 +133,21 @@ defmodule Anda.Contest.QuizUtils do
       ],
       answer
     )
+  end
+
+  def calculate_ranks(quiz) do
+    get_in(
+      quiz,
+      [
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.all()
+      ]
+    )
+    |> List.flatten()
+    |> Enum.with_index()
+    |> Enum.map(fn {question, index} -> struct(question, rank: index + 1) end)
+    |> Enum.reduce(quiz, &update_question(&2, &1))
   end
 end

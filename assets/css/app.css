@@ -299,3 +299,11 @@ _header.navbar {
   background-color: var(--color-amber-200);
 
 }
+
+.markdown-container ul {
+  list-style: disc inside;
+}
+
+.markdown-container ol {
+  list-style: decimal inside;
+}

@@ -109,7 +109,9 @@ defmodule AndaWeb.EditLive.Edit do
       Endpoint.subscribe("quiz:#{id}:question")
     end
 
-    quiz = Contest.get_quiz_w_questions(id, socket.assigns.current_scope)
+    quiz =
+      Contest.get_quiz_w_questions(id, socket.assigns.current_scope)
+      |> QuizUtils.calculate_ranks()
 
     {
       :ok,
@@ -156,7 +158,10 @@ defmodule AndaWeb.EditLive.Edit do
 
   @impl true
   def handle_info({Form.QuestionForm, {:created, question}}, socket) do
-    quiz = QuizUtils.add_question(socket.assigns.quiz, question)
+    quiz =
+      QuizUtils.add_question(socket.assigns.quiz, question)
+      |> QuizUtils.calculate_ranks()
+
     {:noreply, assign(socket, quiz: quiz)}
   end
 
@@ -168,19 +173,28 @@ defmodule AndaWeb.EditLive.Edit do
 
   @impl true
   def handle_info({Form.DeleteQuestionForm, {:deleted, question}}, socket) do
-    quiz = QuizUtils.remove_question(socket.assigns.quiz, question)
+    quiz =
+      QuizUtils.remove_question(socket.assigns.quiz, question)
+      |> QuizUtils.calculate_ranks()
+
     {:noreply, assign(socket, quiz: quiz)}
   end
 
   @impl true
   def handle_info(%{event: "sections_updated", payload: sections}, socket) do
-    quiz = QuizUtils.update_sections(socket.assigns.quiz, sections)
+    quiz =
+      QuizUtils.update_sections(socket.assigns.quiz, sections)
+      |> QuizUtils.calculate_ranks()
+
     {:noreply, assign(socket, quiz: quiz)}
   end
 
   @impl true
   def handle_info(%{event: "questions_updated", payload: questions}, socket) do
-    quiz = QuizUtils.update_questions(socket.assigns.quiz, questions)
+    quiz =
+      QuizUtils.update_questions(socket.assigns.quiz, questions)
+      |> QuizUtils.calculate_ranks()
+
     {:noreply, assign(socket, quiz: quiz)}
   end
 

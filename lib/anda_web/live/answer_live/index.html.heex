@@ -62,32 +62,33 @@
           description={section.description}
         >
           <:content :for={question <- section.questions}>
-            <div class="text-md mb-4 font-medium whitespace-pre-line">{question.text}</div>
-            <.media_view
-              :if={question.media_url}
-              id={"media-#{question.id}"}
-              class="mb-5"
-              src={question.media_url}
-              type={question.media_type}
-              aspect_ratio={question.media_aspect_ratio}
-            />
-            <div :for={answer <- question.answers} class="flex">
-              <.live_component
-                module={AndaWeb.AnswerLive.QuestionInput}
-                class="flex-grow"
-                action={@live_action}
-                question={question}
-                answer={answer}
-                submission={@submission}
-                quiz_id={@quiz.id}
-                enabled={@enabled}
-                index={answer.index}
-                id={"question-#{question.id}-#{answer.index}"}
+            <.question question={question}>
+              <.media_view
+                :if={question.media_url}
+                id={"media-#{question.id}"}
+                class="mb-5"
+                src={question.media_url}
+                type={question.media_type}
+                aspect_ratio={question.media_aspect_ratio}
               />
-              <div class="flex-shrink mt-2 ml-1">
-                <.score score={answer && answer.score} />
+              <div :for={answer <- question.answers} class="flex">
+                <.live_component
+                  module={AndaWeb.AnswerLive.QuestionInput}
+                  class="flex-grow"
+                  action={@live_action}
+                  question={question}
+                  answer={answer}
+                  submission={@submission}
+                  quiz_id={@quiz.id}
+                  enabled={@enabled}
+                  index={answer.index}
+                  id={"question-#{question.id}-#{answer.index}"}
+                />
+                <div class="flex-shrink mt-2 ml-1">
+                  <.score score={answer && answer.score} />
+                </div>
               </div>
-            </div>
+            </.question>
           </:content>
         </.section>
       </div>

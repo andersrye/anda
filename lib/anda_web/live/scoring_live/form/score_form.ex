@@ -76,15 +76,12 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
         %{"form" => %{"answers" => selected_answers, "points" => score}},
         socket
       ) do
-    dbg(selected_answers)
-    dbg(score)
 
     selected_answers =
       selected_answers
       |> Enum.map(&String.trim/1)
       |> Enum.filter(&(String.length(&1) != 0))
 
-    dbg(selected_answers)
 
     scores =
       Enum.reduce(socket.assigns.unique_answers, %{}, fn %{text: text, ids: ids}, acc ->
@@ -95,22 +92,11 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
         end
       end)
 
-    dbg(scores)
 
     {:ok, num_scored} = Submission.set_scores(scores)
     notify_parent({:scored, socket.assigns.question, num_scored})
 
     {:noreply, socket |> push_patch(to: socket.assigns.patch) }
-  end
-
-  @impl true
-  def handle_event(
-        "save",
-        payload,
-        socket
-      ) do
-    dbg(payload)
-    {:noreply, socket}
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

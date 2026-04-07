@@ -511,8 +511,6 @@ defmodule AndaWeb.CoreComponents do
   end
 
   def input(%{type: "radio"} = assigns) do
-    dbg(assigns)
-
     ~H"""
     <div class="fieldset mb-2">
       <label>
@@ -818,7 +816,7 @@ defmodule AndaWeb.CoreComponents do
         <div>
           <div class="flex">
             <div class="flex-grow">
-              <h2 class="text-xl font-bold p-6">{@title}</h2>
+              <h2 class="text-xl font-bold px-3 lg:px-6 py-6">{@title}</h2>
               <p :if={@description} class="text-md pb-4 px-6">
                 {@description}
               </p>
@@ -961,7 +959,8 @@ defmodule AndaWeb.CoreComponents do
             if(window.location.hash) {
               const url = new URL(window.location)
               url.hash = ""
-              window.history.pushState({}, "", url)
+              //window.history.replaceState({}, "", url)
+              window.history.back()
             }
             if(video) {
               video.pause()
@@ -995,6 +994,25 @@ defmodule AndaWeb.CoreComponents do
         }
       }
     </script>
+    """
+  end
+
+  attr :question, Anda.Contest.Question, required: true
+  slot :inner_block
+
+  def question(assigns) do
+    ~H"""
+    <div class="flex w-full">
+      <div :if={@question.rank} class="pr-2 shrink font-bold">
+        {@question.rank}.
+      </div>
+      <div class="grow">
+        <div class="text-md mb-4 font-medium markdown-container">
+          {Phoenix.HTML.raw(MDEx.to_html!(@question.text, render: [hardbreaks: true]))}
+        </div>
+        {render_slot(@inner_block)}
+      </div>
+    </div>
     """
   end
 end

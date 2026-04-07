@@ -65,7 +65,6 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
     sort_order = "name_desc"
     question = Contest.get_question!(assigns.question_id, assigns.current_scope)
     answers = Submission.get_all_answers(assigns.question_id, sort_order)
-    dbg(answers)
 
     {:ok,
      socket
@@ -84,56 +83,10 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
   @impl true
   def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
     answers = Submission.get_all_answers(socket.assigns.question_id, sort_order)
-    dbg(answers)
 
     {:noreply,
      socket
      |> assign(answers: answers)
      |> assign(sort_order: sort_order)}
   end
-
-  @impl true
-  def handle_event(
-        "save",
-        %{"form" => %{"answers" => selected_answers, "points" => score}},
-        socket
-      ) do
-    dbg(selected_answers)
-    dbg(score)
-
-    selected_answers =
-      selected_answers
-      |> Enum.map(&String.trim/1)
-      |> Enum.filter(&(String.length(&1) != 0))
-
-    dbg(selected_answers)
-
-    scores =
-      Enum.reduce(socket.assigns.unique_answers, %{}, fn %{text: text, ids: ids}, acc ->
-        if text in selected_answers do
-          Map.update(acc, score, ids, &Enum.concat(&1, ids))
-        else
-          Map.update(acc, 0, ids, &Enum.concat(&1, ids))
-        end
-      end)
-
-    dbg(scores)
-
-    {:ok, num_scored} = Submission.set_scores(scores)
-    notify_parent({:scored, socket.assigns.question, num_scored})
-
-    {:noreply, socket |> push_patch(to: socket.assigns.patch)}
-  end
-
-  @impl true
-  def handle_event(
-        "save",
-        payload,
-        socket
-      ) do
-    dbg(payload)
-    {:noreply, socket}
-  end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

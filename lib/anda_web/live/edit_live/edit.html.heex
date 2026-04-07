@@ -32,7 +32,7 @@
       <:content :for={question <- section.questions}>
         <div class="flex">
           <div class="flex-grow">
-            <p class="whitespace-pre-line">{question.text}</p>
+          <.question question={question}>
             <.media_view
               :if={question.media_url}
               id={"media-#{question.id}"}
@@ -42,8 +42,10 @@
               aspect_ratio={question.media_aspect_ratio}
             />
             <.question_details question={question} />
+          </.question>
+
           </div>
-          <div class="flex-shrink ml-5">
+          <div class="shrink-0 ml-5">
             <.question_edit_controls
               question={question}
               section={section}
