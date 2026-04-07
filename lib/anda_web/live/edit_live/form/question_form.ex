@@ -78,6 +78,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
         />
 
         <.input field={@form[:num_answers]} type="number" label="Antall svar" />
+        <.input field={@form[:points]} type="number" label="Poeng (valgfritt)" />
         <div>
           <.button phx-disable-with="Lagrer...">Lagre</.button>
         </div>
@@ -175,13 +176,14 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
       alternatives: :string,
       type: :string,
       num_answers: :integer,
+      points: :integer,
       aspect_ratio: :float
     }
   end
 
   defp to_params(question) do
     question
-    |> Map.take([:text, :alternatives, :type, :num_answers, :aspect_ratio])
+    |> Map.take([:text, :alternatives, :type, :num_answers, :aspect_ratio, :points])
     |> Map.update(:alternatives, [], fn val ->
       if !is_nil(val), do: Enum.join(val, "\n"), else: nil
     end)
@@ -190,7 +192,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
 
   defp changeset(changeset, params) do
     changeset
-    |> Changeset.cast(params, [:text, :alternatives, :type, :num_answers, :aspect_ratio])
+    |> Changeset.cast(params, [:text, :alternatives, :type, :num_answers, :aspect_ratio, :points])
     |> Changeset.validate_required([:text])
   end
 

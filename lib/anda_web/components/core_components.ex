@@ -1007,9 +1007,13 @@ defmodule AndaWeb.CoreComponents do
         {@question.rank}.
       </div>
       <div class="grow">
-        <div class="text-md mb-4 font-medium markdown-container">
-          {Phoenix.HTML.raw(MDEx.to_html!(@question.text, render: [hardbreaks: true]))}
+        <div class="flex">
+          <div class="grow text-md mb-4 font-medium markdown-container">
+            {Phoenix.HTML.raw(MDEx.to_html!(@question.text, render: [hardbreaks: true]))}
+          </div>
+          <div :if={@question.points} class="shrink text-gray-400 pl-2">({@question.points}p)</div>
         </div>
+
         {render_slot(@inner_block)}
       </div>
     </div>
