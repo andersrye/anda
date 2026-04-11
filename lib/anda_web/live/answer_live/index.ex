@@ -65,7 +65,9 @@ defmodule AndaWeb.AnswerLive.Index do
   # edit -> forhåndsvisning
   def mount(%{"quiz_id" => quiz_id}, _session, socket)
       when socket.assigns.live_action == :preview do
-    quiz = Contest.get_quiz_w_questions_and_empty_answers(quiz_id, socket.assigns.current_scope)
+    quiz =
+      Contest.get_quiz_w_questions_and_empty_answers(quiz_id, socket.assigns.current_scope)
+      |> QuizUtils.calculate_ranks()
 
     subscribe_to_updates(socket, quiz)
     submission = %Submission.Submission{answers: []}
@@ -83,7 +85,11 @@ defmodule AndaWeb.AnswerLive.Index do
   def mount(%{"quiz_id" => quiz_id, "submission_id" => submission_id}, _session, socket)
       when socket.assigns.live_action in [:view_submissions, :view_leaderboard] do
     submission = Submission.get_submission(quiz_id, submission_id)
-    quiz = Contest.get_quiz_w_questions_and_answers(quiz_id, submission_id)
+
+    quiz =
+      Contest.get_quiz_w_questions_and_answers(quiz_id, submission_id)
+      |> QuizUtils.calculate_ranks()
+
     subscribe_to_updates(socket, quiz)
 
     {:ok,
@@ -104,7 +110,9 @@ defmodule AndaWeb.AnswerLive.Index do
     with {:ok, decoded_secret} <- verify_secret_url(encoded_secret),
          %Submission.Submission{} = submission <-
            Submission.get_submission_by_secret(quiz_id, decoded_secret) do
-      quiz = Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+      quiz =
+        Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+        |> QuizUtils.calculate_ranks()
 
       subscribe_to_updates(socket, quiz, submission)
 
@@ -125,7 +133,10 @@ defmodule AndaWeb.AnswerLive.Index do
       when socket.assigns.live_action == :view_public do
     quiz_id = Contest.get_quiz_id_from_slug(slug)
     submission = Submission.get_submission_by_name(quiz_id, name)
-    quiz = Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+
+    quiz =
+      Contest.get_quiz_w_questions_and_answers(quiz_id, submission.id)
+      |> QuizUtils.calculate_ranks()
 
     subscribe_to_updates(socket, quiz, submission)
 
