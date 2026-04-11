@@ -75,12 +75,11 @@ defmodule Anda.Submission do
 
     case res do
       {:ok, inserted_answer} ->
-              Endpoint.broadcast(
-        "submission:#{submission.id}",
-        "answer_updated",
-        inserted_answer
-      )
-
+        Endpoint.broadcast(
+          "submission:#{submission.id}",
+          "answer_updated",
+          inserted_answer
+        )
 
         if is_nil(answer.id) do
           Phoenix.PubSub.broadcast(
@@ -141,8 +140,9 @@ defmodule Anda.Submission do
         select: %{
           text: a.text,
           ids: fragment("array_agg(?)", a.id),
-          score: coalesce(max(a.score), 0),
-          count: count(a)
+          score: max(a.score),
+          total_count: count(a),
+          new_count: count(a) - count(a.score)
         },
         group_by: a.text,
         where: a.question_id == ^question_id
@@ -177,17 +177,16 @@ defmodule Anda.Submission do
     )
   end
 
-  def set_scores(scores) do
+  def set_scores(question_id, scores) do
     Repo.transact(fn ->
-      num_changed =
-        for {score, ids} <- scores do
-          num_ids = Enum.count(ids)
-          answers = from a in Answer, where: a.id in ^ids
-          {^num_ids, _} = Repo.update_all(answers, set: [score: score])
-          num_ids
+      counts =
+        for {answers, score} <- scores do
+          query = from a in Answer, where: a.question_id == ^question_id and a.text in ^answers
+          {count, _} = Repo.update_all(query, set: [score: score])
+          count
         end
 
-      {:ok, Enum.sum(num_changed)}
+      {:ok, Enum.sum(counts)}
     end)
   end
 

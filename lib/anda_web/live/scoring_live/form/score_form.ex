@@ -7,96 +7,205 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
   @impl true
   @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
+    change_count = Enum.count(assigns.unique_answers, &(&1.score != &1.new_score || &1.new_count > 0))
+    assigns = assign(assigns, change_count: change_count)
+
     ~H"""
-    <div>
-      <.header>
-        Retting
-      </.header>
-      <div>
-        {@question.text}
-      </div>
-      <.form for={@form} phx-change="validate" phx-submit="save" phx-target={@myself}>
-        <.checkgroup label="Velg alle riktige svar" field={@form[:answers]} options={@options} />
-        <label>
-          <span class="text-sm">Hvor mange poeng? </span>
-          <.input type="number" field={@form[:points]} class="max-w-20" />
-        </label>
-        <.button phx-disable-with="Lagrer...">Lagre</.button>
+    <div class="">
+      <.form
+        for={@form}
+        phx-change="change"
+        phx-submit="set_scores"
+        phx-target={@myself}
+        class="flex flex-col"
+      >
+        <.header>
+          Retting
+        </.header>
+        <.question question={@question} />
+        <input type="hidden" name={@form[:answers].name <> "[]"} value="" />
+
+        <div class="overflow-auto flex-shrink">
+          <table id="score-table" class="table table-sm" phx-hook=".TableHook">
+            <thead>
+              <tr>
+                <th></th>
+                <.sortable_header
+                  key="text"
+                  title="Svar"
+                  sort_order={@sort_order}
+                  phx-target={@myself}
+                />
+                <.sortable_header
+                  key="count"
+                  title="Antall"
+                  sort_order={@sort_order}
+                  phx-target={@myself}
+                />
+                <.sortable_header
+                  key="score"
+                  title="Poeng"
+                  sort_order={@sort_order}
+                  phx-target={@myself}
+                />
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                :for={answer <- @unique_answers}
+                class="hover:bg-base-200/50 hover:cursor-pointer has-checked:bg-green-100"
+              >
+                <td class="w-3">
+                  <.input
+                    type="multicheckbox"
+                    multiple={true}
+                    v={answer.text}
+                    class="checkbox checkbox-xs"
+                    field={@form[:answers]}
+                  />
+                </td>
+                <td>{answer.text}</td>
+                <td>
+                  {answer.total_count}
+                  <span :if={answer.new_count > 0} class="text-green-500 -font-bold">
+                    (+{answer.new_count})
+                  </span>
+                </td>
+                <td>
+                  {answer.score}
+                  <span :if={answer.score != answer.new_score} class="text-green-500 font-bold">
+                    → {answer.new_score}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="my-3">
+          <span class="text-sm mr-2">{Enum.count(@form[:answers].value, &(&1 != ""))} valgt</span>
+          <div class="join">
+            <.input type="number" field={@form[:points]} class="join-item max-w-20 input-sm" />
+            <.button class="btn btn-sm join-item mt-1">Sett poeng</.button>
+          </div>
+        </div>
       </.form>
+      <div class="flex items-center gap-3">
+        <.button phx-click="save" phx-target={@myself} phx-disable-with="Lagrer...">Lagre</.button>
+        <span>{@change_count} {if @change_count == 1, do: "endret", else: "endrede"}</span>
+      </div>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".TableHook">
+        export default {
+          mounted() {
+            const rows = this.el.querySelectorAll('tbody tr')
+            for(const row of rows) {
+              row.addEventListener("click", e => {
+                const checkbox = row.querySelector("input")
+                if(e.target == checkbox) return
+                checkbox.checked = !checkbox.checked
+                checkbox.dispatchEvent(new Event("input", {bubbles: true}))
+              })
+            }
+          }
+        }
+      </script>
     </div>
     """
   end
 
+  defp schema(), do: %{answers: {:array, :string}, points: :integer}
+
+  def sort_answers(answers, sort_order) do
+    sorter =
+      case sort_order do
+        "text_asc" -> &(&1.text >= &2.text)
+        "text_desc" -> &(&1.text <= &2.text)
+        "count_asc" -> &(&1.count >= &2.count)
+        "count_desc" -> &(&1.count <= &2.count)
+        "score_asc" -> &(&1.new_score >= &2.new_score)
+        "score_desc" -> &(&1.new_score <= &2.new_score)
+      end
+
+    Enum.sort(answers, sorter)
+  end
+
   @impl true
-  @spec update(maybe_improper_list() | map(), any()) :: {:ok, map()}
   def update(assigns, socket) do
     question = Contest.get_question!(assigns.question_id, assigns.current_scope)
-    unique_answers = Submission.get_all_unique_answers(assigns.question_id)
+    sort_order = "text_desc"
 
-    options =
-      unique_answers
-      |> Enum.map(fn %{text: text, count: count} ->
-        {"#{text} (#{count})", text}
-      end)
-
-    selected_options =
-      unique_answers
-      |> Enum.filter(&(&1.score > 0))
-      |> Enum.map(& &1.text)
-
-    max_score =
-      unique_answers
-      |> Enum.map(& &1.score)
-      |> Enum.max(&>=/2, fn -> 0 end)
+    unique_answers =
+      Submission.get_all_unique_answers(assigns.question_id)
+      |> Enum.map(&Map.put(&1, :new_score, &1.score || 0))
+      |> sort_answers(sort_order)
 
     changeset =
-      Changeset.change(
-        {%{answers: selected_options, points: max(max_score, 1)},
-         %{answers: {:array, :string}, points: :integer}}
-      )
+      Changeset.change({%{answers: [], points: question.points || 1}, schema()})
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:question, question)
-     |> assign(:options, options)
      |> assign(:unique_answers, unique_answers)
+     |> assign(:sort_order, sort_order)
      |> assign(:form, to_form(changeset, as: "form"))}
   end
 
   @impl true
-  def handle_event("validate", _unsigned_params, socket) do
-    # dbg(unsigned_params)
-    {:noreply, socket}
+  def handle_event(
+        "change",
+        %{"form" => %{"answers" => selected_answers, "points" => points}},
+        socket
+      ) do
+    changeset =
+      Changeset.change({%{answers: selected_answers, points: points}, schema()})
+
+    {:noreply, assign(socket, form: to_form(changeset, as: "form"))}
+  end
+
+  def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
+    {:noreply,
+     assign(socket,
+       sort_order: sort_order,
+       unique_answers: sort_answers(socket.assigns.unique_answers, sort_order)
+     )}
   end
 
   @impl true
   def handle_event(
-        "save",
-        %{"form" => %{"answers" => selected_answers, "points" => score}},
+        "set_scores",
+        %{"form" => %{"answers" => selected_answers, "points" => points}},
         socket
       ) do
+    points = String.to_integer(points)
 
-    selected_answers =
-      selected_answers
-      |> Enum.map(&String.trim/1)
-      |> Enum.filter(&(String.length(&1) != 0))
-
-
-    scores =
-      Enum.reduce(socket.assigns.unique_answers, %{}, fn %{text: text, ids: ids}, acc ->
-        if text in selected_answers do
-          Map.update(acc, score, ids, &Enum.concat(&1, ids))
+    answers =
+      socket.assigns.unique_answers
+      |> Enum.map(fn answer ->
+        if(answer.text in selected_answers) do
+          Map.put(answer, :new_score, points)
         else
-          Map.update(acc, 0, ids, &Enum.concat(&1, ids))
+          answer
         end
       end)
+      |> sort_answers(socket.assigns.sort_order)
 
+    changeset =
+      Changeset.change({%{answers: [], points: points}, schema()})
 
-    {:ok, num_scored} = Submission.set_scores(scores)
+    {:noreply, assign(socket, unique_answers: answers, form: to_form(changeset, as: "form"))}
+  end
+
+  @impl true
+  def handle_event("save", _params, socket) do
+    scores =
+      socket.assigns.unique_answers
+      |> Enum.group_by(& &1.new_score, & &1.text)
+      |> Enum.map(fn {score, answers} -> {answers, score} end)
+
+    {:ok, num_scored} = Submission.set_scores(socket.assigns.question.id, scores)
     notify_parent({:scored, socket.assigns.question, num_scored})
 
-    {:noreply, socket |> push_patch(to: socket.assigns.patch) }
+    {:noreply, push_patch(socket, to: socket.assigns.patch)}
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

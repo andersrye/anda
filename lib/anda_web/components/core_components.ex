@@ -335,7 +335,7 @@ defmodule AndaWeb.CoreComponents do
     default: "text",
     values:
       ~w(checkbox color date datetime-local email file month number password
-               search select tel text textarea time url week checkgroup radiogroup textgroup hidden)
+               search select tel text textarea time url week checkgroup radiogroup textgroup hidden multicheckbox)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -350,6 +350,7 @@ defmodule AndaWeb.CoreComponents do
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
   attr :num_inputs, :integer, default: 1
   attr :col, :boolean, default: false
+  attr :item, :string
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -390,6 +391,20 @@ defmodule AndaWeb.CoreComponents do
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
+    """
+  end
+
+  def input(%{type: "multicheckbox"} = assigns) do
+    ~H"""
+    <input
+      type="checkbox"
+      id={"#{@name}-#{@v}"}
+      name={@name}
+      value={@item}
+      checked={@item in @value}
+      class={"checkbox #{@class}"}
+      {@rest}
+    />
     """
   end
 
@@ -1017,6 +1032,29 @@ defmodule AndaWeb.CoreComponents do
         {render_slot(@inner_block)}
       </div>
     </div>
+    """
+  end
+
+  attr :key, :string
+  attr :sort_order, :string
+  attr :title, :string
+  attr :rest, :global
+  def sortable_header(assigns) do
+    assigns = assign(assigns, this_asc: "#{assigns.key}_asc", this_desc: "#{assigns.key}_desc")
+
+    ~H"""
+    <th
+      class="hover:bg-base-200/50 hover:cursor-pointer"
+      phx-click="set_sort_order"
+      phx-value-sort_order={if @sort_order === @this_asc, do: @this_desc, else: @this_asc}
+      {@rest}
+    >
+      {@title}
+      <span class="w-4 inline-block">
+        <.icon :if={@sort_order == @this_desc} name="hero-chevron-up" />
+        <.icon :if={@sort_order == @this_asc} name="hero-chevron-down" />
+      </span>
+    </th>
     """
   end
 end

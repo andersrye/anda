@@ -19,6 +19,7 @@ defmodule AndaWeb.AnswerLive.Index do
 
     socket
     |> assign(:show_copy_url, nil)
+    |> assign(:show_description, false)
     |> assign(:current_tab, current_tab)
     |> assign_new(:current_scope, fn -> nil end)
   end
@@ -203,6 +204,14 @@ defmodule AndaWeb.AnswerLive.Index do
 
   def handle_event("hide_url", _, socket) do
     {:noreply, socket |> assign(:show_copy_url, nil)}
+  end
+
+  def handle_event("show_description", _, socket) do
+    {:noreply, assign(socket, show_description: true)}
+  end
+
+  def handle_event("hide_description", _, socket) do
+    {:noreply, assign(socket, show_description: false)}
   end
 
   @impl true
