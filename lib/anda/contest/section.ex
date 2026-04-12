@@ -12,7 +12,6 @@ defmodule Anda.Contest.Section do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
   def changeset(section, attrs) do
     section
     |> cast(attrs, [:title, :description, :quiz_id, :position])

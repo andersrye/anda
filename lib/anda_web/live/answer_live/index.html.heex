@@ -94,6 +94,48 @@
             </.question>
           </:content>
         </.section>
+        <div :if={@live_action == :edit} class="text-black/70 flex flex-col items-center gap-2 p-5">
+          <p>Gratulerer, du har kommet til slutten!</p>
+          <dev>
+            <ul class="list-disc list-inside">
+              <li>
+                Navn
+                <.icon :if={has_name(@submission)} name="hero-check" class="bg-green-600 size-5" />
+                <.icon :if={!has_name(@submission)} name="hero-x-mark" class="bg-red-600 size-5" />
+              </li>
+              <li>
+                {@answered_question_count}/{@question_count} spørsmål
+                <.icon
+                  :if={@answered_question_count == @question_count}
+                  name="hero-check"
+                  class="bg-green-600 size-5"
+                />
+                <.icon
+                  :if={@answered_question_count < @question_count && @answered_question_count > 1}
+                  name="hero-exclamation-triangle"
+                  class="bg-yellow-600 size-5"
+                />
+                <.icon
+                  :if={@answered_question_count == 0}
+                  name="hero-x-mark"
+                  class="bg-red-600 size-5"
+                />
+              </li>
+            </ul>
+          </dev>
+          <p :if={!has_name(@submission) || @answered_question_count == 0}>
+            Du må nesten fylle inn et navn og svare må noen spørsmål
+          </p>
+          <p :if={
+            has_name(@submission) && @answered_question_count > 0 &&
+              @answered_question_count < @question_count
+          }>
+            Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på <.icon name="hero-numbered-list"/> oppe i hjørnet for å se hvor du mangler svar.
+          </p>
+          <p :if={has_name(@submission) && @answered_question_count == @question_count}>
+            Godt jobba, du har fylt ut alt! Du kan alltids endre svarene dine frem til fristen. Ellers er det bare å lene seg tilbake og vente på premien.
+          </p>
+        </div>
       </div>
       <.modal :if={@show_copy_url} id="show_copy_url" show on_cancel={JS.push("hide_url")}>
         <.header>Permanent lenke</.header>

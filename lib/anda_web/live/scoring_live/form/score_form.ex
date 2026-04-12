@@ -4,11 +4,27 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
   alias Anda.Submission
   use AndaWeb, :live_component
 
+  defp score(assigns) do
+    ~H"""
+    <span :if={!is_nil(@score)}>
+      <.icon :if={@score > 0} name="hero-check" class="text-green-500 size-4 sm:size-5" />
+      <.icon :if={@score == 0} name="hero-x-mark" class="text-red-500 size-4 sm:size-5" />
+      <span :if={@score > 0}>
+        {@score}p
+      </span>
+    </span>
+    """
+  end
+
   @impl true
   @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    change_count = Enum.count(assigns.unique_answers, &(&1.score != &1.new_score || &1.new_count > 0))
-    assigns = assign(assigns, change_count: change_count)
+    has_been_scored = Enum.any?(assigns.unique_answers, &(!is_nil(&1.score)))
+
+    change_count =
+      Enum.count(assigns.unique_answers, &(&1.score != &1.new_score || &1.new_count > 0))
+
+    assigns = assign(assigns, change_count: change_count, has_been_scored: has_been_scored)
 
     ~H"""
     <div class="">
@@ -26,7 +42,7 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
         <input type="hidden" name={@form[:answers].name <> "[]"} value="" />
 
         <div class="overflow-auto flex-shrink">
-          <table id="score-table" class="table table-sm" phx-hook=".TableHook">
+          <table id="score-table" class="table table-sm sm:table-md" phx-hook=".TableHook">
             <thead>
               <tr>
                 <th></th>
@@ -53,13 +69,13 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
             <tbody>
               <tr
                 :for={answer <- @unique_answers}
-                class="hover:bg-base-200/50 hover:cursor-pointer has-checked:bg-green-100"
+                class="hover:bg-base-200/50 hover:cursor-pointer has-checked:bg-blue-100"
               >
                 <td class="w-3">
                   <.input
                     type="multicheckbox"
                     multiple={true}
-                    v={answer.text}
+                    item={answer.text}
                     class="checkbox checkbox-xs"
                     field={@form[:answers]}
                   />
@@ -67,15 +83,19 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
                 <td>{answer.text}</td>
                 <td>
                   {answer.total_count}
-                  <span :if={answer.new_count > 0} class="text-green-500 -font-bold">
+                  <span
+                    :if={answer.new_count > 0 && @has_been_scored}
+                    class="text-yellow-600 font-bold"
+                  >
                     (+{answer.new_count})
                   </span>
                 </td>
                 <td>
-                  {answer.score}
-                  <span :if={answer.score != answer.new_score} class="text-green-500 font-bold">
-                    → {answer.new_score}
+                  <.score score={answer.score} />
+                  <span :if={answer.score != answer.new_score}>
+                    →
                   </span>
+                  <.score :if={answer.score != answer.new_score} score={answer.new_score} />
                 </td>
               </tr>
             </tbody>
@@ -119,8 +139,8 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
       case sort_order do
         "text_asc" -> &(&1.text >= &2.text)
         "text_desc" -> &(&1.text <= &2.text)
-        "count_asc" -> &(&1.count >= &2.count)
-        "count_desc" -> &(&1.count <= &2.count)
+        "count_asc" -> &(&1.total_count >= &2.total_count)
+        "count_desc" -> &(&1.total_count <= &2.total_count)
         "score_asc" -> &(&1.new_score >= &2.new_score)
         "score_desc" -> &(&1.new_score <= &2.new_score)
       end

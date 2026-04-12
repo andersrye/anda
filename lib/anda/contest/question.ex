@@ -4,6 +4,7 @@ defmodule Anda.Contest.Question do
 
   schema "questions" do
     field :text, :string
+    field :text_rendered, :string
     field :type, :string
     field :num_answers, :integer
     field :alternatives, {:array, :string}
@@ -22,11 +23,11 @@ defmodule Anda.Contest.Question do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
   def changeset(question, attrs) do
     question
     |> cast(attrs, [
       :text,
+      :text_rendered,
       :num_answers,
       :alternatives,
       :section_id,
@@ -37,6 +38,6 @@ defmodule Anda.Contest.Question do
       :position,
       :points
     ])
-    |> validate_required([:text, :num_answers, :section_id, :type, :position])
+    |> validate_required([:text, :text_rendered, :num_answers, :section_id, :type, :position])
   end
 end

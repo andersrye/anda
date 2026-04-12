@@ -4,7 +4,6 @@ defmodule AndaWeb.LeaderboardLive.Index do
   alias Anda.Submission
 
   @impl true
-  @spec mount(any(), any(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
     {:ok, socket |> assign_new(:current_scope, fn -> nil end)}
   end
@@ -13,12 +12,9 @@ defmodule AndaWeb.LeaderboardLive.Index do
       when socket.assigns.live_action == :public do
     quiz = Contest.get_quiz_by_slug!(slug)
     {:ok, tag} = Mac.verify_added_mac(tag_with_mac)
-    tag = if tag=="", do: nil, else: tag
+    tag = if tag == "", do: nil, else: tag
 
-    leaderboard =
-      Submission.get_leaderboard(quiz.id, tag)
-      |> Enum.with_index()
-      |> Enum.map(fn {item, index} -> Map.put(item, :index, index + 1) end)
+    leaderboard = Submission.get_leaderboard(quiz.id, tag)
 
     {:noreply,
      socket
@@ -38,10 +34,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
     tags = Submission.get_all_tags(quiz_id)
     selected_tag = Map.get(params, "tag")
 
-    leaderboard =
-      Submission.get_leaderboard(quiz_id, selected_tag)
-      |> Enum.with_index()
-      |> Enum.map(fn {item, index} -> Map.put(item, :index, index + 1) end)
+    leaderboard = Submission.get_leaderboard(quiz_id, selected_tag)
 
     {:noreply,
      socket

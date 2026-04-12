@@ -1,20 +1,21 @@
 defmodule AndaWeb.SubmissionsLive.Index do
-  alias Anda.Contest.QuizUtils
   use AndaWeb, :live_view
 
   alias Anda.Submission
   alias Anda.Contest
 
   @impl true
-  @spec mount(any(), any(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"quiz_id" => quiz_id}, _session, socket) do
+    {:ok,
+     socket
+     |> assign_new(:quiz, fn ->
+       Contest.get_quiz_w_question_count(quiz_id, socket.assigns.current_scope)
+     end)
+     |> assign_new(:submissions, fn -> Submission.get_submissions(quiz_id) end)}
   end
 
   @impl true
   def handle_params(%{"quiz_id" => quiz_id} = params, _uri, socket) do
-    quiz = Contest.get_quiz_w_question_count(quiz_id, socket.assigns.current_scope)
-    submissions = Submission.get_submissions(quiz_id)
     submission_id = Map.get(params, "submission_id")
 
     tags =
@@ -22,10 +23,8 @@ defmodule AndaWeb.SubmissionsLive.Index do
 
     {:noreply,
      socket
-     |> assign(:quiz, quiz)
-     |> assign(:submission_id, submission_id)
-     |> assign(:tags, tags)
-     |> assign(:submissions, submissions)}
+     |> assign(submission_id: submission_id)
+     |> assign(tags: tags)}
   end
 
   @impl true

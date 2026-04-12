@@ -55,12 +55,6 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
   end
 
   @impl true
-  def handle_event("validate", _unsigned_params, socket) do
-    # dbg(unsigned_params)
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
     answers = Submission.get_all_answers(socket.assigns.question_id, sort_order)
 

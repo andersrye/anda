@@ -294,6 +294,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
       |> Map.update(:alternatives, nil, fn val ->
         if !is_nil(val), do: String.split(val, "\n") |> Enum.map(&String.trim/1), else: nil
       end)
+      |> Map.put(:text_rendered, MDEx.to_html!(question_params.text, render: [hardbreaks: true]))
       |> then(fn q ->
         if(socket.assigns.remove_file) do
           q

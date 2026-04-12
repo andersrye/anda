@@ -16,7 +16,6 @@ defmodule Anda.Contest.Quiz do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
   def changeset(quiz, attrs) do
     quiz
     |> cast(attrs, [:title, :description, :mode, :slug])

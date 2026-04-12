@@ -58,13 +58,22 @@ defmodule Anda.Submission do
   end
 
   def submit_answer(answer, "", question, submission) do
-    if(answer.id) do
-      Repo.delete(answer)
-      # TODO: hmm, litt hack?
-      {:ok, Answer.create(question.id, submission.id, answer.index)}
-    else
-      {:ok, answer}
-    end
+    new_answer =
+      if(answer.id) do
+        Repo.delete(answer)
+        # TODO: hmm, litt hack?
+        Answer.create(question.id, submission.id, answer.index)
+      else
+        answer
+      end
+
+    Endpoint.broadcast(
+      "submission:#{submission.id}",
+      "answer_updated",
+      new_answer
+    )
+
+    {:ok, new_answer}
   end
 
   def submit_answer(answer, new_answer, question, submission) do
@@ -193,12 +202,18 @@ defmodule Anda.Submission do
   def get_leaderboard(quiz_id, tag \\ nil) do
     query =
       from s in Submission,
-        where: s.quiz_id == ^quiz_id,
+        where: s.quiz_id == ^quiz_id and s.name != "",
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        select: %{id: s.id, name: s.name, score: coalesce(sum(a.score), 0)},
+        select: %{
+          id: s.id,
+          name: s.name,
+          score: coalesce(sum(a.score), 0),
+          rank: over(rank(), :number)
+        },
         group_by: s.id,
-        order_by: [desc: coalesce(sum(a.score), 0)]
+        windows: [number: [order_by: [desc: coalesce(sum(a.score), 0)]]],
+        having: count(a) > 0
 
     query = if tag, do: query |> where([s], ^tag in s.tags), else: query
 
@@ -208,16 +223,17 @@ defmodule Anda.Submission do
   def get_submissions(quiz_id) do
     Repo.all(
       from s in Submission,
-        where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
+        where: s.quiz_id == ^quiz_id and s.name != "",
         select: %{
           id: s.id,
           name: s.name,
           num_answers: count(a),
-          num_scored: count(a) |> filter(not is_nil(a.score)),
+          num_scored: count(a.score),
           tags: s.tags
         },
+        having: count(a) > 0,
         group_by: s.id
     )
   end

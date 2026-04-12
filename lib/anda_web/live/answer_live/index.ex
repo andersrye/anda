@@ -3,7 +3,6 @@ defmodule AndaWeb.AnswerLive.Index do
   use AndaWeb, :live_view
   use Phoenix.Component
   alias AndaWeb.Endpoint
-  alias Phoenix.PubSub
   alias Anda.Contest
   alias Anda.Submission
   import AndaWeb.AnswerLive.AnswerComponents
@@ -60,6 +59,34 @@ defmodule AndaWeb.AnswerLive.Index do
       salt = Map.fetch!(session, "secret_salt")
       :crypto.hash(:sha256, Base.decode64!(salt) <> <<quiz_id::32>>) |> Base.encode64()
     end
+  end
+
+  defp count_questions(quiz) do
+    quiz
+    |> get_in([
+      Access.key!(:sections),
+      Access.all(),
+      Access.key!(:questions)
+    ])
+    |> List.flatten()
+    |> Enum.count()
+  end
+
+  defp count_answered_questions(quiz) do
+    quiz
+    |> get_in([
+      Access.key!(:sections),
+      Access.all(),
+      Access.key!(:questions)
+    ])
+    |> List.flatten()
+    |> Enum.count(fn question ->
+      question.num_answers == Enum.count(question.answers, &(!is_nil(&1.id)))
+    end)
+  end
+
+  defp has_name(submission) do
+    !is_nil(submission.name) && submission.name != ""
   end
 
   # edit -> forhåndsvisning
@@ -120,6 +147,8 @@ defmodule AndaWeb.AnswerLive.Index do
        socket
        |> assign_defaults()
        |> assign(:quiz, quiz)
+       |> assign(:question_count, count_questions(quiz))
+       |> assign(:answered_question_count, count_answered_questions(quiz))
        |> assign(:page_title, quiz.title)
        |> assign(:submission, submission)
        |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
@@ -167,6 +196,8 @@ defmodule AndaWeb.AnswerLive.Index do
      socket
      |> assign_defaults()
      |> assign(:quiz, quiz)
+     |> assign(:question_count, count_questions(quiz))
+     |> assign(:answered_question_count, count_answered_questions(quiz))
      |> assign(:page_title, quiz.title)
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
@@ -245,6 +276,10 @@ defmodule AndaWeb.AnswerLive.Index do
   def handle_info(%{event: "answer_updated", payload: answer}, socket) do
     quiz = QuizUtils.update_answer(socket.assigns.quiz, answer)
 
-    {:noreply, assign(socket, quiz: quiz)}
+    {:noreply,
+     socket
+     |> assign(quiz: quiz)
+     |> assign(question_count: count_questions(quiz))
+     |> assign(answered_question_count: count_answered_questions(quiz))}
   end
 end

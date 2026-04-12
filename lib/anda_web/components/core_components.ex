@@ -363,7 +363,7 @@ defmodule AndaWeb.CoreComponents do
     |> assign(field: nil, id: assigns.id || field.id)
     |> assign(:errors, Enum.map(errors, &translate_error(&1)))
     |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
-    |> assign_new(:value, fn -> field.value end)
+    |> assign(:value, field.value)
     |> input()
   end
 
@@ -398,7 +398,7 @@ defmodule AndaWeb.CoreComponents do
     ~H"""
     <input
       type="checkbox"
-      id={"#{@name}-#{@v}"}
+      id={"#{@name}-#{@item}"}
       name={@name}
       value={@item}
       checked={@item in @value}
@@ -1024,7 +1024,7 @@ defmodule AndaWeb.CoreComponents do
       <div class="grow">
         <div class="flex">
           <div class="grow text-md mb-4 font-medium markdown-container">
-            {Phoenix.HTML.raw(MDEx.to_html!(@question.text, render: [hardbreaks: true]))}
+            {Phoenix.HTML.raw(@question.text_rendered)}
           </div>
           <div :if={@question.points} class="shrink text-gray-400 pl-2">({@question.points}p)</div>
         </div>

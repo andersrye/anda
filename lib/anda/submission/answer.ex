@@ -12,7 +12,6 @@ defmodule Anda.Submission.Answer do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
   def changeset(answer, attrs \\ %{}) do
     answer
     |> cast(attrs, [:text, :submission_id, :question_id, :index, :score])

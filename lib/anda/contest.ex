@@ -1,11 +1,9 @@
 defmodule Anda.Contest do
   import Ecto.Query, warn: false
-  alias Anda.Contest.QuizUtils
   alias AndaWeb.Endpoint
   alias Anda.Accounts.Scope
   alias Ecto.Multi
   alias Anda.Submission.Answer
-  alias Anda.Submission.Submission
   alias Anda.Repo
   alias Anda.Contest.Quiz
   alias Anda.Contest.Section
@@ -59,23 +57,52 @@ defmodule Anda.Contest do
     )
   end
 
+  # TODO: ikke bruk join her?
   def get_quiz_w_questions_w_answer_stats(id, %Scope{} = scope) do
     subquery =
       from q in Question,
+        left_join: s in Section,
+        on: s.id == q.section_id,
         left_join: a in Answer,
         on: a.question_id == q.id,
         select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score)},
-        group_by: [q.id]
+        group_by: [q.id],
+        where: s.quiz_id == parent_as(:quiz).id
+
+    query =
+      from quiz in Quiz,
+        as: :quiz,
+        where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
+        left_join: s in Section,
+        on: s.quiz_id == quiz.id,
+        left_lateral_join: q in subquery(subquery),
+        on: q.section_id == s.id,
+        preload: [sections: {s, questions: q}],
+        order_by: [s.position, q.position]
+
+    Repo.one(query)
+  end
+
+  # preload uten join:
+  def get_quiz_w_questions_w_answer_stats2(id, %Scope{} = scope) do
+    sections = from s in Section, order_by: s.position
+
+    questions =
+      from q in Question,
+        left_join: s in Section,
+        on: q.section_id == s.id,
+        left_join: a in Answer,
+        on: a.question_id == q.id,
+        select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score)},
+        group_by: [q.id],
+        order_by: q.position,
+        # vet ikke hvorfor, men denne ekstra joinen gjør at den bruker indexen...
+        where: s.quiz_id == ^id
 
     query =
       from quiz in Quiz,
         where: quiz.id == ^id and quiz.user_id == ^scope.user.id,
-        left_join: s in Section,
-        on: s.quiz_id == quiz.id,
-        left_join: q in subquery(subquery),
-        on: q.section_id == s.id,
-        preload: [sections: {s, questions: q}],
-        order_by: [s.position, q.position]
+        preload: [sections: ^{sections, [questions: questions]}]
 
     Repo.one(query)
   end

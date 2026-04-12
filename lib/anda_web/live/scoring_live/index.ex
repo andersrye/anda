@@ -72,7 +72,7 @@ defmodule AndaWeb.ScoringLive.Index do
   @impl true
   def mount(%{"quiz_id" => id}, _session, socket) do
     quiz =
-      Contest.get_quiz_w_questions_w_answer_stats(id, socket.assigns.current_scope)
+      Contest.get_quiz_w_questions_w_answer_stats2(id, socket.assigns.current_scope)
       |> QuizUtils.calculate_ranks()
 
     {
