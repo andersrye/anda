@@ -67,7 +67,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         field={@field}
         class={@class}
         type="select"
-        options={for a <- @options || [], do: {a, a}}
+        options={@options || []}
         prompt={@prompt}
         {@rest}
       />
@@ -209,7 +209,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
       <summary class="btn m-1 btn-square btn-outline bg-base-200">
         <.icon name="hero-numbered-list" />
       </summary>
-      <div class="dropdown-content  bg-base-100 rounded-box z-1 w-64 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto outline outline-black">
+      <div class="dropdown-content  bg-base-100 rounded-box z-1 w-64 p-2 shadow-sm z-100 max-h-[80vh] overflow-auto outline outline-black overscroll-contain">
         <p class="text-sm px-5 pt-3 font-bold">Gå til...</p>
         <ul class="menu w-full">
           <li :for={section <- @sections}>
@@ -231,7 +231,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
           for(const link of links) {
             link.addEventListener('click', e => {
               e.preventDefault()
-              const section = e.target.getAttribute("data-section")
+              const section = link.getAttribute("data-section")
               const el = document.getElementById(section)
               el?.scrollIntoView(true)
               details.open=false

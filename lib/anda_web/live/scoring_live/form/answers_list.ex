@@ -16,8 +16,8 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
         <table class="table table-xs sm:table-md">
           <thead>
             <tr>
-              <.sortable_header key="name" title="Name" sort_order={@sort_order} phx-target={@myself} />
-              <.sortable_header key="text" title="Svar" sort_order={@sort_order} phx-target={@myself} />
+              <.sortable_header key="name" title="Navn" sort_order={@sort_order} default_order="asc" phx-target={@myself} />
+              <.sortable_header key="text" title="Svar" sort_order={@sort_order} default_order="asc" phx-target={@myself} />
               <.sortable_header
                 key="score"
                 title="Poeng"
@@ -30,7 +30,7 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
             <tr :for={answer <- @answers}>
               <td>{answer.name}</td>
               <td>{answer.text}</td>
-              <td>{answer.score}</td>
+              <td><.score_inline score={answer.score}/></td>
             </tr>
           </tbody>
         </table>
@@ -42,7 +42,7 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
   @impl true
   @spec update(maybe_improper_list() | map(), any()) :: {:ok, map()}
   def update(assigns, socket) do
-    sort_order = "name_desc"
+    sort_order = "score_desc"
     question = Contest.get_question!(assigns.question_id, assigns.current_scope)
     answers = Submission.get_all_answers(assigns.question_id, sort_order)
 

@@ -44,7 +44,7 @@
         </.header>
         <div class="flex flex-col">
           <div class="flex-none flex justify- self-end h-fit">
-            <.form for={@name_form} id="name-form" class="h-fit">
+            <.form for={@name_form} id="name-form" class="h-fit mb-2">
               <div class="flex items-center">
                 <div class="flex-grow"></div>
                 <div class="flex-base-50">
@@ -65,15 +65,16 @@
           description={section.description}
         >
           <:content :for={question <- section.questions}>
-            <.question question={question}>
+            <.question question={question} >
               <.media_view
                 :if={question.media_url}
                 id={"media-#{question.id}"}
-                class="mb-5"
+                class="mt-3"
                 src={question.media_url}
                 type={question.media_type}
                 aspect_ratio={question.media_aspect_ratio}
               />
+              <div class="mt-3">
               <div :for={answer <- question.answers} class="flex">
                 <.live_component
                   module={AndaWeb.AnswerLive.QuestionInput}
@@ -90,6 +91,7 @@
                 <div class="flex-shrink mt-2 ml-1">
                   <.score score={answer && answer.score} />
                 </div>
+              </div>
               </div>
             </.question>
           </:content>

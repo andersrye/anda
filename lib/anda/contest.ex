@@ -19,8 +19,30 @@ defmodule Anda.Contest do
     Repo.get_by!(Quiz, id: id, user_id: scope.user.id)
   end
 
+  def get_quiz_with_sections!(id, %Scope{} = scope) do
+    section_query = from s in Section, order_by: s.position
+
+    query =
+      from q in Quiz,
+        where: q.id == ^id and q.user_id == ^scope.user.id,
+        preload: [sections: ^section_query]
+
+    Repo.one!(query)
+  end
+
   def get_quiz_by_slug!(slug) do
     Repo.get_by!(Quiz, slug: slug)
+  end
+
+  def get_quiz_with_sections_by_slug!(slug) do
+    section_query = from s in Section, order_by: s.position
+
+    query =
+      from q in Quiz,
+        where: q.slug == ^slug,
+        preload: [sections: ^section_query]
+
+    Repo.one!(query)
   end
 
   def get_quiz_w_questions(id, %Scope{} = scope) do

@@ -22,7 +22,11 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:text]} type="textarea" label="Spørsmål" />
+        <.input
+          field={@form[:text]}
+          type="textarea"
+          label="Spørsmål"
+        />
 
         <fieldset class="fieldset">
           <legend class="label mb-1">Bilde/Lyd/Video (valgfritt)</legend>

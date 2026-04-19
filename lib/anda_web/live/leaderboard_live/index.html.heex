@@ -28,21 +28,39 @@
         </.button>
       </div>
     </div>
-    <div class="card bg-base-100 shadow-sm">
-      <table class="table">
+    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-auto h-full">
+      <table class="table tabular-nums -table-pin-cols">
         <thead>
           <tr>
             <td></td>
-            <td>Navn</td>
-            <td>Poeng</td>
+            <.sortable_header
+              key="name"
+              title="Navn"
+              sort_order={@sort_order}
+              default_order="asc"
+              class="sm:sticky sm:left-0 sm:bg-base-100"
+            />
+            <.sortable_header
+              key="total"
+              title="Totalt"
+              sort_order={@sort_order}
+            />
+            <.sortable_header
+              :for={section <- @quiz.sections}
+              key={"section_#{section.position}"}
+              title={section.title}
+              sort_order={@sort_order}
+              class="w-min"
+              style="white-space: collapse"
+            />
           </tr>
         </thead>
         <tbody>
           <tr :for={item <- @leaderboard}>
-            <td>
+            <td class="text-right">
               {item.rank}
             </td>
-            <td>
+            <td class="sm:sticky sm:left-0 sm:bg-base-100">
               <.link
                 :if={@live_action == :public}
                 class="link"
@@ -58,8 +76,11 @@
                 {item.name}
               </.link>
             </td>
-            <td>
+            <td class="text-right font-bold">
               {item.score}
+            </td>
+            <td :for={score <- item.sections} class="text-right">
+              {score}
             </td>
           </tr>
         </tbody>

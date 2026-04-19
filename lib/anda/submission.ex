@@ -3,6 +3,8 @@ defmodule Anda.Submission do
   alias AndaWeb.Endpoint
   alias Ecto.Multi
   alias Anda.Contest.Quiz
+  alias Anda.Contest.Question
+  alias Anda.Contest.Section
   alias Anda.Submission
   alias Anda.Repo
 
@@ -148,7 +150,6 @@ defmodule Anda.Submission do
       from(a in Answer,
         select: %{
           text: a.text,
-          ids: fragment("array_agg(?)", a.id),
           score: max(a.score),
           total_count: count(a),
           new_count: count(a) - count(a.score)
@@ -216,6 +217,26 @@ defmodule Anda.Submission do
         having: count(a) > 0
 
     query = if tag, do: query |> where([s], ^tag in s.tags), else: query
+
+    Repo.all(query)
+  end
+
+  def get_scores_by_section(quiz_id, tag \\ nil) do
+    query =
+      from s in Submission,
+        where: s.quiz_id == ^quiz_id and s.name != "",
+        join: a in Answer,
+        on: a.submission_id == s.id,
+        join: q in Question,
+        on: a.question_id == q.id,
+        join: sec in Section,
+        on: q.section_id == sec.id,
+        group_by: [s.id, sec.id],
+        select: %{
+          submission_id: s.id,
+          section_id: sec.id,
+          score: coalesce(sum(a.score), 0)
+        }
 
     Repo.all(query)
   end

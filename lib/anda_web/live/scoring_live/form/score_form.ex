@@ -4,18 +4,6 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
   alias Anda.Submission
   use AndaWeb, :live_component
 
-  defp score(assigns) do
-    ~H"""
-    <span :if={!is_nil(@score)}>
-      <.icon :if={@score > 0} name="hero-check" class="text-green-500 size-4 sm:size-5" />
-      <.icon :if={@score == 0} name="hero-x-mark" class="text-red-500 size-4 sm:size-5" />
-      <span :if={@score > 0}>
-        {@score}p
-      </span>
-    </span>
-    """
-  end
-
   @impl true
   @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
@@ -50,6 +38,7 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
                   key="text"
                   title="Svar"
                   sort_order={@sort_order}
+                  default_order="asc"
                   phx-target={@myself}
                 />
                 <.sortable_header
@@ -91,11 +80,11 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
                   </span>
                 </td>
                 <td>
-                  <.score score={answer.score} />
+                  <.score_inline score={answer.score} />
                   <span :if={answer.score != answer.new_score}>
                     →
                   </span>
-                  <.score :if={answer.score != answer.new_score} score={answer.new_score} />
+                  <.score_inline :if={answer.score != answer.new_score} score={answer.new_score} />
                 </td>
               </tr>
             </tbody>
@@ -137,12 +126,12 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
   def sort_answers(answers, sort_order) do
     sorter =
       case sort_order do
-        "text_asc" -> &(&1.text >= &2.text)
-        "text_desc" -> &(&1.text <= &2.text)
-        "count_asc" -> &(&1.total_count >= &2.total_count)
-        "count_desc" -> &(&1.total_count <= &2.total_count)
-        "score_asc" -> &(&1.new_score >= &2.new_score)
-        "score_desc" -> &(&1.new_score <= &2.new_score)
+        "text_asc" -> &(&1.text <= &2.text)
+        "text_desc" -> &(&1.text >= &2.text)
+        "count_asc" -> &(&1.total_count <= &2.total_count)
+        "count_desc" -> &(&1.total_count >= &2.total_count)
+        "score_asc" -> &(&1.new_score <= &2.new_score)
+        "score_desc" -> &(&1.new_score >= &2.new_score)
       end
 
     Enum.sort(answers, sorter)

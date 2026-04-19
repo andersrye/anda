@@ -37,7 +37,7 @@ defmodule AndaWeb.Layouts do
             <summary class="btn m-1 btn-outline btn-square bg-base-200">
               <.icon name="hero-user-circle" />
             </summary>
-            <div class="dropdown-content  bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100">
+            <div class="dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm z-100">
               <div :if={@current_scope} class="text-sm p-3">
                 Logget inn som {@current_scope.user.email}
                 <hr class="h-px my-2 bg-neutral border-0" />
@@ -205,7 +205,7 @@ defmodule AndaWeb.Layouts do
 
       <.flash
         id="client-error"
-        kind={:error}
+        kind={:info}
         title={gettext("We can't find the internet")}
         phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
         phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}

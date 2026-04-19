@@ -374,7 +374,7 @@ defmodule AndaWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="fieldset">
       <label>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <span class="label">
@@ -410,7 +410,7 @@ defmodule AndaWeb.CoreComponents do
 
   def input(%{type: "radiogroup"} = assigns) do
     ~H"""
-    <fieldset class="fieldset mb-2 w-full">
+    <fieldset class="fieldset w-full">
       <label class="label mb-1">{@label}</label>
       <input type="hidden" name={@name} value="" />
       <div class={["flex", if(@col, do: "flex-col", else: "flex-row"), "flex-wrap gap-5 w-full"]}>
@@ -441,7 +441,7 @@ defmodule AndaWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="fieldset">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <select
@@ -462,10 +462,11 @@ defmodule AndaWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="fieldset">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <textarea
+          phx-update="ignore"
           id={@id}
           name={@name}
           class={[
@@ -527,7 +528,7 @@ defmodule AndaWeb.CoreComponents do
 
   def input(%{type: "radio"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="fieldset">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <input
@@ -552,7 +553,7 @@ defmodule AndaWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="fieldset">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <input
@@ -831,20 +832,17 @@ defmodule AndaWeb.CoreComponents do
         <div>
           <div class="flex">
             <div class="flex-grow">
-              <h2 class="text-xl font-bold px-3 lg:px-6 py-6">{@title}</h2>
-              <p :if={@description} class="text-md pb-4 px-6">
+              <h2 class="text-xl font-bold p-4">{@title}</h2>
+              <p :if={@description} class="text-md pb-4 px-4">
                 {@description}
               </p>
             </div>
-            <div :if={@controls} class="p-6">
+            <div :if={@controls} class="p-4">
               {render_slot(@controls)}
             </div>
           </div>
         </div>
-        <div
-          :for={content <- @content}
-          class="px-3 lg:px-6 py-6 lg:py-8"
-        >
+        <div :for={content <- @content} class="p-4">
           {render_slot(content)}
         </div>
       </div>
@@ -937,29 +935,31 @@ defmodule AndaWeb.CoreComponents do
         controlslist="nodownload nofullscreen noremoteplayback"
         src={@src}
       />
-      <dialog
-        class="backdrop:bg-gray-900/70 max-w-3xl w-fit max-h-full max-w-full bg-transparent"
-        style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
-      >
-        <div class=" flex flex-col items-center p-2">
-          <button class="btn btn-square btn-soft mb-2 self-end">
-            <.icon name="hero-x-mark" />
-          </button>
-          <img
-            :if={String.starts_with?(@type, "image")}
-            loading="lazy"
-            class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
-            src={@src}
-          />
-          <video
-            :if={String.starts_with?(@type, "video")}
-            loading="lazy"
-            controls
-            controlslist="nodownload nofullscreen noremoteplayback"
-            class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
-          >
-            <source src={@src} type={@type} />
-          </video>
+      <dialog class="backdrop:bg-gray-900/85 bg-transparent fixed inset-0">
+        <button class="mb-2 fixed top-4 right-4 hover:cursor-pointer">
+          <.icon class="size-6 sm:size-7 bg-white" name="hero-x-mark" />
+        </button>
+        <div
+          class="media-content fixed p-1 sm:p-5"
+          style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
+        >
+          <div class=" flex flex-col items-center p-2">
+            <img
+              :if={String.starts_with?(@type, "image")}
+              loading="lazy"
+              class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
+              src={@src}
+            />
+            <video
+              :if={String.starts_with?(@type, "video")}
+              loading="lazy"
+              controls
+              controlslist="nodownload nofullscreen noremoteplayback"
+              class="object-contain object-left max-h-[calc(100vh-70px)] max-w-[calc(100vw-20px)]"
+            >
+              <source src={@src} type={@type} />
+            </video>
+          </div>
         </div>
       </dialog>
     </div>
@@ -969,8 +969,18 @@ defmodule AndaWeb.CoreComponents do
           const dialog = this.el.querySelector("dialog")
           const video = this.el.querySelector("dialog video")
           const button = this.el.querySelector("dialog button")
+          const content = this.el.querySelector("dialog .media-content")
 
-          this.handleDialogClose = () => {
+          function openModal() {
+            document.querySelector('body').classList.add('overflow-hidden')
+            dialog.showModal()
+          }
+
+          function closeModal() {
+            dialog.close()
+          }
+
+          function onClose() {
             if(window.location.hash) {
               const url = new URL(window.location)
               url.hash = ""
@@ -981,28 +991,33 @@ defmodule AndaWeb.CoreComponents do
               video.pause()
               video.currentTime = 0
             }
+            document.querySelector('body').classList.remove('overflow-hidden')
           }
 
           this.handleButtonClick = () => {
-            dialog.close()
           }
 
           this.handleHashChange = () => {
             if(window.location.hash === id) {
-              dialog.showModal()
+              openModal()
             } else {
-              dialog.close()
+              closeModal()
             }
           }
 
           const id = "#show-"+this.el.id
           if(window.location.hash === id) {
-            dialog.showModal()
+            openModal()
           }
 
-          dialog.addEventListener("close", this.handleDialogClose)
-          button.addEventListener("click", this.handleButtonClick)
+          dialog.addEventListener("close", onClose)
+          button.addEventListener("click", closeModal)
           window.addEventListener("hashchange", this.handleHashChange)
+          dialog.addEventListener("click", () => dialog.close())
+          content.addEventListener("click", e => {
+            console.log('CLICK!', e)
+            e.stopPropagation()
+          })
         },
         destroyed() {
           window.removeEventListener("hashchange", this.handleHashChange)
@@ -1013,20 +1028,24 @@ defmodule AndaWeb.CoreComponents do
   end
 
   attr :question, Anda.Contest.Question, required: true
+  attr :class, :string, default: ""
+  attr :rest, :global
   slot :inner_block
 
   def question(assigns) do
     ~H"""
-    <div class="flex w-full">
+    <div class="flex w-full #{class}" {@rest}>
       <div :if={@question.rank} class="pr-2 shrink font-bold">
         {@question.rank}.
       </div>
       <div class="grow">
         <div class="flex">
-          <div class="grow text-md mb-4 font-medium markdown-container">
+          <div class="grow text-md font-medium markdown-container">
             {Phoenix.HTML.raw(@question.text_rendered)}
           </div>
-          <div :if={@question.points} class="shrink text-gray-400 pl-2">({@question.points}p)</div>
+          <div :if={@question.points} class="shrink text-gray-400 pl-2">
+            ({Enum.map(1..@question.num_answers, &"#{&1 * @question.points}p") |> Enum.join("/")})
+          </div>
         </div>
 
         {render_slot(@inner_block)}
@@ -1037,24 +1056,52 @@ defmodule AndaWeb.CoreComponents do
 
   attr :key, :string
   attr :sort_order, :string
+  attr :default_order, :string, default: "desc"
   attr :title, :string
+  attr :class, :string, default: ""
   attr :rest, :global
+
   def sortable_header(assigns) do
-    assigns = assign(assigns, this_asc: "#{assigns.key}_asc", this_desc: "#{assigns.key}_desc")
+    this_asc = "#{assigns.key}_asc"
+    this_desc = "#{assigns.key}_desc"
+
+    next_sort_order =
+      cond do
+        assigns.sort_order === this_asc -> this_desc
+        assigns.sort_order === this_desc -> this_asc
+        true -> "#{assigns.key}_#{assigns.default_order}"
+      end
+
+    assigns =
+      assign(assigns, this_asc: this_asc, this_desc: this_desc, next_sort_order: next_sort_order)
 
     ~H"""
     <th
-      class="hover:bg-base-200/50 hover:cursor-pointer"
+      class={"hover:bg-base-200/50 hover:cursor-pointer #{@class}"}
       phx-click="set_sort_order"
-      phx-value-sort_order={if @sort_order === @this_asc, do: @this_desc, else: @this_asc}
+      phx-value-sort_order={@next_sort_order}
       {@rest}
     >
       {@title}
       <span class="w-4 inline-block">
-        <.icon :if={@sort_order == @this_desc} name="hero-chevron-up" />
-        <.icon :if={@sort_order == @this_asc} name="hero-chevron-down" />
+        <.icon :if={@sort_order == @this_desc} name="hero-chevron-down" />
+        <.icon :if={@sort_order == @this_asc} name="hero-chevron-up" />
       </span>
     </th>
+    """
+  end
+
+  attr :score, :integer
+
+  def score_inline(assigns) do
+    ~H"""
+    <span :if={!is_nil(@score)}>
+      <.icon :if={@score > 0} name="hero-check" class="text-green-500 size-4 sm:size-5" />
+      <.icon :if={@score == 0} name="hero-x-mark" class="text-red-500 size-4 sm:size-5" />
+      <span :if={@score > 0}>
+        {@score}p
+      </span>
+    </span>
     """
   end
 end
