@@ -99,7 +99,14 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
         </div>
       </.form>
       <div class="flex items-center gap-3">
-        <.button phx-click="save" phx-target={@myself} phx-disable-with="Lagrer...">Lagre</.button>
+        <.button
+          phx-click="save"
+          disabled={Enum.count(@form[:answers].value, &(&1 != "")) > 0}
+          phx-target={@myself}
+          phx-disable-with="Lagrer..."
+        >
+          Lagre
+        </.button>
         <span>{@change_count} {if @change_count == 1, do: "endret", else: "endrede"}</span>
       </div>
       <script :type={Phoenix.LiveView.ColocatedHook} name=".TableHook">
