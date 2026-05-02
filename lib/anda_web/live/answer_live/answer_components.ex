@@ -82,12 +82,12 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
           input.addEventListener("change", e => {
             input.classList.remove('input-success')
             //saved.classList.add('hidden')
-              this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
-                if(reply?.success) {
+            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
+              if(reply?.success) {
                 input.classList.add('input-success')
                 //saved.classList.remove('hidden')
-                }
-              })
+              }
+            })
           })
         }
       }
@@ -121,22 +121,21 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         mounted() {
           const inputs = this.el.querySelectorAll('input[type=radio]')
           //const saved = this.el.getElementsByClassName('saved')[0]
-          const target = inputs[0].attributes["phx-target"].value
+          const target = inputs[0]?.attributes["phx-target"]?.value
           for(const input of inputs) {
             input.addEventListener("change", e => {
             for(const input of inputs) {
               input.classList.remove('input-success')
             }
             //saved.classList.add('hidden')
-              this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
-                if(reply?.success) {
+            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
+              if(reply?.success) {
                 input.classList.add('input-success')
                 //saved.classList.remove('hidden')
-                }
-              })
+              }
+            })
           })
           }
-
         }
       }
     </script>
