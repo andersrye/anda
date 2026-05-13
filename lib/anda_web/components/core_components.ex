@@ -451,7 +451,7 @@ defmodule AndaWeb.CoreComponents do
           multiple={@multiple}
           {@rest}
         >
-          <option :if={@prompt} value="" disabled selected={@value == ""}>{@prompt}</option>
+          <option :if={@prompt} value="" disabled selected={@value not in @options}>{@prompt}</option>
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
