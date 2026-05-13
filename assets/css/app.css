@@ -308,6 +308,14 @@ _header.navbar {
   list-style: decimal inside;
 }
 
-.markdown-container p + p {
+.markdown-container p + * {
   margin-top: 1rem;
+}
+.markdown-container * + p {
+  margin-top: 1rem;
+}
+
+.markdown-container hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
