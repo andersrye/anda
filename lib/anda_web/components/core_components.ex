@@ -160,7 +160,7 @@ defmodule AndaWeb.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-screen max-w-2xl p-2 md:p-4 lg:py-8">
+          <div class="w-screen max-w-2xl p-2 md:p-4 lg:py-8" id={"#{@id}-modal"}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -199,7 +199,7 @@ defmodule AndaWeb.CoreComponents do
     )
     |> show("##{id}-container")
     |> JS.add_class("overflow-hidden", to: "body")
-    |> JS.focus_first(to: "##{id}-content")
+    |> JS.focus_first(to: "##{id}-modal")
   end
 
   def hide_modal(js \\ %JS{}, id) do
