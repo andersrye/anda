@@ -94,7 +94,7 @@
                 </div>
                 <.answer_key
                   :if={
-                    @live_action != :preview && Enum.count(question.answers, &(!is_nil(&1.score)))
+                    @live_action != :preview && Enum.count(question.answers, &(!is_nil(&1.score))) > 0
                   }
                   question={question}
                   class="mt-2"
