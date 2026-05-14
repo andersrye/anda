@@ -48,7 +48,7 @@ defmodule AndaWeb.ScoringLive.Index do
   def question_details(assigns) do
     type_text =
       case assigns.question.type do
-        "alternatives" -> "#{Enum.count(assigns.question.alternatives)} alternativer"
+        "alternatives" -> "#{Enum.count(assigns.question.alternatives || [])} alternativer"
         "text" -> "Fritekst"
         "number" -> "Tall"
         "football-score" -> "Fotball-resultat"
@@ -95,7 +95,12 @@ defmodule AndaWeb.ScoringLive.Index do
 
   @impl true
   def handle_info({Form.ScoreForm, {:scored, question, num_scored}}, socket) do
-    quiz = QuizUtils.update_question_scored_count(socket.assigns.quiz, question, num_scored)
+    new_answer_keys = Contest.get_answer_key(question) #TODO: få denne fra ScoreForm i steden?
+    quiz = socket.assigns.quiz
+      |> QuizUtils.update_question_attr(question, :answer_key, question.answer_key)
+      |> QuizUtils.update_question_attr(question, :answer_keys, new_answer_keys)
+      |> QuizUtils.update_question_attr(question, :scored_answer_count, num_scored)
+
     {:noreply, assign(socket, quiz: quiz)}
   end
 end

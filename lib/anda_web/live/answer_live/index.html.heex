@@ -65,7 +65,7 @@
           description={section.description}
         >
           <:content :for={question <- section.questions}>
-            <.question question={question} >
+            <.question question={question}>
               <.media_view
                 :if={question.media_url}
                 id={"media-#{question.id}"}
@@ -75,28 +75,38 @@
                 aspect_ratio={question.media_aspect_ratio}
               />
               <div class="mt-3">
-              <div :for={answer <- question.answers} class="flex">
-                <.live_component
-                  module={AndaWeb.AnswerLive.QuestionInput}
-                  class="flex-grow"
-                  action={@live_action}
-                  question={question}
-                  answer={answer}
-                  submission={@submission}
-                  quiz_id={@quiz.id}
-                  enabled={@enabled}
-                  index={answer.index}
-                  id={"question-#{question.id}-#{answer.index}"}
-                />
-                <div class="flex-shrink mt-2 ml-1">
-                  <.score score={answer && answer.score} />
+                <div :for={answer <- question.answers} class="flex">
+                  <.live_component
+                    module={AndaWeb.AnswerLive.QuestionInput}
+                    class="flex-grow"
+                    action={@live_action}
+                    question={question}
+                    answer={answer}
+                    submission={@submission}
+                    quiz_id={@quiz.id}
+                    enabled={@enabled}
+                    index={answer.index}
+                    id={"question-#{question.id}-#{answer.index}"}
+                  />
+                  <div class="flex-shrink mt-2 ml-1">
+                    <.score score={answer && answer.score} />
+                  </div>
                 </div>
-              </div>
+                <.answer_key
+                  :if={
+                    @live_action != :preview && Enum.count(question.answers, &(!is_nil(&1.score)))
+                  }
+                  question={question}
+                  class="mt-2"
+                />
               </div>
             </.question>
           </:content>
         </.section>
-        <div :if={@live_action == :edit} class="text-black/70 flex flex-col items-center gap-2 p-5">
+        <div
+          :if={@live_action == :edit}
+          class="text-black/70 flex flex-col items-center gap-2 p-5"
+        >
           <p>Gratulerer, du har kommet til slutten!</p>
           <dev>
             <ul class="list-disc list-inside">
@@ -132,7 +142,8 @@
             has_name(@submission) && @answered_question_count > 0 &&
               @answered_question_count < @question_count
           }>
-            Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på <.icon name="hero-numbered-list"/> oppe i hjørnet for å se hvor du mangler svar.
+            Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på
+            <.icon name="hero-numbered-list" /> oppe i hjørnet for å se hvor du mangler svar.
           </p>
           <p :if={has_name(@submission) && @answered_question_count == @question_count}>
             Godt jobba, du har fylt ut alt! Du kan alltids endre svarene dine frem til fristen. Ellers er det bare å lene seg tilbake og vente på premien.
@@ -143,6 +154,7 @@
         <.header>Permanent lenke</.header>
         <p class="text-md mb-4">
           Med denne lenken kan du redigere denne besvarelsen.
+          <strong class="font-bold">Ikke del den med andre!</strong>
         </p>
         <p class="text-md mb-10">
           Bruk den til å fortsette utfyllingen fra en annen enhet, eller bokmerk den så du er sikker på å ikke miste den.

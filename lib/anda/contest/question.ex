@@ -13,8 +13,10 @@ defmodule Anda.Contest.Question do
     field :media_aspect_ratio, :float
     field :position, :integer
     field :points, :integer
+    field :answer_key, :string
     belongs_to :section, Anda.Contest.Section
     has_many :answers, Anda.Submission.Answer
+    has_many :answer_keys, Anda.Contest.AnswerKey
 
     field :total_answer_count, :integer, virtual: true
     field :scored_answer_count, :integer, virtual: true
@@ -36,7 +38,8 @@ defmodule Anda.Contest.Question do
       :media_aspect_ratio,
       :type,
       :position,
-      :points
+      :points,
+      :answer_key
     ])
     |> validate_required([:text, :text_rendered, :num_answers, :section_id, :type, :position])
   end

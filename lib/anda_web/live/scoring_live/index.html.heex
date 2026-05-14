@@ -11,17 +11,21 @@
       <:content :for={question <- section.questions}>
         <div class="flex">
           <div class="flex-grow">
-          <.question question={question}>
-            <.media_view
-              :if={question.media_url}
-              id={"media-#{question.id}"}
-              class="my-5"
-              src={question.media_url}
-              type={question.media_type}
-              aspect_ratio={question.media_aspect_ratio}
-            />
-            <.question_details question={question} />
-          </.question>
+            <.question question={question}>
+              <.media_view
+                :if={question.media_url}
+                id={"media-#{question.id}"}
+                class="my-5"
+                src={question.media_url}
+                type={question.media_type}
+                aspect_ratio={question.media_aspect_ratio}
+              />
+              <.answer_key
+                :if={question.scored_answer_count > 0}
+                question={question}
+                class="mt-2"
+              />
+            </.question>
           </div>
           <div class="shrink-0 ml-5">
             <.scoring_controls

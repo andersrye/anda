@@ -110,7 +110,6 @@ defmodule AndaWeb.LeaderboardLive.Index do
 
   @impl true
   def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
-    dbg(sort_order)
     {:noreply, assign(socket, sort_order: sort_order, leaderboard: sort_submissions(socket.assigns.leaderboard, sort_order))}
   end
 

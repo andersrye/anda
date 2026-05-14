@@ -5,6 +5,7 @@ defmodule Anda.Submission do
   alias Anda.Contest.Quiz
   alias Anda.Contest.Question
   alias Anda.Contest.Section
+  alias Anda.Contest.AnswerKey
   alias Anda.Submission
   alias Anda.Repo
 
@@ -150,7 +151,6 @@ defmodule Anda.Submission do
       from(a in Answer,
         select: %{
           text: a.text,
-          score: max(a.score),
           total_count: count(a),
           new_count: count(a) - count(a.score)
         },
@@ -187,16 +187,31 @@ defmodule Anda.Submission do
     )
   end
 
-  def set_scores(question_id, scores) do
+  def set_scores(question, scores, answer_key) do
     Repo.transact(fn ->
+      {:ok, new_question} =
+        question
+        |> Question.changeset(%{answer_key: answer_key})
+        |> Repo.update()
+
+      Repo.delete_all(from a in AnswerKey, where: a.question_id == ^question.id)
+
       counts =
         for {answers, score} <- scores do
-          query = from a in Answer, where: a.question_id == ^question_id and a.text in ^answers
+          for answer <- answers do
+            Repo.insert(%AnswerKey{
+              text: answer,
+              score: score,
+              question_id: question.id
+            })
+          end
+
+          query = from a in Answer, where: a.question_id == ^question.id and a.text in ^answers
           {count, _} = Repo.update_all(query, set: [score: score])
           count
         end
 
-      {:ok, Enum.sum(counts)}
+      {:ok, {new_question, Enum.sum(counts)}}
     end)
   end
 

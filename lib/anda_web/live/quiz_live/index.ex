@@ -5,7 +5,8 @@ defmodule AndaWeb.QuizLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :quiz_collection, Contest.list_quiz(socket.assigns.current_scope))}
+    quizes = Contest.list_quiz_with_submission_count(socket.assigns.current_scope)
+    {:ok, stream(socket, :quiz_collection, quizes)}
   end
 
   @impl true

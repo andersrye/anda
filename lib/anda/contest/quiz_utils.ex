@@ -106,7 +106,7 @@ defmodule Anda.Contest.QuizUtils do
     quiz
   end
 
-  def update_question_scored_count(quiz, question, new_count) do
+  def update_question_attr(quiz, question, key, value) do
     put_in(
       quiz,
       [
@@ -114,9 +114,9 @@ defmodule Anda.Contest.QuizUtils do
         Access.find(&(&1.id == question.section_id)),
         Access.key!(:questions),
         Access.find(&(&1.id == question.id)),
-        Access.key(:scored_answer_count)
+        Access.key(key)
       ],
-      new_count
+      value
     )
   end
 

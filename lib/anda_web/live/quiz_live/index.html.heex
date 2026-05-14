@@ -17,8 +17,11 @@
       rows={@streams.quiz_collection}
       row_click={fn {_id, quiz} -> JS.navigate(~p"/admin/quiz/#{quiz}/edit") end}
     >
-      <:col :let={{_id, quiz}} label="Title">{quiz.title}</:col>
-      <:col :let={{_id, quiz}} label="Description">{quiz.description}</:col>
+      <:col :let={{_id, quiz}} label="Tittel">{quiz.title}</:col>
+      <:col :let={{_id, quiz}} label="Besvarelser">
+        {quiz.submission_count}
+      </:col>
+      <:col :let={{_id, quiz}} label="Status"><.mode_indicator quiz={quiz} /></:col>
     </.table>
   </div>
 </Layouts.app>

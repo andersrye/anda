@@ -1104,4 +1104,52 @@ defmodule AndaWeb.CoreComponents do
     </span>
     """
   end
+
+  attr :class, :string, default: ""
+  attr :question, Anda.Contest.Question
+
+  def answer_key(assigns) do
+    assigns = assign(assigns, answers: Enum.filter(assigns.question.answer_keys, &(&1.score > 0)))
+
+    ~H"""
+    <div class={"text-green-700 text-sm #{@class}"}>
+      <div :if={@question.answer_key}>
+        Fasit: {@question.answer_key}
+      </div>
+      <div>
+        Godkjente svar:
+        <span :if={Enum.count(@answers) > 0}>
+          {@answers
+          |> Enum.map(& &1.text)
+          |> Enum.join(", ")}
+        </span>
+        <span :if={Enum.count(@answers) == 0} class="text-gray-400">
+          {"<ingen>"}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  attr :quiz, Anda.Contest.Quiz
+  attr :class, :string, default: ""
+
+  def mode_indicator(assigns) do
+    {mode_text, mode_status} =
+      case assigns.quiz.mode do
+        "hidden" -> {"Skjult", "status-info"}
+        "open" -> {"Åpen", "status-success"}
+        "closed" -> {"Stengt", "status-error"}
+        _ -> {"??", "status-neutral"}
+      end
+
+    assigns = assign(assigns, mode_text: mode_text, mode_status: mode_status)
+
+    ~H"""
+    <span class={"badge badge-sm #{@class}"}>
+      <span class={"status #{@mode_status}"}></span>
+      {@mode_text}
+    </span>
+    """
+  end
 end

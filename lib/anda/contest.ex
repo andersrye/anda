@@ -4,15 +4,37 @@ defmodule Anda.Contest do
   alias Anda.Accounts.Scope
   alias Ecto.Multi
   alias Anda.Submission.Answer
+  alias Anda.Submission.Submission
   alias Anda.Repo
   alias Anda.Contest.Quiz
   alias Anda.Contest.Section
   alias Anda.Contest.Question
+  alias Anda.Contest.AnswerKey
 
   ### QUIZ ###
 
   def list_quiz(%Scope{} = scope) do
     Repo.all(from quiz in Quiz, where: quiz.user_id == ^scope.user.id)
+  end
+
+  def list_quiz_with_submission_count(%Scope{} = scope) do
+    submission_query =
+      from s in Submission,
+        left_join: a in Answer,
+        on: a.submission_id == s.id,
+        where: s.name != "",
+        having: count(a) > 0,
+        group_by: s.id
+
+    query =
+      from quiz in Quiz,
+        where: quiz.user_id == ^scope.user.id,
+        left_join: s in ^subquery(submission_query),
+        on: s.quiz_id == quiz.id,
+        select: %{quiz | submission_count: count(s)},
+        group_by: quiz.id
+
+    Repo.all(query)
   end
 
   def get_quiz!(id, %Scope{} = scope) do
@@ -109,6 +131,8 @@ defmodule Anda.Contest do
   def get_quiz_w_questions_w_answer_stats2(id, %Scope{} = scope) do
     sections = from s in Section, order_by: s.position
 
+    answer_keys = from ak in AnswerKey, order_by: [asc: ak.text]
+
     questions =
       from q in Question,
         left_join: s in Section,
@@ -116,6 +140,7 @@ defmodule Anda.Contest do
         left_join: a in Answer,
         on: a.question_id == q.id,
         select: %{q | total_answer_count: count(a), scored_answer_count: count(a.score)},
+        preload: [answer_keys: ^answer_keys],
         group_by: [q.id],
         order_by: q.position,
         # vet ikke hvorfor, men denne ekstra joinen gjør at den bruker indexen...
@@ -127,6 +152,11 @@ defmodule Anda.Contest do
         preload: [sections: ^{sections, [questions: questions]}]
 
     Repo.one(query)
+  end
+
+  def get_answer_key(question) do
+    query = from ak in AnswerKey, where: ak.question_id == ^question.id, order_by: [asc: ak.text]
+    Repo.all(query)
   end
 
   def get_quiz_w_questions_w_answers(id, submission_id, %Scope{} = scope) do
@@ -206,7 +236,7 @@ defmodule Anda.Contest do
         on: s.quiz_id == quiz.id,
         left_join: q in Question,
         on: q.section_id == s.id,
-        preload: [sections: {s, questions: {q, answers: ^answers_query}}],
+        preload: [sections: {s, questions: {q, answer_keys: :question, answers: ^answers_query}}],
         order_by: [s.position, q.position]
 
     quiz = Repo.one(query)

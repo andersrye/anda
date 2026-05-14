@@ -11,13 +11,25 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
       <.header>
         Alle svar
       </.header>
-      <.question question={@question}/>
+      <.question question={@question} />
       <div class="overflow-x-auto mt-5">
         <table class="table table-xs sm:table-md">
           <thead>
             <tr>
-              <.sortable_header key="name" title="Navn" sort_order={@sort_order} default_order="asc" phx-target={@myself} />
-              <.sortable_header key="text" title="Svar" sort_order={@sort_order} default_order="asc" phx-target={@myself} />
+              <.sortable_header
+                key="name"
+                title="Navn"
+                sort_order={@sort_order}
+                default_order="asc"
+                phx-target={@myself}
+              />
+              <.sortable_header
+                key="text"
+                title="Svar"
+                sort_order={@sort_order}
+                default_order="asc"
+                phx-target={@myself}
+              />
               <.sortable_header
                 key="score"
                 title="Poeng"
@@ -30,7 +42,7 @@ defmodule AndaWeb.ScoringLive.Form.AnswersList do
             <tr :for={answer <- @answers}>
               <td>{answer.name}</td>
               <td>{answer.text}</td>
-              <td><.score_inline score={answer.score}/></td>
+              <td><.score_inline score={answer.score} /></td>
             </tr>
           </tbody>
         </table>
