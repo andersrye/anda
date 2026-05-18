@@ -72,7 +72,7 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
         >
           <.radio_input
             :if={
-              @question.type == "alternatives" && @num_alternatives <= 6 && !@has_alternatives_groups && @question.num_answers == 1
+              @question.type == "alternatives" && (@num_alternatives <= 6 && !@has_alternatives_groups && @question.num_answers == 1)
             }
             id={"input-#{@id}"}
             field={@form[:text]}
@@ -84,7 +84,7 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
           />
           <.select_input
             :if={
-              (@question.type == "alternatives" && @num_alternatives > 6) || @has_alternatives_groups || @question.num_answers > 1
+              @question.type == "alternatives" && (@num_alternatives > 6 || @has_alternatives_groups || @question.num_answers > 1)
             }
             id={"input-#{@id}"}
             class="max-w-3xs"
