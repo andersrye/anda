@@ -447,7 +447,8 @@ defmodule AndaWeb.CoreComponents do
         <select
           id={@id}
           name={@name}
-          class={[@class, "select w-full", @errors != [] && (@error_class || "select-error")]}
+          class={[@class, !@multiple && "select", @multiple && "textarea", "w-full", @errors != [] && (@error_class || "select-error")]}
+          size={if @multiple, do: 7, else: nil}
           multiple={@multiple}
           {@rest}
         >

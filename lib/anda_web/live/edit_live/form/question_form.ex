@@ -69,6 +69,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
           options={[
             Fritekst: "text",
             Alternativer: "alternatives",
+            "Alternativer fra tidligere svar": "alternatives_dynamic",
             Tall: "number",
             Fotballresultat: "football-score"
           ]}
@@ -80,6 +81,15 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
           type="textarea"
           label="Alternativer"
         />
+        <div :if={@form[:type].value == "alternatives_dynamic"}>
+          <.input
+            field={@form[:alternatives_dyn]}
+            multiple={true}
+            type="select"
+            label="Velg spørsmål"
+            options={questions_as_options(@quiz) |> dbg()}
+          />
+        </div>
 
         <.input field={@form[:num_answers]} type="number" label="Antall svar" />
         <.input field={@form[:points]} type="number" label="Poeng (valgfritt)" />
@@ -89,6 +99,16 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
       </.form>
     </div>
     """
+  end
+
+  def questions_as_options(quiz) do
+    quiz
+    |> get_in([Access.key!(:sections), Access.all(), Access.key!(:questions)])
+    |> List.flatten()
+    |> Enum.map(fn question ->
+      {"#{question.rank}: #{question.text |> String.slice(0..80)}#{if String.length(question.text) > 80, do: "...", else: ""}",
+       Integer.to_string(question.id)}
+    end)
   end
 
   attr :id, :string, default: nil
@@ -178,6 +198,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
     %{
       text: :string,
       alternatives: :string,
+      alternatives_dyn: [:array, :string],
       type: :string,
       num_answers: :integer,
       points: :integer,
@@ -191,6 +212,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
     |> Map.update(:alternatives, [], fn val ->
       if !is_nil(val), do: Enum.join(val, "\n"), else: nil
     end)
+    |> Map.put(:alternatives_dyn, question.alternatives)
     |> then(&Changeset.change({&1, form_types()}))
   end
 
@@ -289,15 +311,23 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
         {:ok, {url <> "/" <> key, client_type}}
       end)
 
+    alternatives_dyn = Map.get(question_params, "alternatives_dyn")
+
     {:ok, question_params} =
       changeset(socket.assigns.question_form_data, question_params)
       |> Changeset.apply_action(:save)
 
     question_params =
+      if(question_params.type == "alternatives_dynamic") do
+        Map.put(question_params, :alternatives, alternatives_dyn)
+      else
+        Map.update(question_params, :alternatives, nil, fn val ->
+          if !is_nil(val), do: String.split(val, "\n") |> Enum.map(&String.trim/1), else: nil
+        end)
+      end
+
+    question_params =
       question_params
-      |> Map.update(:alternatives, nil, fn val ->
-        if !is_nil(val), do: String.split(val, "\n") |> Enum.map(&String.trim/1), else: nil
-      end)
       |> Map.put(:text_rendered, MDEx.to_html!(question_params.text, render: [hardbreaks: true]))
       |> then(fn q ->
         if(socket.assigns.remove_file) do

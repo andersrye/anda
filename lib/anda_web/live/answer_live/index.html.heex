@@ -71,6 +71,7 @@
                     answer={answer}
                     submission={@submission}
                     quiz_id={@quiz.id}
+                    quiz={@quiz}
                     enabled={@enabled}
                     index={answer.index}
                     id={"question-#{question.id}-#{answer.index}"}
@@ -81,7 +82,8 @@
                 </div>
                 <.answer_key
                   :if={
-                    @live_action != :preview && Enum.count(question.answers, &(!is_nil(&1.score))) > 0
+                    @live_action != :preview &&
+                      Enum.count(question.answers, &(!is_nil(&1.score))) > 0
                   }
                   question={question}
                   class="mt-2"
@@ -110,7 +112,7 @@
                   class="bg-green-600 size-5"
                 />
                 <.icon
-                  :if={@answered_question_count < @question_count && @answered_question_count > 1}
+                  :if={@answered_question_count < @question_count && @answered_question_count > 0}
                   name="hero-exclamation-triangle"
                   class="bg-yellow-600 size-5"
                 />

@@ -203,20 +203,20 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
      |> assign(:question, question)
      |> assign(:unique_answers, unique_answers)
      |> assign(:sort_order, sort_order)
-     |> assign(:score_form, to_form(score_changeset, as: "form"))
+     |> assign(:score_form, to_form(score_changeset, as: "score_form"))
      |> assign(:submit_form, to_form(submit_changeset, as: "submit_form"))}
   end
 
   @impl true
   def handle_event(
         "change",
-        %{"form" => %{"answers" => selected_answers, "points" => points}},
+        %{"score_form" => %{"answers" => selected_answers, "points" => points}},
         socket
       ) do
     changeset =
       Changeset.change({%{answers: selected_answers, points: points}, schema()})
 
-    {:noreply, assign(socket, form: to_form(changeset, as: "form"))}
+    {:noreply, assign(socket, score_form: to_form(changeset, as: "score_form"))}
   end
 
   @impl true
@@ -228,7 +228,7 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
     changeset =
       Changeset.change({%{answer_key: answer_key}, submit_schema()})
 
-    {:noreply, assign(socket, form: to_form(changeset, as: "form"))}
+    {:noreply, assign(socket, submit_form: to_form(changeset, as: "submit_form"))}
   end
 
   def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
@@ -242,7 +242,7 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
   @impl true
   def handle_event(
         "set_scores",
-        %{"form" => %{"answers" => selected_answers, "points" => points}},
+        %{"score_form" => %{"answers" => selected_answers, "points" => points}},
         socket
       ) do
     points = String.to_integer(points)
@@ -261,7 +261,7 @@ defmodule AndaWeb.ScoringLive.Form.ScoreForm do
     changeset =
       Changeset.change({%{answers: [], points: points}, schema()})
 
-    {:noreply, assign(socket, unique_answers: answers, form: to_form(changeset, as: "form"))}
+    {:noreply, assign(socket, unique_answers: answers, score_form: to_form(changeset, as: "score_form"))}
   end
 
   @impl true

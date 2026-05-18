@@ -119,6 +119,7 @@
     <.live_component
       module={Form.QuestionForm}
       id={@quiz_id}
+      quiz={@quiz}
       question_id={@question_id}
       action={:edit}
       current_scope={@current_scope}
@@ -134,6 +135,7 @@
     <.live_component
       module={Form.QuestionForm}
       id={@quiz_id}
+      quiz={@quiz}
       action={:new}
       section_id={@section_id}
       current_scope={@current_scope}

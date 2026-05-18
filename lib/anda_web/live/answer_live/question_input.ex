@@ -35,6 +35,55 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
     end)
   end
 
+  def process_dynamic_alternatives(quiz, question) do
+    ids = question.alternatives |> Enum.map(&String.to_integer/1)
+
+    questions =
+      quiz
+      |> get_in([
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.filter(&(&1.id in ids))
+      ])
+      |> List.flatten()
+
+    current_answers =
+      get_in(questions, [
+        Access.all(),
+        Access.key!(:answers),
+        Access.all(),
+        Access.key!(:text)
+      ])
+      |> List.flatten()
+      |> Enum.filter(&(&1 != ""))
+
+    remaining =
+      question.answers
+      |> Enum.map(& &1.text)
+      |> Enum.filter(&(&1 != "" && &1 not in current_answers))
+      |> Enum.map(&[key: &1, value: &1, disabled: true])
+
+    questions
+    |> Enum.map(fn q ->
+      {"#{q.text |> String.slice(0..80)}#{if String.length(q.text) > 80, do: "...", else: ""}",
+       Enum.map(q.answers, fn a ->
+         if(a.text != "") do
+           a.text
+         else
+           [key: "<Ikke besvart>", value: "<Ikke besvart>", disabled: true]
+         end
+       end)}
+    end)
+    |> then(fn a ->
+      if(Enum.count(remaining) > 0) do
+        a ++ [:hr] ++ remaining
+      else
+        a
+      end
+    end)
+  end
+
   @impl true
   def update(assigns, socket) do
     answer =
@@ -46,7 +95,12 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
     num_alternatives = Enum.count(alternatives)
     has_alternatives_groups = Enum.any?(alternatives, &String.starts_with?(&1, "--"))
 
-    alternatives = process_alternatives(alternatives)
+    alternatives =
+      if(assigns.question.type == "alternatives_dynamic") do
+        process_dynamic_alternatives(assigns.quiz, assigns.question)
+      else
+        process_alternatives(alternatives)
+      end
 
     {:ok,
      socket
@@ -72,7 +126,8 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
         >
           <.radio_input
             :if={
-              @question.type == "alternatives" && (@num_alternatives <= 6 && !@has_alternatives_groups && @question.num_answers == 1)
+              @question.type == "alternatives" &&
+                (@num_alternatives <= 6 && !@has_alternatives_groups && @question.num_answers == 1)
             }
             id={"input-#{@id}"}
             field={@form[:text]}
@@ -84,7 +139,8 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
           />
           <.select_input
             :if={
-              @question.type == "alternatives" && (@num_alternatives > 6 || @has_alternatives_groups || @question.num_answers > 1)
+              @question.type == "alternatives" &&
+                (@num_alternatives > 6 || @has_alternatives_groups || @question.num_answers > 1)
             }
             id={"input-#{@id}"}
             class="max-w-3xs"
@@ -95,8 +151,19 @@ defmodule AndaWeb.AnswerLive.QuestionInput do
             options={@alternatives}
             prompt="Velg et svar"
           />
+          <.select_input
+            :if={@question.type == "alternatives_dynamic"}
+            id={"input-#{@id}"}
+            class="max-w-3xs"
+            field={@form[:text]}
+            type="select"
+            disabled={!@enabled}
+            phx-target={@myself}
+            options={@alternatives}
+            prompt="Velg et svar"
+          />
           <.text_input
-            :if={@question.type != "alternatives"}
+            :if={@question.type != "alternatives" && @question.type != "alternatives_dynamic"}
             id={"input-#{@id}"}
             inputmode={if @question.type == "number", do: "numeric", else: nil}
             class="max-w-3xs"

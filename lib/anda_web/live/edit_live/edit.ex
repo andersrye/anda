@@ -82,12 +82,26 @@ defmodule AndaWeb.EditLive.Edit do
     type_text =
       case assigns.question.type do
         "alternatives" ->
-          count = Enum.count(assigns.question.alternatives || [], &(!String.starts_with?(&1, "--")))
-          "#{count} alternativer"
-        "text" -> "Fritekst"
-        "number" -> "Tall"
-        "football-score" -> "Fotball-resultat"
-        _ -> "??"
+          count =
+            Enum.count(assigns.question.alternatives || [], &(!String.starts_with?(&1, "--")))
+
+          "Alternativer (#{count})"
+
+        "alternatives_dynamic" ->
+          count = Enum.count(assigns.question.alternatives || [])
+          "Alt. fra tidl. svar (#{count})"
+
+        "text" ->
+          "Fritekst"
+
+        "number" ->
+          "Tall"
+
+        "football-score" ->
+          "Fotball-resultat"
+
+        _ ->
+          "??"
       end
 
     assigns = assign(assigns, type_text: type_text)
