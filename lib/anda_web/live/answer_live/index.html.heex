@@ -94,10 +94,14 @@
         </.section>
         <div
           :if={@live_action == :edit}
-          class="text-black/70 flex flex-col items-center gap-2 p-5"
+          class="text-black/70 flex flex-col items-start gap-4 p-5"
         >
-          <p>Gratulerer, du har kommet til slutten!</p>
-          <dev>
+          <p>
+            Gratulerer, du har kommet til slutten! Svarene dine er allerede lagret og sendt inn. Du kan gjøre
+             endringer når som helst fram til quizen stenges.
+          </p>
+          <p>Du har fylt ut:</p>
+          <div>
             <ul class="list-disc list-inside">
               <li>
                 Navn
@@ -123,9 +127,12 @@
                 />
               </li>
             </ul>
-          </dev>
+          </div>
           <p :if={!has_name(@submission) || @answered_question_count == 0}>
-            Du må nesten fylle inn et navn og svare må noen spørsmål
+            <.icon
+              name="hero-x-mark"
+              class="bg-red-600 size-5"
+            /> Du må fylle inn navn og svare på minst ett spørsmål for å være med.
           </p>
           <p :if={
             has_name(@submission) && @answered_question_count > 0 &&
@@ -133,9 +140,6 @@
           }>
             Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på
             <.icon name="hero-numbered-list" /> oppe i hjørnet for å se hvor du mangler svar.
-          </p>
-          <p :if={has_name(@submission) && @answered_question_count == @question_count}>
-            Godt jobba, du har fylt ut alt! Du kan alltids endre svarene dine frem til fristen. Ellers er det bare å lene seg tilbake og vente på premien.
           </p>
         </div>
       </div>
