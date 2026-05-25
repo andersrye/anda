@@ -11,7 +11,7 @@
     Besvarelser
   </.header> --%>
   <div class="overflow-x-scroll w-full mt-10">
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 shadow-sm w-full min-w-fit">
       <table class="table">
         <thead>
           <tr>
@@ -83,12 +83,22 @@
               </div>
             </td>
             <td>
-              <button class="btn btn-square btn-outline btn-sm" phx-click="show_url" phx-value-submission_id={submission.id}>
-                <.icon name="hero-link" />
-              </button>
-              <button class="btn btn-square btn-outline btn-sm btn-error" phx-click="show_delete_submission_modal" phx-value-submission_id={submission.id}>
-                <.icon name="hero-trash" />
-              </button>
+              <div class="flex flex-nowrap gap-1">
+                <button
+                  class="btn btn-square btn-outline btn-sm"
+                  phx-click="show_url"
+                  phx-value-submission_id={submission.id}
+                >
+                  <.icon name="hero-link" />
+                </button>
+                <button
+                  class="btn btn-square btn-outline btn-sm btn-error"
+                  phx-click="show_delete_submission_modal"
+                  phx-value-submission_id={submission.id}
+                >
+                  <.icon name="hero-trash" />
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -132,7 +142,7 @@
       Med denne lenken kan man endre besvarelsen til "{@show_copy_url_name}".
       <strong class="font-bold">Ikke del den med feil person!</strong>
     </p>
-    <.copy_input value={@show_copy_url}/>
+    <.copy_input value={@show_copy_url} />
     <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
   </.modal>
 </Layouts.quiz_app>
