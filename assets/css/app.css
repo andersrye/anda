@@ -101,9 +101,9 @@
   default: true;
   prefersdark: false;
   color-scheme: "light";
-  --color-base-100: oklch(98% 0.001 106.423);
-  --color-base-200: oklch(92% 0.003 48.717);
-  --color-base-300: oklch(86% 0.005 56.366);
+  --color-base-100: oklch(97.5% 0.01 245);
+  --color-base-200: oklch(92% 0.016 245);
+  --color-base-300: oklch(80% 0.03 245);
   --color-base-content: oklch(27.807% 0.029 256.847);
   --color-primary: oklch(37.45% 0.189 325.02);
   --color-primary-content: oklch(87.49% 0.037 325.02);
@@ -318,4 +318,13 @@ _header.navbar {
 .markdown-container hr {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+.tab {
+  --tab-bg: --color-base-200;
+  --tab-border-color: #0006;
+  color: var(--color-base-content);
+}
+.tab-active {
+  box-shadow: 0px 1px 5px -2px rgba(0,0,0,0.75);
 }

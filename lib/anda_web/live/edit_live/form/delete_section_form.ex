@@ -10,7 +10,7 @@ defmodule AndaWeb.EditLive.Form.DeleteSectionForm do
       <.header>
         Slett seksjon
       </.header>
-      <p>Sikker på at du vil slette seksjonen "{@section.title}"? Alle spørsmålene vil også bli slettet.</p>
+      <p>Er du sikker på at du vil slette seksjonen "{@section.title}"? Alle spørsmålene vil også bli slettet.</p>
       <p class="my-5">Dette kan ikke gjøres om.</p>
       <div class="flex gap-3 mt-5">
         <.button

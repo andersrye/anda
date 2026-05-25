@@ -833,7 +833,7 @@ defmodule AndaWeb.CoreComponents do
         <div>
           <div class="flex">
             <div class="flex-grow">
-              <h2 class="text-xl font-bold p-4">{@title}</h2>
+              <h2 class="text-lg font-bold p-4">{@title}</h2>
               <p :if={@description} class="text-md pb-4 px-4">
                 {@description}
               </p>

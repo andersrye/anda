@@ -25,7 +25,7 @@
         </.button>
         <.section_menu sections={@quiz.sections} />
       </div>
-      <div class="">
+      <div class="mt-4">
         <.header :if={@live_action in [:edit, :preview, :view_public]}>
           {@quiz.title}
         </.header>
@@ -146,7 +146,7 @@
       <.modal :if={@show_copy_url} id="show_copy_url" show on_cancel={JS.push("hide_url")}>
         <.header>Permanent lenke</.header>
         <p class="text-md mb-4">
-          Med denne lenken kan du redigere denne besvarelsen.
+          Med denne lenken kan du endre denne besvarelsen.
           <strong class="font-bold">Ikke del den med andre!</strong>
         </p>
         <p class="text-md mb-10">

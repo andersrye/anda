@@ -25,10 +25,10 @@ defmodule AndaWeb.Layouts do
   def app(assigns) do
     ~H"""
     <div class="main-container flex flex-col font-serif">
-      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8 shadow-sm z-10">
+      <header :if={@show_header} class="navbar px-4 sm:px-6 lg:px-8 shadow-sm z-10 bg-base-300">
         <div class="flex-1">
-          <a href="/" class="flex-1 flex w-fit items-center gap-2">
-            Anders sin quizgreie
+          <a href="/" class="flex-1 flex w-fit items-center gap-2 font-bold">
+            Quiz
           </a>
         </div>
 
@@ -95,14 +95,13 @@ defmodule AndaWeb.Layouts do
   slot :breadcrumb, required: false
 
   def quiz_app(assigns) do
-
     ~H"""
     <.app current_scope={@current_scope} show_header={@show_header} flash={@flash}>
       <div :if={@show_header} class="flex mt-6">
         <.header>
           {@quiz.title}
         </.header>
-        <.mode_indicator quiz={@quiz} class="my-1 mx-2 badge-ghost"/>
+        <.mode_indicator quiz={@quiz} class="my-1 mx-2 badge-ghost" />
 
         <span class="flex-grow"></span>
         <.link
@@ -113,42 +112,45 @@ defmodule AndaWeb.Layouts do
           Gå til quiz <.icon name="hero-arrow-top-right-on-square" />
         </.link>
       </div>
-      <div
-        :if={@show_header}
-        id="header-menu"
-        phx-hook=".MenuScroll"
-        role="tablist"
-        class="tabs tabs-border w-full overflow-x-auto overflow-y-clip flex-nowrap mb-8"
-        style="box-shadow: 0 2px 2px -2px gray"
-      >
-        <.link
-          role="tab"
-          class={["tab", @current_tab == :edit && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/edit"}
+      <div :if={@show_header} class="flex w-full overflow-x-auto  mb-8 flex-nowrap ">
+        <span class="min-w-1 flex-shrink border-b-1 border-solid border-[#0006]"></span>
+        <div
+          id="header-menu"
+          phx-hook=".MenuScroll"
+          role="tablist"
+          class="tabs tabs-lift  overflow-y-clip flex-nowrap"
+          _style="box-shadow: 0 2px 2px -2px gray"
         >
-          Rediger
-        </.link>
-        <.link
-          role="tab"
-          class={["tab", @current_tab == :score && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/scoring"}
-        >
-          Retting
-        </.link>
-        <.link
-          role="tab"
-          class={["tab", @current_tab == :submissions && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}
-        >
-          Besvarelser
-        </.link>
-        <.link
-          role="tab"
-          class={["tab", @current_tab == :leaderboard && "tab-active"]}
-          navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}
-        >
-          Leaderboard
-        </.link>
+          <.link
+            role="tab"
+            class={["tab", @current_tab == :edit && "tab-active", "[--tab-bg:--color-base-200]"]}
+            navigate={~p"/admin/quiz/#{@quiz.id}/edit"}
+          >
+            Rediger
+          </.link>
+          <.link
+            role="tab"
+            class={["tab", @current_tab == :score && "tab-active"]}
+            navigate={~p"/admin/quiz/#{@quiz.id}/scoring"}
+          >
+            Retting
+          </.link>
+          <.link
+            role="tab"
+            class={["tab", @current_tab == :submissions && "tab-active"]}
+            navigate={~p"/admin/quiz/#{@quiz.id}/submissions"}
+          >
+            Besvarelser
+          </.link>
+          <.link
+            role="tab"
+            class={["tab", @current_tab == :leaderboard && "tab-active"]}
+            navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}
+          >
+            Leaderboard
+          </.link>
+        </div>
+        <span class="min-w-1 flex-grow border-b-1 border-solid border-[#0006]"></span>
       </div>
       {render_slot(@inner_block)}
     </.app>
