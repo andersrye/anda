@@ -1,91 +1,99 @@
-<Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:submissions} quiz={@quiz}>
+<Layouts.quiz_app
+  flash={@flash}
+  current_scope={@current_scope}
+  current_tab={:submissions}
+  quiz={@quiz}
+>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
   <:breadcrumb>Besvarelser</:breadcrumb>
   <%!-- <.header>
     Besvarelser
   </.header> --%>
-
-  <div class="card bg-base-100 shadow-sm mt-10 overflow-scroll">
-    <table class="table">
-      <thead>
-        <tr>
-          <td>
-            Navn
-          </td>
-          <td>
-            Besvart
-          </td>
-          <td>
-            Rettet
-          </td>
-          <td>
-            Merkelapper
-          </td>
-          <td>
-            Slett
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
-          <td>
-            <.link
-              class="link"
-              navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}
-            >
-              <span :if={submission.name != ""}>{submission.name}</span>
-              <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
-            </.link>
-          </td>
-          <td>
-            {trunc(submission.num_answers / @quiz.question_count * 100)}%
-          </td>
-          <td>
-            {if submission.num_answers > 0,
-              do: trunc(submission.num_scored / submission.num_answers * 100),
-              else: 0}%
-          </td>
-          <td class="">
-            <div class="flex flex-wrap gap-1 ">
-              <span
-                :for={
-                  {tag, color} <-
-                    for t <- submission.tags,
-                        do:
-                          {t, RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
-                }
-                class="badge badge-sm badge-primary pr-0 text-black"
-                style={"--badge-color: #{color}; --btn-color: #{color}"}
+  <div class="overflow-x-scroll w-full mt-10">
+    <div class="card bg-base-100 shadow-sm">
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Navn
+            </td>
+            <td>
+              Besvart
+            </td>
+            <td>
+              Rettet
+            </td>
+            <td>
+              Merkelapper
+            </td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
+            <td>
+              <.link
+                class="link"
+                navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}
               >
-                {tag}
-                <button
-                  class="btn btn-xs btn-square btn-ghost"
-                  phx-click="remove_tag"
-                  phx-value-tag={tag}
-                  phx-value-submission-id={submission.id}
+                <span :if={submission.name != ""}>{submission.name}</span>
+                <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
+              </.link>
+            </td>
+            <td>
+              {trunc(submission.num_answers / @quiz.question_count * 100)}%
+            </td>
+            <td>
+              {if submission.num_answers > 0,
+                do: trunc(submission.num_scored / submission.num_answers * 100),
+                else: 0}%
+            </td>
+            <td class="">
+              <div class="flex flex-wrap gap-1 ">
+                <span
+                  :for={
+                    {tag, color} <-
+                      for t <- submission.tags,
+                          do:
+                            {t,
+                             RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
+                  }
+                  class="badge badge-sm badge-primary pr-0 text-black"
+                  style={"--badge-color: #{color}; --btn-color: #{color}"}
                 >
-                  <.icon name="hero-x-mark" />
+                  {tag}
+                  <button
+                    class="btn btn-xs btn-square btn-ghost"
+                    phx-click="remove_tag"
+                    phx-value-tag={tag}
+                    phx-value-submission-id={submission.id}
+                  >
+                    <.icon name="hero-x-mark" />
+                  </button>
+                </span>
+                <button
+                  class="btn btn-xs btn-square"
+                  phx-click={
+                    JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
+                  }
+                >
+                  <.icon name="hero-plus" />
                 </button>
-              </span>
-              <button
-                class="btn btn-xs btn-square"
-                phx-click={
-                  JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
-                }
-              >
-                <.icon name="hero-plus" />
+              </div>
+            </td>
+            <td>
+              <button class="btn btn-square btn-outline btn-sm" phx-click="show_url" phx-value-submission_id={submission.id}>
+                <.icon name="hero-link" />
               </button>
-            </div>
-          </td>
-          <td>
-            <button class="btn btn-square btn-outline btn-sm btn-error">
-              <.icon name="hero-trash" />
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <button class="btn btn-square btn-outline btn-sm btn-error" phx-click="show_delete_submission_modal" phx-value-submission_id={submission.id}>
+                <.icon name="hero-trash" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <.modal
     :if={@live_action in [:add_tag]}
@@ -103,5 +111,28 @@
       <br />
       <.button type="submit">Lagre</.button>
     </form>
+  </.modal>
+  <.modal
+    :if={!is_nil(@show_delete_submission_modal)}
+    id="delete-question-modal"
+    show
+    on_cancel={JS.push("hide_delete_submission_modal")}
+  >
+    <.live_component
+      module={Form.DeleteSubmissionForm}
+      id={@quiz.id}
+      submission={@show_delete_submission_modal}
+      current_scope={@current_scope}
+      patch={~p"/"}
+    />
+  </.modal>
+  <.modal :if={@show_copy_url} id="show_copy_url" show on_cancel={JS.push("hide_url")}>
+    <.header>Permanent lenke</.header>
+    <p class="text-md mb-4">
+      Med denne lenken kan man endre besvarelsen til "{@show_copy_url_name}".
+      <strong class="font-bold">Ikke del den med feil person!</strong>
+    </p>
+    <.copy_input value={@show_copy_url}/>
+    <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
   </.modal>
 </Layouts.quiz_app>

@@ -6,6 +6,8 @@ defmodule Anda.Submission.Submission do
     field :name, :string
     field :secret, :string
     field :tags, {:array, :string}
+    field :num_answers, :integer, virtual: true
+    field :num_scored, :integer, virtual: true
     has_many :answers, Anda.Submission.Answer
     belongs_to :quiz, Anda.Contest.Quiz
 

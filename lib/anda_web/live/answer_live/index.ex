@@ -3,6 +3,7 @@ defmodule AndaWeb.AnswerLive.Index do
   use AndaWeb, :live_view
   use Phoenix.Component
   alias AndaWeb.Endpoint
+  alias AndaWeb.SecretUrl
   alias Anda.Contest
   alias Anda.Submission
   import AndaWeb.AnswerLive.AnswerComponents
@@ -21,23 +22,6 @@ defmodule AndaWeb.AnswerLive.Index do
     |> assign(:show_description, false)
     |> assign(:current_tab, current_tab)
     |> assign_new(:current_scope, fn -> nil end)
-  end
-
-  defp secret_url(secret) do
-    with {:ok, bytes} <- Ecto.UUID.dump(secret) do
-      Mac.encode(<<1>> <> bytes)
-    else
-      :error ->
-        {:ok, bytes} = Base.decode64(secret)
-        Mac.encode(<<2>> <> bytes)
-    end
-  end
-
-  defp verify_secret_url(string) do
-    case Mac.decode(string) do
-      {:ok, <<1, uuid_bytes::binary>>} -> Ecto.UUID.cast(uuid_bytes)
-      {:ok, <<2, hash_bytes::binary>>} -> {:ok, Base.encode64(hash_bytes)}
-    end
   end
 
   defp subscribe_to_updates(socket, quiz, submission \\ nil) do
@@ -111,7 +95,7 @@ defmodule AndaWeb.AnswerLive.Index do
   # edit -> vis besvarelse
   def mount(%{"quiz_id" => quiz_id, "submission_id" => submission_id}, _session, socket)
       when socket.assigns.live_action in [:view_submissions, :view_leaderboard] do
-    submission = Submission.get_submission(quiz_id, submission_id)
+    submission = Submission.get_submission(quiz_id, submission_id, socket.assigns.current_scope)
 
     quiz =
       Contest.get_quiz_w_questions_and_answers(quiz_id, submission_id)
@@ -134,7 +118,7 @@ defmodule AndaWeb.AnswerLive.Index do
       when socket.assigns.live_action == :edit do
     quiz_id = Contest.get_quiz_id_from_slug(slug)
 
-    with {:ok, decoded_secret} <- verify_secret_url(encoded_secret),
+    with {:ok, decoded_secret} <- SecretUrl.verify_secret_url(encoded_secret),
          %Submission.Submission{} = submission <-
            Submission.get_submission_by_secret(quiz_id, decoded_secret) do
       quiz =
@@ -232,7 +216,7 @@ defmodule AndaWeb.AnswerLive.Index do
   end
 
   def handle_event("show_url", _, socket) do
-    encoded_secret = secret_url(socket.assigns.submission.secret)
+    encoded_secret = SecretUrl.secret_url(socket.assigns.submission.secret)
 
     url =
       URI.parse(socket.assigns.current_uri)

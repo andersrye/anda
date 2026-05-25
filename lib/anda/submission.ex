@@ -1,6 +1,7 @@
 defmodule Anda.Submission do
   import Ecto.Query, warn: false
   alias AndaWeb.Endpoint
+  alias Anda.Accounts.Scope
   alias Ecto.Multi
   alias Anda.Contest.Quiz
   alias Anda.Contest.Question
@@ -18,8 +19,20 @@ defmodule Anda.Submission do
     |> Repo.insert()
   end
 
-  def get_submission(quiz_id, submission_id) do
-    Repo.get_by(Submission, id: submission_id, quiz_id: quiz_id)
+  def delete_submission(%Submission{} = submission, %Scope{} = scope) do
+    #sjekk om du eier quizen
+    Repo.get_by!(Quiz, id: submission.quiz_id, user_id: scope.user.id)
+    Repo.delete(submission)
+  end
+
+  def get_submission(quiz_id, submission_id, %Scope{} = scope) do
+    query =
+      from s in Submission,
+        left_join: q in Quiz,
+        on: q.id == s.quiz_id,
+        where: s.id == ^submission_id and s.quiz_id == ^quiz_id and q.user_id == ^scope.user.id
+
+    Repo.one!(query)
   end
 
   def get_submission_by_secret(quiz_id, secret) do
@@ -262,13 +275,7 @@ defmodule Anda.Submission do
         left_join: a in Answer,
         on: a.submission_id == s.id,
         where: s.quiz_id == ^quiz_id and s.name != "",
-        select: %{
-          id: s.id,
-          name: s.name,
-          num_answers: count(a),
-          num_scored: count(a.score),
-          tags: s.tags
-        },
+        select: %{s | num_answers: count(a), num_scored: count(a.score)},
         having: count(a) > 0,
         group_by: s.id
     )

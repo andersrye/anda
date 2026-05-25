@@ -447,7 +447,13 @@ defmodule AndaWeb.CoreComponents do
         <select
           id={@id}
           name={@name}
-          class={[@class, !@multiple && "select", @multiple && "textarea", "w-full", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class,
+            !@multiple && "select",
+            @multiple && "textarea",
+            "w-full",
+            @errors != [] && (@error_class || "select-error")
+          ]}
           size={if @multiple, do: 7, else: nil}
           multiple={@multiple}
           {@rest}
@@ -1151,6 +1157,33 @@ defmodule AndaWeb.CoreComponents do
       <span class={"status #{@mode_status}"}></span>
       {@mode_text}
     </span>
+    """
+  end
+
+  attr :value, :string
+
+  def copy_input(assigns) do
+    ~H"""
+    <div id="copy-input" class="join flex mr-10" phx-hook=".CopyInput">
+      <input type="text" readonly class="input join-item flex-grow" value={@value} />
+
+      <.button class="join-item btn btn-square flex-none" data-tip="Kopiert!">
+        <.icon name="hero-square-2-stack" />
+      </.button>
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInput">
+      export default {
+        mounted() {
+          const input = this.el.getElementsByTagName("input")[0]
+          const button = this.el.getElementsByTagName("button")[0]
+          input.addEventListener("focus", () => input.select())
+          button.addEventListener("click", () => {
+           navigator.clipboard.writeText(input.value)
+           button.classList.add("tooltip", "tooltip-open")
+          })
+        }
+      }
+    </script>
     """
   end
 end
