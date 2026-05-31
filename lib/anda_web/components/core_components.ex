@@ -425,7 +425,7 @@ defmodule AndaWeb.CoreComponents do
             {@rest}
           />
           <div>
-            <div>
+            <div class="whitespace-normal">
               {option.label}
             </div>
             <div :if={Map.get(option, :helptext)} class="text-xs">
