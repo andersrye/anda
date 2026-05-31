@@ -97,38 +97,38 @@
 
 
 @plugin "../vendor/daisyui-theme" {
-  name: "fantasy";
+  name: "emerald";
   default: true;
   prefersdark: false;
   color-scheme: "light";
-  --color-base-100: oklch(97.5% 0.01 245);
-  --color-base-200: oklch(92% 0.016 245);
-  --color-base-300: oklch(80% 0.03 245);
-  --color-base-content: oklch(27.807% 0.029 256.847);
-  --color-primary: oklch(37.45% 0.189 325.02);
-  --color-primary-content: oklch(87.49% 0.037 325.02);
-  --color-secondary: oklch(53.92% 0.162 241.36);
-  --color-secondary-content: oklch(90.784% 0.032 241.36);
-  --color-accent: oklch(75.98% 0.204 56.72);
-  --color-accent-content: oklch(15.196% 0.04 56.72);
-  --color-neutral: oklch(27.807% 0.029 256.847);
-  --color-neutral-content: oklch(85.561% 0.005 256.847);
-  --color-info: oklch(72.06% 0.191 231.6);
-  --color-info-content: oklch(0% 0 0);
-  --color-success: oklch(64.8% 0.15 160);
-  --color-success-content: oklch(0% 0 0);
-  --color-warning: oklch(84.71% 0.199 83.87);
-  --color-warning-content: oklch(0% 0 0);
-  --color-error: oklch(71.76% 0.221 22.18);
-  --color-error-content: oklch(0% 0 0);
+  --color-base-100: oklch(98% 0.007 201);
+  --color-base-200: oklch(90% 0.019 201);
+  --color-base-300: oklch(80% 0.036 201);
+  --color-base-content: oklch(20% 0.042 265.755);
+  --color-primary: oklch(69% 0.17 162.48);
+  --color-primary-content: oklch(97% 0.021 166.113);
+  --color-secondary: oklch(76% 0.233 130.85);
+  --color-secondary-content: oklch(98% 0.031 120.757);
+  --color-accent: oklch(62% 0.214 259.815);
+  --color-accent-content: oklch(97% 0.014 254.604);
+  --color-neutral: oklch(27% 0.041 260.031);
+  --color-neutral-content: oklch(98% 0.003 247.858);
+  --color-info: oklch(60% 0.126 221.723);
+  --color-info-content: oklch(98% 0.019 200.873);
+  --color-success: oklch(59% 0.145 163.225);
+  --color-success-content: oklch(97% 0.021 166.113);
+  --color-warning: oklch(64% 0.222 41.116);
+  --color-warning-content: oklch(98% 0.016 73.684);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-error-content: oklch(96% 0.015 12.422);
   --radius-selector: 0.25rem;
   --radius-field: 0.25rem;
   --radius-box: 0.25rem;
-  --size-selector: 0.3125rem;
+  --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
   --depth: 1;
-  --noise: 0;
+  --noise: 1;
 }
 
 
