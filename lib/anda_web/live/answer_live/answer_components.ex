@@ -41,7 +41,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
                 //saved.classList.remove('hidden')
                 }
               })
-            }, 600)
+            }, 1000)
           })
         }
       }

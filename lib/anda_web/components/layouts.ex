@@ -98,7 +98,7 @@ defmodule AndaWeb.Layouts do
     ~H"""
     <.app current_scope={@current_scope} show_header={@show_header} flash={@flash}>
       <div :if={@show_header} class="flex mt-6">
-        <.header>
+        <.header class="text-3xl">
           {@quiz.title}
         </.header>
         <.mode_indicator quiz={@quiz} class="my-1 mx-2 badge-ghost" />
