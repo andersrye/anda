@@ -22,7 +22,6 @@ defmodule Anda.Contest do
       from s in Submission,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        where: s.name != "",
         having: count(a) > 0,
         group_by: s.id
 

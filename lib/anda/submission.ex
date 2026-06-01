@@ -231,7 +231,7 @@ defmodule Anda.Submission do
   def get_leaderboard(quiz_id, tag \\ nil) do
     query =
       from s in Submission,
-        where: s.quiz_id == ^quiz_id and s.name != "",
+        where: s.quiz_id == ^quiz_id,
         left_join: a in Answer,
         on: a.submission_id == s.id,
         select: %{
@@ -252,7 +252,7 @@ defmodule Anda.Submission do
   def get_scores_by_section(quiz_id, tag \\ nil) do
     query =
       from s in Submission,
-        where: s.quiz_id == ^quiz_id and s.name != "",
+        where: s.quiz_id == ^quiz_id,
         join: a in Answer,
         on: a.submission_id == s.id,
         join: q in Question,
@@ -274,7 +274,7 @@ defmodule Anda.Submission do
       from s in Submission,
         left_join: a in Answer,
         on: a.submission_id == s.id,
-        where: s.quiz_id == ^quiz_id and s.name != "",
+        where: s.quiz_id == ^quiz_id,
         select: %{s | num_answers: count(a), num_scored: count(a.score)},
         having: count(a) > 0,
         group_by: s.id
