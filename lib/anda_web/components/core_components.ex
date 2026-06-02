@@ -640,10 +640,11 @@ defmodule AndaWeb.CoreComponents do
   slot :inner_block, required: true
   slot :subtitle
   slot :actions
+  attr :class, :string, default: ""
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
+    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4", @class]}>
       <div>
         <h1 class="text-3xl  font-semibold leading-8">
           {render_slot(@inner_block)}
@@ -829,6 +830,8 @@ defmodule AndaWeb.CoreComponents do
   attr :title, :string, required: true
   attr :description, :string
   attr :id, :string
+  attr :score, :integer, default: nil
+  attr :score_possible, :integer, default: nil
   slot :content
   slot :controls
 
@@ -839,7 +842,12 @@ defmodule AndaWeb.CoreComponents do
         <div>
           <div class="flex">
             <div class="flex-grow">
-              <h2 class="text-lg font-bold p-4">{@title}</h2>
+              <div class="flex">
+                <h2 class="text-lg font-bold p-4 grow">{@title}</h2>
+                <span :if={@score} class="text-green-700 self-center _underline _decoration-double">
+                {@score}p{@score_possible && " / #{@score_possible}p"}
+                </span>
+              </div>
               <p :if={@description} class="text-md pb-4 px-4">
                 {@description}
               </p>

@@ -5,6 +5,8 @@ defmodule AndaWeb.AnswerLive.Index do
   alias AndaWeb.Endpoint
   alias AndaWeb.SecretUrl
   alias Anda.Contest
+  alias Anda.Contest.Quiz
+  alias Anda.Contest.Section
   alias Anda.Submission
   import AndaWeb.AnswerLive.AnswerComponents
 
@@ -71,6 +73,77 @@ defmodule AndaWeb.AnswerLive.Index do
 
   defp has_name(submission) do
     !is_nil(submission.name) && submission.name != ""
+  end
+
+  defp count_scored_questions(quiz = %Quiz{}) do
+    quiz
+    |> get_in([
+      Access.key!(:sections),
+      Access.all(),
+      Access.key!(:questions),
+      Access.all(),
+      Access.key!(:answers),
+      Access.filter(&(!is_nil(&1.score))),
+    ])
+    |> List.flatten()
+    |> Enum.count()
+  end
+
+  defp count_scored_questions(section = %Section{}) do
+    section
+    |> get_in([
+      Access.key!(:questions),
+      Access.all(),
+      Access.key!(:answers),
+      Access.filter(&(!is_nil(&1.score))),
+    ])
+    |> List.flatten()
+    |> Enum.count()
+  end
+
+  defp total_score(quiz = %Quiz{}) do
+    quiz
+    |> get_in([
+      Access.key!(:sections),
+      Access.all(),
+      Access.key!(:questions),
+      Access.all(),
+      Access.key!(:answers),
+      Access.filter(&(!is_nil(&1.score))),
+      Access.key!(:score),
+    ])
+    |> List.flatten()
+    |> Enum.sum()
+  end
+
+  defp total_score(quiz = %Section{}) do
+    quiz
+    |> get_in([
+      Access.key!(:questions),
+      Access.all(),
+      Access.key!(:answers),
+      Access.filter(&(!is_nil(&1.score))),
+      Access.key!(:score),
+    ])
+    |> List.flatten()
+    |> then(fn scores ->
+      if Enum.count(scores) > 0, do: Enum.sum(scores), else: nil
+    end)
+  end
+
+  defp total_score_possible(quiz = %Section{}) do
+    quiz
+    |> get_in([
+      Access.key!(:questions),
+      Access.all(),
+    ])
+    |> List.flatten()
+    |> Enum.map(fn q ->
+      q.points && q.points * q.num_answers
+    end)
+    |> then(fn points ->
+      if Enum.any?(points, &is_nil/1), do: nil, else: Enum.sum(points)
+    end)
   end
 
   # edit -> forhåndsvisning

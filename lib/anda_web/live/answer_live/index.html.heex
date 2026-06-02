@@ -25,22 +25,27 @@
         </.button>
         <.section_menu sections={@quiz.sections} />
       </div>
-      <div class="mt-4">
-        <.header :if={@live_action in [:edit, :preview, :view_public]}>
-          {@quiz.title}
-        </.header>
-        <div class="flex flex-col">
-          <div class="flex-none flex justify- self-end h-fit">
-            <.form for={@name_form} id="name-form" class="h-fit mb-2">
-              <div class="flex items-center">
-                <div class="flex-grow"></div>
-                <div class="flex-base-50">
-                  <.name_input id="name-input" field={@name_form[:name]} disabled={!@enabled} />
-                </div>
-              </div>
-              <button type="submit" class="hidden" disabled></button>
-            </.form>
+      <div class="mt-5">
+          <.header :if={@live_action in [:edit, :preview, :view_public]} class="grow">
+            {@quiz.title}
+          </.header>
+
+        <div class="flex my-5 gap-1">
+          <div class="grow">
+            <div class="max-w-55">
+              <.form for={@name_form} id="name-form" class="h-fit ">
+                <.name_input
+                  id="name-input"
+                  field={@name_form[:name]}
+                  disabled={!@enabled}
+                />
+                <button type="submit" class="hidden" disabled></button>
+              </.form>
+            </div>
           </div>
+          <span :if={count_scored_questions(@quiz) > 0} class="text-lg text-green-700 shrink self-end font-mono_ underline decoration-double mb-1 mr-1">
+            {total_score(@quiz)} poeng
+          </span>
         </div>
       </div>
 
@@ -50,6 +55,8 @@
           id={"section_#{section.id}"}
           title={section.title}
           description={section.description}
+          score={total_score(section)}
+          score_possible={total_score_possible(section)}
         >
           <:content :for={question <- section.questions}>
             <.question question={question}>
@@ -94,11 +101,11 @@
         </.section>
         <div
           :if={@live_action == :edit}
-          class="text-black/70 flex flex-col items-start gap-4 p-5"
+          class="text-black/70 flex flex-col items-start gap-4 px-10 py-5"
         >
           <p>
             Gratulerer, du har kommet til slutten! Svarene dine er allerede lagret og sendt inn. Du kan gjøre
-             endringer når som helst fram til quizen stenges.
+            endringer når som helst fram til quizen stenges.
           </p>
           <p>Du har fylt ut:</p>
           <div>
@@ -152,7 +159,7 @@
         <p class="text-md mb-10">
           Bruk den til å fortsette utfyllingen fra en annen enhet, eller bokmerk den så du er sikker på å ikke miste den.
         </p>
-        <.copy_input value={@show_copy_url}/>
+        <.copy_input value={@show_copy_url} />
         <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
       </.modal>
       <.modal

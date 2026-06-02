@@ -231,7 +231,7 @@ defmodule Anda.Submission do
   def get_leaderboard(quiz_id, tag \\ nil) do
     query =
       from s in Submission,
-        where: s.quiz_id == ^quiz_id,
+        where: s.quiz_id == ^quiz_id and s.name != "",
         left_join: a in Answer,
         on: a.submission_id == s.id,
         select: %{

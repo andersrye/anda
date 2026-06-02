@@ -4,13 +4,8 @@
   current_tab={:submissions}
   quiz={@quiz}
 >
-  <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
-  <:breadcrumb><.link navigate={~p"/admin/quiz/#{@quiz.id}"}>{@quiz.title}</.link></:breadcrumb>
-  <:breadcrumb>Besvarelser</:breadcrumb>
-  <%!-- <.header>
-    Besvarelser
-  </.header> --%>
-  <div class="overflow-x-scroll w-full mt-10">
+  <div class="mt-6 mb-3 ml-1">{Enum.count(@submissions)} besvarelser</div>
+  <div class="overflow-x-scroll w-full ">
     <div class="card bg-base-100 shadow-sm w-full min-w-fit">
       <table class="table">
         <thead>
@@ -59,7 +54,7 @@
                             {t,
                              RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
                   }
-                  class="badge badge-sm badge-primary pr-0 text-black"
+                  class="badge badge-md badge-primary pr-0 text-black"
                   style={"--badge-color: #{color}; --btn-color: #{color}"}
                 >
                   {tag}
@@ -73,7 +68,7 @@
                   </button>
                 </span>
                 <button
-                  class="btn btn-xs btn-square"
+                  class="btn btn-xs btn-square btn-soft"
                   phx-click={
                     JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
                   }

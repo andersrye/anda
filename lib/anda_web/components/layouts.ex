@@ -63,8 +63,7 @@ defmodule AndaWeb.Layouts do
           </details>
         </div>
       </header>
-
-      <main class="px-4 pb-20 sm:px-6 lg:px-8 bg-base-200 flex-grow">
+      <main class="px-4 pb-20 sm:px-6 lg:px-8 flex-grow bg-base-200" style={"background: linear-gradient(var(--color-base-200), color-mix(in oklch, var(--color-base-200), oklch(100% none none ))); background-attachment: fixed;"}>
         <!--<div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
           <ul>
             <li :for={item <- @breadcrumb}>{render_slot(item)}</li>
@@ -101,7 +100,7 @@ defmodule AndaWeb.Layouts do
         <.header class="text-3xl">
           {@quiz.title}
         </.header>
-        <.mode_indicator quiz={@quiz} class="my-1 mx-2 badge-ghost" />
+        <.mode_indicator quiz={@quiz} class="my-2 mx-3 badge-ghost" />
 
         <span class="flex-grow"></span>
         <.link
