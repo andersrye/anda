@@ -22,24 +22,52 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         {@rest}
       />
       <.saved class="saved hidden" />
+      <.loading class="loader hidden" />
+      <.error class="error hidden">
+        Oops, det skjedde en feil. Prøv å laste siden på nytt.
+      </.error>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".LiveTextInput">
       export default {
         mounted() {
           const input = this.el.getElementsByTagName('input')[0]
+          const error = this.el.getElementsByClassName('error')[0]
+          const loader = this.el.getElementsByClassName('loader')[0]
           //const saved = this.el.getElementsByClassName('saved')[0]
           const target = input.attributes["phx-target"].value
           let timer
+          let loaderTimer
           input.addEventListener("input", e => {
             input.classList.remove('input-success')
+            input.classList.remove('input-error')
+            error.classList.add('hidden')
+            loader.classList.add('hidden')
             //saved.classList.add('hidden')
             clearTimeout(timer)
+
             timer = setTimeout(()=> {
-              this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
-                if(reply?.success) {
-                input.classList.add('input-success')
-                //saved.classList.remove('hidden')
+              loaderTimer = setTimeout(() => {
+                loader.classList.remove('hidden')
+              }, 1000)
+              this.pushEventTo(target, "submit", {"answer": {"text": input.value}})
+              .then(([res]) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                if(res.value?.reply?.success) {
+                  input.classList.add('input-success')
+                  //saved.classList.remove('hidden')
+                } else if(res.status === 'rejected') {
+                  console.error('Feil i innsending', res)
+                  input.classList.add('input-error')
+                  error.classList.remove('hidden')
                 }
+              })
+              .catch((err) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                console.error('Feil i innsending', err)
+                input.classList.add('input-error')
+                error.classList.remove('hidden')
               })
             }, 1000)
           })
@@ -72,22 +100,47 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         {@rest}
       />
       <.saved class="saved hidden" />
+      <.loading class="loader hidden" />
+      <.error class="error hidden">
+        Oops, det skjedde en feil. Prøv å laste siden på nytt.
+      </.error>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".LiveSelectInput">
       export default {
         mounted() {
           const input = this.el.getElementsByTagName('select')[0]
+          const error = this.el.getElementsByClassName('error')[0]
+          const loader = this.el.getElementsByClassName('loader')[0]
           //const saved = this.el.getElementsByClassName('saved')[0]
           const target = input.attributes["phx-target"].value
+          let loaderTimer
           input.addEventListener("change", e => {
             input.classList.remove('input-success')
+            input.classList.remove('input-error')
             //saved.classList.add('hidden')
-            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
-              if(reply?.success) {
-                input.classList.add('input-success')
-                //saved.classList.remove('hidden')
-              }
-            })
+            loaderTimer = setTimeout(() => {
+                loader.classList.remove('hidden')
+              }, 1000)
+            this.pushEventTo(target, "submit", {"answer": {"text": input.value}})
+              .then(([res]) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                if(res.value?.reply?.success) {
+                  input.classList.add('input-success')
+                  //saved.classList.remove('hidden')
+                } else if(res.status === 'rejected') {
+                  console.error('Feil i innsending', res)
+                  input.classList.add('input-error')
+                  error.classList.remove('hidden')
+                }
+              })
+              .catch((err) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                console.error('Feil i innsending', err)
+                input.classList.add('input-error')
+                error.classList.remove('hidden')
+              })
           })
         }
       }
@@ -115,25 +168,50 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         {@rest}
       />
       <.saved class="saved hidden" />
+      <.loading class="loader hidden" />
+      <.error class="error hidden">
+        Oops, det skjedde en feil. Prøv å laste siden på nytt.
+      </.error>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".LiveRadioInput">
       export default {
         mounted() {
           const inputs = this.el.querySelectorAll('input[type=radio]')
+          const error = this.el.getElementsByClassName('error')[0]
+          const loader = this.el.getElementsByClassName('loader')[0]
+
           //const saved = this.el.getElementsByClassName('saved')[0]
           const target = inputs[0]?.attributes["phx-target"]?.value
+          let loaderTimer
           for(const input of inputs) {
             input.addEventListener("change", e => {
             for(const input of inputs) {
               input.classList.remove('input-success')
+              input.classList.remove('input-error')
             }
             //saved.classList.add('hidden')
-            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}, (reply) => {
-              if(reply?.success) {
-                input.classList.add('input-success')
-                //saved.classList.remove('hidden')
-              }
-            })
+            loaderTimer = setTimeout(() => {
+                loader.classList.remove('hidden')
+            }, 1000)
+            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}).then(([res]) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                if(res.value?.reply?.success) {
+                  input.classList.add('input-success')
+                  //saved.classList.remove('hidden')
+                } else if(res.status === 'rejected') {
+                  console.error('Feil i innsending', res)
+                  input.classList.add('input-error')
+                  error.classList.remove('hidden')
+                }
+              })
+              .catch((err) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                console.error('Feil i innsending', err)
+                input.classList.add('input-error')
+                error.classList.remove('hidden')
+              })
           })
           }
         }
@@ -182,7 +260,7 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
                 //saved.classList.remove('hidden')
                 }
               })
-            }, 600)
+            }, 1000)
           })
         }
       }
@@ -213,10 +291,14 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         <ul class="menu w-full">
           <li :for={section <- @sections}>
             <a href="" class="inline" data-section={"section_#{section.id}"}>
-            <span>{section.title}</span>
-            <span class={if num_answers(section) == num_questions(section), do: "text-green-700", else: "text-gray-400"}>
-            ({num_answers(section)}/{num_questions(section)})
-            </span>
+              <span>{section.title}</span>
+              <span class={
+                if num_answers(section) == num_questions(section),
+                  do: "text-green-700",
+                  else: "text-gray-400"
+              }>
+                ({num_answers(section)}/{num_questions(section)})
+              </span>
             </a>
           </li>
         </ul>

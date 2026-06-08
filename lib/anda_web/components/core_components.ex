@@ -606,10 +606,12 @@ defmodule AndaWeb.CoreComponents do
     input(new_assigns)
   end
 
-  # Helper used by inputs to generate form errors
-  defp error(assigns) do
+  attr :class, :string, default: ""
+  slot :inner_block, required: true
+
+  def error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+    <p class={"mt-1.5 flex gap-2 items-center text-sm text-error #{@class}"}>
       <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
     </p>
@@ -626,10 +628,13 @@ defmodule AndaWeb.CoreComponents do
     """
   end
 
+  attr :class, :string, default: ""
+
   def loading(assigns) do
     ~H"""
-    <p class={"mt-1.5 flex gap-2 items-center text-sm text-success fade-out #{@class}"}>
-      <span class="loading loading-spinner size-6 flex-none hidden m-2"></span> Lagrer...
+    <p class={"mt-1.5 flex gap-2 items-center text-sm #{@class}"}>
+      <span class="loading loading-spinner loading-xs text-gray-500"></span>
+      <span class="text-gray-500">Lagrer...</span>
     </p>
     """
   end
