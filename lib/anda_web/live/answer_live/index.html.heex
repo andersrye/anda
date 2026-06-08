@@ -25,6 +25,9 @@
         </.button>
         <.section_menu sections={@quiz.sections} />
       </div>
+      <div phx-disconnected={JS.show()} phx-connected={JS.hide()} class="fixed top-5 left-[50%] badge badge-info z-49" style={"transform: translate(-50%)"}>
+        Et øyeblikk <span class="loading loading-dots loading-xs"></span>
+      </div>
       <div class="mt-5">
           <.header :if={@live_action in [:edit, :preview, :view_public]} class="grow">
             {@quiz.title}

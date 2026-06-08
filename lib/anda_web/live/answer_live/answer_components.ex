@@ -19,6 +19,9 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         class={@class}
         type="text"
         field={@field}
+        readonly
+        phx-disconnected={JS.set_attribute({"readonly", "true"})}
+        phx-connected={JS.remove_attribute("readonly")}
         {@rest}
       />
       <.saved class="saved hidden" />
@@ -97,6 +100,9 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         type="select"
         options={@options || []}
         prompt={@prompt}
+        readonly
+        phx-disconnected={JS.set_attribute({"readonly", "true"})}
+        phx-connected={JS.remove_attribute("readonly")}
         {@rest}
       />
       <.saved class="saved hidden" />
@@ -165,6 +171,9 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         field={@field}
         type="radiogroup"
         options={for a <- @options || [], do: %{label: a, value: a}}
+        readonly
+        phx-disconnected={JS.set_attribute({"readonly", "true"})}
+        phx-connected={JS.remove_attribute("readonly")}
         {@rest}
       />
       <.saved class="saved hidden" />
@@ -193,7 +202,8 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
             loaderTimer = setTimeout(() => {
                 loader.classList.remove('hidden')
             }, 1000)
-            this.pushEventTo(target, "submit", {"answer": {"text": input.value}}).then(([res]) => {
+            this.pushEventTo(target, "submit", {"answer": {"text": input.value}})
+            .then(([res]) => {
                 clearTimeout(loaderTimer)
                 loader.classList.add('hidden')
                 if(res.value?.reply?.success) {
@@ -239,26 +249,49 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
         placeholder="Skriv inn navnet ditt her"
         type="text"
         field={@field}
+        readonly
+        phx-disconnected={JS.set_attribute({"readonly", "true"})}
+        phx-connected={JS.remove_attribute("readonly")}
         {@rest}
       />
       <.saved class="saved hidden" />
+      <.loading class="loader hidden" />
+      <.error class="error hidden">
+        Oops, det skjedde en feil. Prøv å laste siden på nytt.
+      </.error>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".LiveNameInput">
       export default {
         mounted() {
           const input = this.el.getElementsByTagName('input')[0]
+          const error = this.el.getElementsByClassName('error')[0]
+          const loader = this.el.getElementsByClassName('loader')[0]
           //const saved = this.el.getElementsByClassName('saved')[0]
           let timer
+          let loaderTimer
           input.addEventListener("input", e => {
             input.classList.remove('input-success')
             //saved.classList.add('hidden')
             clearTimeout(timer)
             timer = setTimeout(()=> {
-              this.pushEvent("change_name", {"name": input.value}, (reply) => {
+              loaderTimer = setTimeout(() => {
+                loader.classList.remove('hidden')
+              }, 1000)
+              this.pushEvent("change_name", {"name": input.value})
+              .then((reply) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
                 if(reply?.success) {
                   input.classList.add('input-success')
-                //saved.classList.remove('hidden')
+                  //saved.classList.remove('hidden')
                 }
+              })
+              .catch((err) => {
+                clearTimeout(loaderTimer)
+                loader.classList.add('hidden')
+                console.error('Feil i innsending', err)
+                input.classList.add('input-error')
+                error.classList.remove('hidden')
               })
             }, 1000)
           })
@@ -341,4 +374,5 @@ defmodule AndaWeb.AnswerLive.AnswerComponents do
     </div>
     """
   end
+
 end
