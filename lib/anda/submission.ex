@@ -20,7 +20,7 @@ defmodule Anda.Submission do
   end
 
   def delete_submission(%Submission{} = submission, %Scope{} = scope) do
-    #sjekk om du eier quizen
+    # sjekk om du eier quizen
     Repo.get_by!(Quiz, id: submission.quiz_id, user_id: scope.user.id)
     Repo.delete(submission)
   end
@@ -312,5 +312,18 @@ defmodule Anda.Submission do
         distinct: true,
         where: s.quiz_id == ^quiz_id
     )
+  end
+
+  def get_all_submissions_with_answers(quiz_id, tag \\ nil) do
+    answer_query =
+      from a in Answer,
+        select: %{id: a.question_id, answers: fragment("string_agg(?, ?)", a.text, ", ")},
+        group_by: [a.question_id, a.submission_id]
+
+    query = from s in Submission, where: s.quiz_id == ^quiz_id, preload: [answers: ^answer_query]
+
+    query = if tag, do: query |> where([s], ^tag in s.tags), else: query
+
+    Repo.all(query)
   end
 end

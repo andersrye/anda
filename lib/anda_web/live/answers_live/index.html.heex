@@ -1,0 +1,96 @@
+<Layouts.quiz_app
+  show_header={@live_action == :private}
+  flash={@flash}
+  current_scope={@current_scope}
+  current_tab={:leaderboard}
+  quiz={@quiz}
+>
+  <div :if={@live_action == :public} class="mt-10">
+    <.header>
+      {@quiz.title}
+    </.header>
+  </div>
+
+  <div>
+    <div :if={@live_action == :private} class="flex justify-end mb-2">
+      <div class="flex gap-2">
+        <form phx-change="change_tag">
+          <select :if={@tags != nil} name="tag" class="select select-sm w-30">
+            <option value="" selected={@selected_tag == nil}>Alle</option>
+            <option :for={tag <- @tags} value={tag} selected={@selected_tag == tag}>{tag}</option>
+          </select>
+        </form>
+        <.button phx-click="show_url" class="btn btn-square btn-sm">
+          <.icon name="hero-link" />
+        </.button>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-auto h-full">
+      <table class="table tabular-nums -table-pin-cols table-fixed">
+        <thead>
+          <tr>
+            <td class="bg-base-100 w-14 sm:sticky sm:left-0"></td>
+            <.sortable_header
+              key="name"
+              title="Navn"
+              sort_order={@sort_order}
+              default_order="asc"
+              class="bg-base-100 w-40 sticky left-0 sm:left-14"
+            />
+            <.sortable_header
+              key="total"
+              title="Totalt"
+              sort_order={@sort_order}
+              class="bg-base-100 w-20 sm:sticky sm:left-54 "
+            />
+            <.sortable_header
+              :for={section <- @quiz.sections}
+              key={"section_#{section.position}"}
+              title={section.title}
+              sort_order={@sort_order}
+              class="w-min"
+              style="white-space: collapse"
+            />
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={item <- @answers}>
+            <td class="text-right bg-base-100 sm:sticky sm:left-0">
+              {item.rank}
+            </td>
+            <td class="bg-base-100 truncate sticky left-0 sm:left-14">
+              <.link
+                :if={@live_action == :public}
+                class="link"
+                navigate={~p"/quiz/#{@quiz.slug}/leaderboard/#{@tag_with_mac}/#{item.name}"}
+              >
+                {item.name}
+              </.link>
+              <.link
+                :if={@live_action == :private}
+                class="link"
+                navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard/#{item.id}"}
+              >
+                {item.name}
+              </.link>
+            </td>
+            <td class="bg-base-100 w-20 text-right sm:sticky sm:left-54 ">
+              {item.score}
+            </td>
+            <td :for={score <- item.sections} class="text-right">
+              {score}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <.modal :if={@show_copy_url} id="asd" show on_cancel={JS.push("hide_url")}>
+    <p class="text-md mb-10">
+      Åpen link til denne leaderboarden!
+    </p>
+    <.copy_input value={@show_copy_url}/>
+    <.button class="btn btn-primary mt-8" phx-click={JS.push("hide_url")}>Lukk</.button>
+  </.modal>
+</Layouts.quiz_app>

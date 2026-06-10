@@ -68,6 +68,7 @@ defmodule AndaWeb.Router do
 
           live "/leaderboard", LeaderboardLive.Index, :private
           live "/leaderboard/:submission_id", AnswerLive.Index, :view_leaderboard
+          live "/answers", AnswersLive.Index, :private
           live "/submissions", SubmissionsLive.Index, :index
           live "/submissions/:submission_id", AnswerLive.Index, :view_submissions
           live "/submissions/:submission_id/add-tag", SubmissionsLive.Index, :add_tag
