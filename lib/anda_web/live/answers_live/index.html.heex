@@ -2,7 +2,7 @@
   show_header={@live_action == :private}
   flash={@flash}
   current_scope={@current_scope}
-  current_tab={:leaderboard}
+  current_tab={:answers}
   quiz={@quiz}
 >
   <div :if={@live_action == :public} class="mt-10">
@@ -11,8 +11,8 @@
     </.header>
   </div>
 
-  <div>
-    <div :if={@live_action == :private} class="flex justify-end mb-2">
+  <div class={"flex flex-col #{if @live_action == :public, do: "h-[calc(100vh-7rem)]", else: "h-[calc(100vh-15rem)]"}"}>
+    <div :if={@live_action == :private} class="flex justify-end mb-2 shrink">
       <div class="flex gap-2">
         <form phx-change="change_tag">
           <select :if={@tags != nil} name="tag" class="select select-sm w-30">
@@ -25,60 +25,50 @@
         </.button>
       </div>
     </div>
-    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-auto h-full">
-      <table class="table tabular-nums -table-pin-cols table-fixed">
+    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-scroll shrink overscroll-contain" >
+      <table class="table tabular-nums table-pin-rows table-fixed table-sm">
         <thead>
-          <tr>
-            <td class="bg-base-100 w-14 sm:sticky sm:left-0"></td>
+          <tr class="z-2">
             <.sortable_header
               key="name"
               title="Navn"
               sort_order={@sort_order}
               default_order="asc"
-              class="bg-base-100 w-40 sticky left-0 sm:left-14"
+              class="bg-slate-100 sticky left-0 w-30 align-bottom"
             />
             <.sortable_header
-              key="total"
-              title="Totalt"
+            :for={q <- QuizUtils.get_all_questions(@quiz)}
+              key={"question_#{q.rank}"}
+              title={raw("#{q.rank}. " <> q.text_rendered)}
               sort_order={@sort_order}
-              class="bg-base-100 w-20 sm:sticky sm:left-54 "
-            />
-            <.sortable_header
-              :for={section <- @quiz.sections}
-              key={"section_#{section.position}"}
-              title={section.title}
-              sort_order={@sort_order}
-              class="w-min"
-              style="white-space: collapse"
+              default_order="asc"
+              class="bg-slate-100 w-45 whitespace-normal align-bottom"
             />
           </tr>
         </thead>
         <tbody>
-          <tr :for={item <- @answers}>
-            <td class="text-right bg-base-100 sm:sticky sm:left-0">
-              {item.rank}
-            </td>
-            <td class="bg-base-100 truncate sticky left-0 sm:left-14">
+          <tr :for={submission <- @answers}>
+            <td class="bg-slate-100 sticky left-0 truncate z-1">
               <.link
                 :if={@live_action == :public}
                 class="link"
-                navigate={~p"/quiz/#{@quiz.slug}/leaderboard/#{@tag_with_mac}/#{item.name}"}
+                navigate={~p"/quiz/#{@quiz.slug}/leaderboard/#{@tag_with_mac}/#{submission.name}"}
               >
-                {item.name}
+                {submission.name}
               </.link>
               <.link
                 :if={@live_action == :private}
                 class="link"
-                navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard/#{item.id}"}
+                navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard/#{submission.id}"}
               >
-                {item.name}
+                {submission.name}
               </.link>
             </td>
-            <td class="bg-base-100 w-20 text-right sm:sticky sm:left-54 ">
-              {item.score}
-            </td>
-            <td :for={score <- item.sections} class="text-right">
-              {score}
+            <td :for={answer <- submission.answers} class="whitespace-normal break-normal ">
+              <div class="flex items-center">
+              <div class="grow">{answer.answers}</div>
+              <div class="shrink w-fit whitespace-nowrap z-0"><.score_inline score={answer.score}/></div>
+              </div>
             </td>
           </tr>
         </tbody>

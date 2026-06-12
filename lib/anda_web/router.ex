@@ -34,6 +34,9 @@ defmodule AndaWeb.Router do
         live "/", AnswerLive.Index, :edit
         live "/leaderboard/:tag_with_mac", LeaderboardLive.Index, :public
         live "/leaderboard/:tag_with_mac/:name", AnswerLive.Index, :view_public
+        live "/answers/:tag_with_mac", AnswersLive.Index, :public
+        live "/answers/:tag_with_mac/name", AnswersLive.Index, :view_public
+
       end
     end
 

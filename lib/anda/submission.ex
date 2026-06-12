@@ -228,6 +228,22 @@ defmodule Anda.Submission do
     end)
   end
 
+  def reset_scores(question) do
+    Repo.transact(fn ->
+      {:ok, new_question} =
+        question
+        |> Question.changeset(%{answer_key: nil})
+        |> Repo.update()
+
+      Repo.delete_all(from a in AnswerKey, where: a.question_id == ^question.id)
+
+      query = from a in Answer, where: a.question_id == ^question.id
+      Repo.update_all(query, set: [score: nil])
+
+      {:ok, {new_question}}
+    end)
+  end
+
   def get_leaderboard(quiz_id, tag \\ nil) do
     query =
       from s in Submission,
@@ -317,10 +333,19 @@ defmodule Anda.Submission do
   def get_all_submissions_with_answers(quiz_id, tag \\ nil) do
     answer_query =
       from a in Answer,
-        select: %{id: a.question_id, answers: fragment("string_agg(?, ?)", a.text, ", ")},
-        group_by: [a.question_id, a.submission_id]
+        left_join: q in Question,
+        on: q.id == a.question_id,
+        left_join: s in Section,
+        on: s.id == q.section_id,
+        select: %{
+          id: a.question_id,
+          answers: fragment("string_agg(?, ?)", a.text, ", "),
+          score: sum(a.score)
+        },
+        group_by: [a.question_id, a.submission_id, s.position, q.position],
+        order_by: [s.position, q.position]
 
-    query = from s in Submission, where: s.quiz_id == ^quiz_id, preload: [answers: ^answer_query]
+    query = from s in Submission, where: s.quiz_id == ^quiz_id and s.name != "", preload: [answers: ^answer_query]
 
     query = if tag, do: query |> where([s], ^tag in s.tags), else: query
 

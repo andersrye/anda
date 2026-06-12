@@ -1103,7 +1103,7 @@ defmodule AndaWeb.CoreComponents do
       {@rest}
     >
       {@title}
-      <span class="w-4 inline-block">
+      <span class="w-4 inline-block" :if={@sort_order in [@this_desc, @this_asc]}>
         <.icon :if={@sort_order == @this_desc} name="hero-chevron-down" />
         <.icon :if={@sort_order == @this_asc} name="hero-chevron-up" />
       </span>
@@ -1112,10 +1112,11 @@ defmodule AndaWeb.CoreComponents do
   end
 
   attr :score, :integer
+  attr :class, :string, default: ""
 
   def score_inline(assigns) do
     ~H"""
-    <span :if={!is_nil(@score)}>
+    <span :if={!is_nil(@score)} class={"inline-block w-fit #{@class}"}>
       <.icon :if={@score > 0} name="hero-check" class="text-green-500 size-4 sm:size-5" />
       <.icon :if={@score == 0} name="hero-x-mark" class="text-red-500 size-4 sm:size-5" />
       <span :if={@score > 0}>

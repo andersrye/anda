@@ -4,100 +4,102 @@
   current_tab={:submissions}
   quiz={@quiz}
 >
-  <div class="mt-6 mb-3 ml-1">{Enum.count(@submissions)} besvarelser</div>
-  <div class="overflow-x-scroll w-full ">
-    <div class="card bg-base-100 shadow-sm w-full min-w-fit">
-      <table class="table">
-        <thead>
-          <tr>
-            <td>
-              Navn
-            </td>
-            <td>
-              Besvart
-            </td>
-            <td>
-              Rettet
-            </td>
-            <td>
-              Merkelapper
-            </td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
-            <td>
-              <.link
-                class="link"
-                navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}
-              >
-                <span :if={submission.name != ""}>{submission.name}</span>
-                <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
-              </.link>
-            </td>
-            <td>
-              {trunc(submission.num_answers / @quiz.question_count * 100)}%
-            </td>
-            <td>
-              {if submission.num_answers > 0,
-                do: trunc(submission.num_scored / submission.num_answers * 100),
-                else: 0}%
-            </td>
-            <td class="">
-              <div class="flex flex-wrap gap-1 ">
-                <span
-                  :for={
-                    {tag, color} <-
-                      for t <- submission.tags,
-                          do:
-                            {t,
-                             RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
-                  }
-                  class="badge badge-md badge-primary pr-0 text-black"
-                  style={"--badge-color: #{color}; --btn-color: #{color}"}
+  <div class="mx-auto max-w-2xl space-y-4">
+    <div class="mt-6 mb-3 ml-1">{Enum.count(@submissions)} besvarelser</div>
+    <div class="overflow-x-scroll w-full ">
+      <div class="card bg-base-100 shadow-sm w-full min-w-fit">
+        <table class="table">
+          <thead>
+            <tr>
+              <td>
+                Navn
+              </td>
+              <td>
+                Besvart
+              </td>
+              <td>
+                Rettet
+              </td>
+              <td>
+                Merkelapper
+              </td>
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :for={submission <- @submissions} id={"submission-#{submission.id}"}>
+              <td>
+                <.link
+                  class="link"
+                  navigate={~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}"}
                 >
-                  {tag}
-                  <button
-                    class="btn btn-xs btn-square btn-ghost"
-                    phx-click="remove_tag"
-                    phx-value-tag={tag}
-                    phx-value-submission-id={submission.id}
+                  <span :if={submission.name != ""}>{submission.name}</span>
+                  <span :if={submission.name == ""} class="opacity-60">{"(uten navn)"}</span>
+                </.link>
+              </td>
+              <td>
+                {trunc(submission.num_answers / @quiz.question_count * 100)}%
+              </td>
+              <td>
+                {if submission.num_answers > 0,
+                  do: trunc(submission.num_scored / submission.num_answers * 100),
+                  else: 0}%
+              </td>
+              <td class="">
+                <div class="flex flex-wrap gap-1 ">
+                  <span
+                    :for={
+                      {tag, color} <-
+                        for t <- submission.tags,
+                            do:
+                              {t,
+                               RandomColour.generate(seed: :erlang.phash2(t), luminosity: "light")}
+                    }
+                    class="badge badge-md badge-primary pr-0 text-black"
+                    style={"--badge-color: #{color}; --btn-color: #{color}"}
                   >
-                    <.icon name="hero-x-mark" />
+                    {tag}
+                    <button
+                      class="btn btn-xs btn-square btn-ghost"
+                      phx-click="remove_tag"
+                      phx-value-tag={tag}
+                      phx-value-submission-id={submission.id}
+                    >
+                      <.icon name="hero-x-mark" />
+                    </button>
+                  </span>
+                  <button
+                    class="btn btn-xs btn-square btn-soft"
+                    phx-click={
+                      JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
+                    }
+                  >
+                    <.icon name="hero-plus" />
                   </button>
-                </span>
-                <button
-                  class="btn btn-xs btn-square btn-soft"
-                  phx-click={
-                    JS.patch(~p"/admin/quiz/#{@quiz.id}/submissions/#{submission.id}/add-tag")
-                  }
-                >
-                  <.icon name="hero-plus" />
-                </button>
-              </div>
-            </td>
-            <td>
-              <div class="flex flex-nowrap gap-1">
-                <button
-                  class="btn btn-square btn-outline btn-sm"
-                  phx-click="show_url"
-                  phx-value-submission_id={submission.id}
-                >
-                  <.icon name="hero-link" />
-                </button>
-                <button
-                  class="btn btn-square btn-outline btn-sm btn-error"
-                  phx-click="show_delete_submission_modal"
-                  phx-value-submission_id={submission.id}
-                >
-                  <.icon name="hero-trash" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                </div>
+              </td>
+              <td>
+                <div class="flex flex-nowrap gap-1">
+                  <button
+                    class="btn btn-square btn-outline btn-sm"
+                    phx-click="show_url"
+                    phx-value-submission_id={submission.id}
+                  >
+                    <.icon name="hero-link" />
+                  </button>
+                  <button
+                    class="btn btn-square btn-outline btn-sm btn-error"
+                    phx-click="show_delete_submission_modal"
+                    phx-value-submission_id={submission.id}
+                  >
+                    <.icon name="hero-trash" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <.modal

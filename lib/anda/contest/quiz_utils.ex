@@ -150,4 +150,17 @@ defmodule Anda.Contest.QuizUtils do
     |> Enum.map(fn {question, index} -> struct(question, rank: index + 1) end)
     |> Enum.reduce(quiz, &update_question(&2, &1))
   end
+
+  def get_all_questions(quiz) do
+    get_in(
+      quiz,
+      [
+        Access.key!(:sections),
+        Access.all(),
+        Access.key!(:questions),
+        Access.all()
+      ]
+    )
+    |> List.flatten()
+  end
 end

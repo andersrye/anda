@@ -22,21 +22,16 @@ CONTAINER_NAME=anda
 CONTAINER_ID=$(scw container container list name=$CONTAINER_NAME -o template='{{.ID}}')
 
 scw container container update "$CONTAINER_ID" \
-registry-image="$TAG" \
+image="$TAG" \
 environment-variables.PHX_HOST=quiz.pndapetz.im \
-secret-environment-variables.0.key=DATABASE_URL \
-secret-environment-variables.0.value="$DATABASE_URL" \
-secret-environment-variables.1.key=ACCESS_KEY_ID \
-secret-environment-variables.1.value="$ACCESS_KEY_ID" \
-secret-environment-variables.2.key=SECRET_ACCESS_KEY \
-secret-environment-variables.2.value="$SECRET_ACCESS_KEY" \
-secret-environment-variables.3.key=SECRET_KEY_BASE \
-secret-environment-variables.3.value="$SECRET_KEY_BASE" \
-secret-environment-variables.4.key=PROJECT_ID \
-secret-environment-variables.4.value="$PROJECT_ID"
+secret-environment-variables.DATABASE_URL="$DATABASE_URL" \
+secret-environment-variables.ACCESS_KEY_ID="$ACCESS_KEY_ID" \
+secret-environment-variables.SECRET_ACCESS_KEY="$SECRET_ACCESS_KEY" \
+secret-environment-variables.SECRET_KEY_BASE="$SECRET_KEY_BASE" \
+secret-environment-variables.PROJECT_ID="$PROJECT_ID"
 
 while
 STATUS=$(scw container container list name=$CONTAINER_NAME -o template='{{.Status}}')
 echo "Status: $STATUS"
-[ "$STATUS" = 'pending' ]
+[ "$STATUS" = 'updating' ]
 do sleep 5; done

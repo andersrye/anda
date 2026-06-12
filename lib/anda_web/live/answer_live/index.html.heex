@@ -5,154 +5,176 @@
   current_tab={@current_tab}
   quiz={@quiz}
 >
-  <div :if={@quiz.mode == "hidden" && @live_action != :preview}>Oops, her er det ikke noe!</div>
+  <div class="mx-auto max-w-2xl space-y-4">
+    <div :if={@quiz.mode == "hidden" && @live_action != :preview}>Oops, her er det ikke noe!</div>
 
-  <div :if={@quiz.mode in ["open", "closed"] || @live_action == :preview}>
-    <div class="flex flex-col">
-      <div :if={@live_action in [:edit]} class="sticky top-3 flex z-9 self-end">
-        <.button
-          :if={@quiz.description}
-          phx-click="show_description"
-          class="btn m-1 btn-square btn-outline bg-base-200"
+    <div :if={@quiz.mode in ["open", "closed"] || @live_action == :preview}>
+      <div class="flex flex-col">
+        <div :if={@live_action in [:edit, :view_public]} class="sticky top-3 flex z-9 self-end">
+          <.button
+            :if={@quiz.description}
+            phx-click="show_description"
+            class="btn m-1 btn-square btn-outline bg-base-200"
+          >
+            <.icon name="hero-question-mark-circle" />
+          </.button>
+          <.button
+            :if={@live_action in [:edit]}
+            phx-click="show_url"
+            class="btn m-1 btn-square btn-outline bg-base-200"
+          >
+            <.icon name="hero-link" />
+          </.button>
+          <.section_menu sections={@quiz.sections} />
+        </div>
+        <div
+          phx-disconnected={JS.show()}
+          phx-connected={JS.hide()}
+          class="fixed top-5 left-[50%] badge badge-info z-49"
+          style="transform: translate(-50%)"
         >
-          <.icon name="hero-question-mark-circle" />
-        </.button>
-        <.button
-          phx-click="show_url"
-          class="btn m-1 btn-square btn-outline bg-base-200"
-        >
-          <.icon name="hero-link" />
-        </.button>
-        <.section_menu sections={@quiz.sections} />
-      </div>
-      <div phx-disconnected={JS.show()} phx-connected={JS.hide()} class="fixed top-5 left-[50%] badge badge-info z-49" style={"transform: translate(-50%)"}>
-        Et øyeblikk <span class="loading loading-dots loading-xs"></span>
-      </div>
-      <div class="mt-5">
+          Et øyeblikk <span class="loading loading-dots loading-xs"></span>
+        </div>
+        <div class="mt-5">
           <.header :if={@live_action in [:edit, :preview, :view_public]} class="grow">
             {@quiz.title}
           </.header>
 
-        <div class="flex my-5 gap-1">
-          <div class="grow">
-            <div class="max-w-55">
-              <.form for={@name_form} id="name-form" class="h-fit ">
-                <.name_input
-                  id="name-input"
-                  field={@name_form[:name]}
-                  disabled={!@enabled}
-                />
-                <button type="submit" class="hidden" disabled></button>
-              </.form>
+          <div class="flex my-5 gap-1">
+            <div class="grow">
+              <div class="max-w-55">
+                <.form for={@name_form} id="name-form" class="h-fit ">
+                  <.name_input
+                    id="name-input"
+                    field={@name_form[:name]}
+                    disabled={!@enabled}
+                  />
+                  <button type="submit" class="hidden" disabled></button>
+                </.form>
+              </div>
             </div>
+            <span
+              :if={count_scored_questions(@quiz) > 0}
+              class="text-lg text-green-700 shrink self-end font-mono_ underline decoration-double mb-1 mr-1"
+            >
+              {total_score(@quiz)} poeng
+            </span>
           </div>
-          <span :if={count_scored_questions(@quiz) > 0} class="text-lg text-green-700 shrink self-end font-mono_ underline decoration-double mb-1 mr-1">
-            {total_score(@quiz)} poeng
-          </span>
+        </div>
+
+        <div id="sections" class="flex flex-col gap-8">
+          <.section
+            :for={section <- @quiz.sections}
+            id={"section_#{section.id}"}
+            title={section.title}
+            description={section.description}
+            score={total_score(section)}
+            score_possible={total_score_possible(section)}
+          >
+            <:content :for={question <- section.questions}>
+              <.question question={question}>
+                <.media_view
+                  :if={question.media_url}
+                  id={"media-#{question.id}"}
+                  class="mt-3"
+                  src={question.media_url}
+                  type={question.media_type}
+                  aspect_ratio={question.media_aspect_ratio}
+                />
+                <div class="mt-3">
+                  <div :for={answer <- question.answers} class="flex">
+                    <.live_component
+                      module={AndaWeb.AnswerLive.QuestionInput}
+                      class="flex-grow"
+                      action={@live_action}
+                      question={question}
+                      answer={answer}
+                      submission={@submission}
+                      quiz_id={@quiz.id}
+                      quiz={@quiz}
+                      enabled={@enabled}
+                      index={answer.index}
+                      id={"question-#{question.id}-#{answer.index}"}
+                    />
+                    <div class="flex-shrink mt-2 ml-1">
+                      <.score score={answer && answer.score} />
+                    </div>
+                  </div>
+                  <.answer_key
+                    :if={
+                      @live_action != :preview &&
+                        Enum.count(question.answers, &(!is_nil(&1.score))) > 0
+                    }
+                    question={question}
+                    class="mt-2"
+                  />
+                </div>
+              </.question>
+            </:content>
+          </.section>
+          <div
+            :if={@live_action == :edit}
+            class="text-black/70 flex flex-col items-start gap-4 px-10 py-5"
+          >
+            <p>
+              Gratulerer, du har kommet til slutten! Svarene dine er allerede lagret og sendt inn. Du kan gjøre
+              endringer når som helst fram til quizen stenges.
+            </p>
+            <p>Du har fylt ut:</p>
+            <div>
+              <ul class="list-disc list-inside">
+                <li>
+                  Navn
+                  <.icon
+                    :if={has_name(@submission)}
+                    name="hero-check"
+                    class="bg-green-600 size-5"
+                  />
+                  <.icon
+                    :if={!has_name(@submission)}
+                    name="hero-x-mark"
+                    class="bg-red-600 size-5"
+                  />
+                </li>
+                <li>
+                  {@answered_question_count}/{@question_count} spørsmål
+                  <.icon
+                    :if={@answered_question_count == @question_count}
+                    name="hero-check"
+                    class="bg-green-600 size-5"
+                  />
+                  <.icon
+                    :if={
+                      @answered_question_count < @question_count && @answered_question_count > 0
+                    }
+                    name="hero-exclamation-triangle"
+                    class="bg-yellow-600 size-5"
+                  />
+                  <.icon
+                    :if={@answered_question_count == 0}
+                    name="hero-x-mark"
+                    class="bg-red-600 size-5"
+                  />
+                </li>
+              </ul>
+            </div>
+            <p :if={!has_name(@submission) || @answered_question_count == 0}>
+              <.icon
+                name="hero-x-mark"
+                class="bg-red-600 size-5"
+              /> Du må fylle inn navn og svare på minst ett spørsmål for å være med.
+            </p>
+            <p :if={
+              has_name(@submission) && @answered_question_count > 0 &&
+                @answered_question_count < @question_count
+            }>
+              Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på
+              <.icon name="hero-numbered-list" /> oppe i hjørnet for å se hvor du mangler svar.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div id="sections" class="flex flex-col gap-8">
-        <.section
-          :for={section <- @quiz.sections}
-          id={"section_#{section.id}"}
-          title={section.title}
-          description={section.description}
-          score={total_score(section)}
-          score_possible={total_score_possible(section)}
-        >
-          <:content :for={question <- section.questions}>
-            <.question question={question}>
-              <.media_view
-                :if={question.media_url}
-                id={"media-#{question.id}"}
-                class="mt-3"
-                src={question.media_url}
-                type={question.media_type}
-                aspect_ratio={question.media_aspect_ratio}
-              />
-              <div class="mt-3">
-                <div :for={answer <- question.answers} class="flex">
-                  <.live_component
-                    module={AndaWeb.AnswerLive.QuestionInput}
-                    class="flex-grow"
-                    action={@live_action}
-                    question={question}
-                    answer={answer}
-                    submission={@submission}
-                    quiz_id={@quiz.id}
-                    quiz={@quiz}
-                    enabled={@enabled}
-                    index={answer.index}
-                    id={"question-#{question.id}-#{answer.index}"}
-                  />
-                  <div class="flex-shrink mt-2 ml-1">
-                    <.score score={answer && answer.score} />
-                  </div>
-                </div>
-                <.answer_key
-                  :if={
-                    @live_action != :preview &&
-                      Enum.count(question.answers, &(!is_nil(&1.score))) > 0
-                  }
-                  question={question}
-                  class="mt-2"
-                />
-              </div>
-            </.question>
-          </:content>
-        </.section>
-        <div
-          :if={@live_action == :edit}
-          class="text-black/70 flex flex-col items-start gap-4 px-10 py-5"
-        >
-          <p>
-            Gratulerer, du har kommet til slutten! Svarene dine er allerede lagret og sendt inn. Du kan gjøre
-            endringer når som helst fram til quizen stenges.
-          </p>
-          <p>Du har fylt ut:</p>
-          <div>
-            <ul class="list-disc list-inside">
-              <li>
-                Navn
-                <.icon :if={has_name(@submission)} name="hero-check" class="bg-green-600 size-5" />
-                <.icon :if={!has_name(@submission)} name="hero-x-mark" class="bg-red-600 size-5" />
-              </li>
-              <li>
-                {@answered_question_count}/{@question_count} spørsmål
-                <.icon
-                  :if={@answered_question_count == @question_count}
-                  name="hero-check"
-                  class="bg-green-600 size-5"
-                />
-                <.icon
-                  :if={@answered_question_count < @question_count && @answered_question_count > 0}
-                  name="hero-exclamation-triangle"
-                  class="bg-yellow-600 size-5"
-                />
-                <.icon
-                  :if={@answered_question_count == 0}
-                  name="hero-x-mark"
-                  class="bg-red-600 size-5"
-                />
-              </li>
-            </ul>
-          </div>
-          <p :if={!has_name(@submission) || @answered_question_count == 0}>
-            <.icon
-              name="hero-x-mark"
-              class="bg-red-600 size-5"
-            /> Du må fylle inn navn og svare på minst ett spørsmål for å være med.
-          </p>
-          <p :if={
-            has_name(@submission) && @answered_question_count > 0 &&
-              @answered_question_count < @question_count
-          }>
-            Du trenger ikke svare på alle spørsmålene, men det kan lønne seg! Du kan trykke på
-            <.icon name="hero-numbered-list" /> oppe i hjørnet for å se hvor du mangler svar.
-          </p>
-        </div>
-      </div>
       <.modal :if={@show_copy_url} id="show_copy_url" show on_cancel={JS.push("hide_url")}>
         <.header>Permanent lenke</.header>
         <p class="text-md mb-4">

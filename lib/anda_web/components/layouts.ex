@@ -63,13 +63,16 @@ defmodule AndaWeb.Layouts do
           </details>
         </div>
       </header>
-      <main class="px-4 pb-20 sm:px-6 lg:px-8 flex-grow bg-base-200" style={"background: linear-gradient(var(--color-base-200), color-mix(in oklch, var(--color-base-200), oklch(100% none none ))); background-attachment: fixed;"}>
+      <main
+        class="px-4 pb-20 sm:px-6 lg:px-8 flex-grow bg-base-200"
+        style="background: linear-gradient(var(--color-base-200), color-mix(in oklch, var(--color-base-200), oklch(100% none none ))); background-attachment: fixed;"
+      >
         <!--<div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
           <ul>
             <li :for={item <- @breadcrumb}>{render_slot(item)}</li>
           </ul>
         </div>-->
-        <div class="mx-auto max-w-2xl space-y-4">
+        <div class="space-y-4">
           {render_slot(@inner_block)}
         </div>
       </main>
@@ -96,7 +99,7 @@ defmodule AndaWeb.Layouts do
   def quiz_app(assigns) do
     ~H"""
     <.app current_scope={@current_scope} show_header={@show_header} flash={@flash}>
-      <div :if={@show_header} class="flex mt-6">
+      <div :if={@show_header} class="flex mt-6 ">
         <.header class="text-3xl">
           {@quiz.title}
         </.header>
@@ -111,7 +114,7 @@ defmodule AndaWeb.Layouts do
           Gå til quiz <.icon name="hero-arrow-top-right-on-square" />
         </.link>
       </div>
-      <div :if={@show_header} class="flex w-full overflow-x-auto  mb-8 flex-nowrap ">
+      <div :if={@show_header} class="flex w-full overflow-x-auto  mb-8 flex-nowrap">
         <span class="min-w-1 flex-shrink border-b-1 border-solid border-[#0006]"></span>
         <div
           id="header-menu"
@@ -143,6 +146,13 @@ defmodule AndaWeb.Layouts do
           </.link>
           <.link
             role="tab"
+            class={["tab", @current_tab == :answers && "tab-active"]}
+            navigate={~p"/admin/quiz/#{@quiz.id}/answers"}
+          >
+            Svar
+          </.link>
+          <.link
+            role="tab"
             class={["tab", @current_tab == :leaderboard && "tab-active"]}
             navigate={~p"/admin/quiz/#{@quiz.id}/leaderboard"}
           >
@@ -151,7 +161,9 @@ defmodule AndaWeb.Layouts do
         </div>
         <span class="min-w-1 flex-grow border-b-1 border-solid border-[#0006]"></span>
       </div>
-      {render_slot(@inner_block)}
+      <div class="">
+        {render_slot(@inner_block)}
+      </div>
     </.app>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".MenuScroll">
       export default {

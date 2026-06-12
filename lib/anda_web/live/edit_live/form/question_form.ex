@@ -87,7 +87,7 @@ defmodule AndaWeb.EditLive.Form.QuestionForm do
             multiple={true}
             type="select"
             label="Velg spørsmål"
-            options={questions_as_options(@quiz) |> dbg()}
+            options={questions_as_options(@quiz)}
           />
         </div>
 

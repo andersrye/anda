@@ -14,8 +14,8 @@
     </.header>
   </div>
 
-  <div>
-    <div :if={@live_action == :private} class="flex justify-end mb-2">
+  <div class={"flex flex-col #{if @live_action == :public, do: "h-[calc(100vh-7rem)]", else: "h-[calc(100vh-15rem)]"}"}>
+    <div :if={@live_action == :private} class="flex justify-end mb-2 shrink">
       <div class="flex gap-2">
         <form phx-change="change_tag">
           <select :if={@tags != nil} name="tag" class="select select-sm w-30">
@@ -28,40 +28,40 @@
         </.button>
       </div>
     </div>
-    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-auto h-full">
-      <table class="table tabular-nums -table-pin-cols table-fixed">
+    <div class="card bg-base-100 shadow-sm overflow-x-auto overflow-y-auto overscroll-contain">
+      <table class="table tabular-nums table-pin-rows table-fixed table-sm">
         <thead>
           <tr>
-            <td class="bg-base-100 w-14 sm:sticky sm:left-0"></td>
+            <th class="bg-slate-100 w-14 sm:sticky sm:left-0"></th>
             <.sortable_header
               key="name"
               title="Navn"
               sort_order={@sort_order}
               default_order="asc"
-              class="bg-base-100 w-40 sticky left-0 sm:left-14"
+              class="bg-slate-100 w-30 sticky left-0 sm:left-14"
             />
             <.sortable_header
               key="total"
               title="Totalt"
               sort_order={@sort_order}
-              class="bg-base-100 w-20 sm:sticky sm:left-54 "
+              class="bg-slate-100 w-20 sm:sticky sm:left-44 "
             />
             <.sortable_header
               :for={section <- @quiz.sections}
               key={"section_#{section.position}"}
               title={section.title}
               sort_order={@sort_order}
-              class="w-min"
+              class="w-20 bg-slate-100"
               style="white-space: collapse"
             />
           </tr>
         </thead>
         <tbody>
           <tr :for={item <- @leaderboard}>
-            <td class="text-right bg-base-100 sm:sticky sm:left-0">
+            <td class="text-right bg-base-100 sm:sticky sm:left-0 bg-slate-100 w-14">
               {item.rank}
             </td>
-            <td class="bg-base-100 truncate sticky left-0 sm:left-14">
+            <td class="bg-slate-100 truncate sticky left-0 sm:left-14">
               <.link
                 :if={@live_action == :public}
                 class="link"
@@ -77,7 +77,7 @@
                 {item.name}
               </.link>
             </td>
-            <td class="bg-base-100 w-20 text-right sm:sticky sm:left-54 ">
+            <td class="bg-base-100 sm:bg-slate-100 text-right sm:sticky sm:left-44 font-bold">
               {item.score}
             </td>
             <td :for={score <- item.sections} class="text-right">
