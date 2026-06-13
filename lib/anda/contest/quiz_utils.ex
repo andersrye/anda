@@ -151,12 +151,12 @@ defmodule Anda.Contest.QuizUtils do
     |> Enum.reduce(quiz, &update_question(&2, &1))
   end
 
-  def get_all_questions(quiz) do
+  def get_all_questions(quiz, section_id \\ nil) do
     get_in(
       quiz,
       [
         Access.key!(:sections),
-        Access.all(),
+        (if section_id, do: Access.filter(&(&1.id == section_id)), else: Access.all()),
         Access.key!(:questions),
         Access.all()
       ]

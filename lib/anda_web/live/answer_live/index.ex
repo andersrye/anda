@@ -83,7 +83,7 @@ defmodule AndaWeb.AnswerLive.Index do
       Access.key!(:questions),
       Access.all(),
       Access.key!(:answers),
-      Access.filter(&(!is_nil(&1.score))),
+      Access.filter(&(!is_nil(&1.score)))
     ])
     |> List.flatten()
     |> Enum.count()
@@ -95,7 +95,7 @@ defmodule AndaWeb.AnswerLive.Index do
       Access.key!(:questions),
       Access.all(),
       Access.key!(:answers),
-      Access.filter(&(!is_nil(&1.score))),
+      Access.filter(&(!is_nil(&1.score)))
     ])
     |> List.flatten()
     |> Enum.count()
@@ -110,7 +110,7 @@ defmodule AndaWeb.AnswerLive.Index do
       Access.all(),
       Access.key!(:answers),
       Access.filter(&(!is_nil(&1.score))),
-      Access.key!(:score),
+      Access.key!(:score)
     ])
     |> List.flatten()
     |> Enum.sum()
@@ -123,7 +123,7 @@ defmodule AndaWeb.AnswerLive.Index do
       Access.all(),
       Access.key!(:answers),
       Access.filter(&(!is_nil(&1.score))),
-      Access.key!(:score),
+      Access.key!(:score)
     ])
     |> List.flatten()
     |> then(fn scores ->
@@ -135,7 +135,7 @@ defmodule AndaWeb.AnswerLive.Index do
     quiz
     |> get_in([
       Access.key!(:questions),
-      Access.all(),
+      Access.all()
     ])
     |> List.flatten()
     |> Enum.map(fn q ->
@@ -204,9 +204,9 @@ defmodule AndaWeb.AnswerLive.Index do
        socket
        |> assign_defaults()
        |> assign(:quiz, quiz)
+       |> assign(:page_title, "#{quiz.title} - Innsending")
        |> assign(:question_count, count_questions(quiz))
        |> assign(:answered_question_count, count_answered_questions(quiz))
-       |> assign(:page_title, quiz.title)
        |> assign(:submission, submission)
        |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
        |> assign(:enabled, quiz.mode == "open")}
@@ -230,7 +230,7 @@ defmodule AndaWeb.AnswerLive.Index do
      socket
      |> assign_defaults()
      |> assign(:quiz, quiz)
-     |> assign(:page_title, quiz.title)
+     |> assign(:page_title, "#{quiz.title} - #{submission.name}")
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:enabled, false)}
@@ -255,7 +255,7 @@ defmodule AndaWeb.AnswerLive.Index do
      |> assign(:quiz, quiz)
      |> assign(:question_count, count_questions(quiz))
      |> assign(:answered_question_count, count_answered_questions(quiz))
-     |> assign(:page_title, quiz.title)
+     |> assign(:page_title, "#{quiz.title} - Innsending")
      |> assign(:submission, submission)
      |> assign(:name_form, to_form(Submission.Submission.changeset(submission)))
      |> assign(:enabled, quiz.mode == "open")}

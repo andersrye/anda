@@ -279,9 +279,10 @@ defmodule Anda.Submission do
         select: %{
           submission_id: s.id,
           section_id: sec.id,
-          score: coalesce(sum(a.score), 0)
+          score: sum(a.score)
         }
 
+    query = if tag, do: query |> where([s], ^tag in s.tags), else: query
     Repo.all(query)
   end
 
@@ -330,7 +331,7 @@ defmodule Anda.Submission do
     )
   end
 
-  def get_all_submissions_with_answers(quiz_id, tag \\ nil) do
+  def get_all_submissions_with_answers(quiz_id, tag \\ nil, section \\ nil) do
     answer_query =
       from a in Answer,
         left_join: q in Question,
@@ -339,13 +340,17 @@ defmodule Anda.Submission do
         on: s.id == q.section_id,
         select: %{
           id: a.question_id,
-          answers: fragment("string_agg(?, ?)", a.text, ", "),
+          type: q.type,
+          num_answers: q.num_answers,
+          text: fragment("string_agg(?, ? order by ?)", a.text, ", ", a.text),
           score: sum(a.score)
         },
-        group_by: [a.question_id, a.submission_id, s.position, q.position],
+        group_by: [a.question_id, a.submission_id, s.position, q.position, q.type, q.num_answers],
         order_by: [s.position, q.position]
 
-    query = from s in Submission, where: s.quiz_id == ^quiz_id and s.name != "", preload: [answers: ^answer_query]
+    answer_query = if section, do: answer_query |> where([a, q, s], ^section == s.id), else: answer_query
+
+    query = from s in Submission, where: s.quiz_id == ^quiz_id and s.name != "", preload: [answers: ^answer_query], limit: 50
 
     query = if tag, do: query |> where([s], ^tag in s.tags), else: query
 

@@ -4,18 +4,27 @@ defmodule AndaWeb.AnswersLive.Index do
   alias Anda.Submission
   alias Anda.Contest.QuizUtils
 
-  @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket |> assign_new(:current_scope, fn -> nil end)}
-  end
+  defp get_sortable_value_for(submission, q_id) do
+    answer = Map.get(submission.answers_by_question_id, q_id)
 
-  defp get_sortable_string_at(submission, num) do
-    string = get_in(submission.answers, [Access.at(num), Access.key(:answers)])
+    cond do
+      is_nil(answer) ->
+        nil
 
-    if(!is_nil(string)) do
-      string
-      |> String.downcase()
-      |> String.normalize(:nfkd)
+      is_nil(answer.text) ->
+        nil
+
+      answer.type == "number" && answer.num_answers == 1 ->
+        String.to_integer(answer.text)
+
+      answer.type == "football-score" && answer.num_answers == 1 ->
+        sum = answer.text |> String.split("-") |> Enum.map(&String.to_integer/1) |> Enum.sum()
+        "#{String.pad_leading("#{sum}", 2, "0")}-#{answer.text}"
+
+      is_binary(answer.text) ->
+        answer.text
+        |> String.downcase()
+        |> String.normalize(:nfkd)
     end
   end
 
@@ -30,26 +39,20 @@ defmodule AndaWeb.AnswersLive.Index do
 
         "question_" <> rest ->
           [num, dir] = String.split(rest, "_")
-          num = String.to_integer(num) - 1
-          dbg(sort_order)
-          dbg(num)
+          q_id = String.to_integer(num)
 
           case dir do
             "asc" ->
               fn sa, sb ->
-                a = get_sortable_string_at(sa, num)
-                b = get_sortable_string_at(sb, num)
-                IO.puts("#{a} <= #{b} = #{a <= b}")
-
+                a = get_sortable_value_for(sa, q_id)
+                b = get_sortable_value_for(sb, q_id)
                 a <= b
               end
 
             "desc" ->
               fn sa, sb ->
-                a = get_sortable_string_at(sa, num)
-                b = get_sortable_string_at(sb, num)
-                IO.puts("#{a} <= #{b} = #{a >= b}")
-
+                a = get_sortable_value_for(sa, q_id)
+                b = get_sortable_value_for(sb, q_id)
                 a >= b
               end
           end
@@ -58,20 +61,27 @@ defmodule AndaWeb.AnswersLive.Index do
     Enum.sort(submissions, sorter)
   end
 
-  def transform_submissions(submissions) do
-    submissions
-    |> Enum.map(fn submission ->
-      answers_by_question_id =
-        submission.answers
-        |> Enum.reduce(%{}, fn e, acc ->
-          Map.put(acc, e.id, e)
-        end)
-
-      struct(submission, answers_by_question_id: answers_by_question_id)
+  def get_answers(submission, selected_questions) do
+    Enum.map(selected_questions, fn q ->
+      a = Map.get(submission.answers_by_question_id, q.id)
+      a && %{text: a.text, score: a.score}
     end)
   end
 
-  def handle_params(%{"slug" => slug, "tag_with_mac" => tag_with_mac}, uri, socket)
+  def get_submissions(quiz_id, tag \\ nil, section \\ nil) do
+    Submission.get_all_submissions_with_answers(quiz_id, tag, section)
+    |> Enum.map(fn s ->
+      Map.put(
+        s,
+        :answers_by_question_id,
+        Enum.reduce(s.answers, %{}, fn e, acc ->
+          Map.put(acc, e.id, e)
+        end)
+      )
+    end)
+  end
+
+  def mount(%{"slug" => slug, "tag_with_mac" => tag_with_mac}, _session, socket)
       when socket.assigns.live_action == :public do
     quiz =
       Contest.get_quiz_w_questions_by_slug(slug)
@@ -80,49 +90,81 @@ defmodule AndaWeb.AnswersLive.Index do
     {:ok, tag} = Mac.verify_added_mac(tag_with_mac)
     tag = if tag == "", do: nil, else: tag
 
-    answers =
-      Submission.get_all_submissions_with_answers(quiz.id, tag)
-      #|> transform_submissions()
-
-    sort_order = "name_asc"
-
-    {:noreply,
+    {:ok,
      socket
+     |> assign_new(:current_scope, fn -> nil end)
+     |> assign(:page_title, "#{quiz.title} - Svar")
      |> assign(:quiz, quiz)
-     |> assign(:tags, nil)
      |> assign(:tag_with_mac, tag_with_mac)
-     |> assign(:show_copy_url, nil)
-     |> assign(:selected_tag, nil)
-     |> assign(current_uri: uri)
-     |> assign(sort_order: sort_order)
-     |> assign(:answers, sort_submissions(answers, sort_order))}
+     |> assign(:tag, tag)}
   end
 
-  @impl true
-  def handle_params(%{"quiz_id" => quiz_id} = params, uri, socket)
+  def mount(%{"quiz_id" => quiz_id}, _session, socket)
       when socket.assigns.live_action == :private do
     quiz =
       Contest.get_quiz_w_questions(quiz_id, socket.assigns.current_scope)
       |> QuizUtils.calculate_ranks()
 
+    {:ok,
+     socket
+     |> assign_new(:current_scope, fn -> nil end)
+     |> assign(:quiz, quiz)}
+  end
+
+  def handle_params(params, uri, socket)
+      when socket.assigns.live_action == :public do
+    quiz = socket.assigns.quiz
+    sort_order = Map.get(socket.assigns, :sort_order, "name_asc")
+    submissions = get_submissions(quiz.id, socket.assigns.tag)
+
+    selected_section = Map.get(params, "section")
+
+    selected_section =
+      if selected_section, do: String.to_integer(selected_section), else: selected_section
+
+    selected_questions = QuizUtils.get_all_questions(quiz, selected_section)
+
+    {:noreply,
+     socket
+     |> assign(:quiz, quiz)
+     |> assign(:tags, nil)
+     |> assign(:show_copy_url, nil)
+     |> assign(:selected_tag, nil)
+     |> assign(:selected_section, selected_section)
+     |> assign(:selected_questions, selected_questions)
+     |> assign(current_uri: uri)
+     |> assign(:sort_order, sort_order)
+     |> assign(:submissions, sort_submissions(submissions, sort_order))}
+  end
+
+  @impl true
+  def handle_params(%{"quiz_id" => quiz_id} = params, uri, socket)
+      when socket.assigns.live_action == :private do
+    quiz = socket.assigns.quiz
+    sort_order = Map.get(socket.assigns, :sort_order, "name_asc")
+    selected_section = Map.get(params, "section")
+
+    selected_section =
+      if selected_section, do: String.to_integer(selected_section), else: selected_section
+
     tags = Submission.get_all_tags(quiz_id)
     selected_tag = Map.get(params, "tag")
 
-    answers =
-      Submission.get_all_submissions_with_answers(quiz_id, selected_tag)
-      #|> transform_submissions()
+    submissions = get_submissions(quiz.id, selected_tag)
 
-    sort_order = "name_asc"
+    selected_questions = QuizUtils.get_all_questions(quiz, selected_section)
 
     {:noreply,
      socket
      |> assign(:quiz, quiz)
      |> assign(:tags, tags)
      |> assign(:selected_tag, selected_tag)
+     |> assign(:selected_section, selected_section)
+     |> assign(:selected_questions, selected_questions)
      |> assign(:show_copy_url, nil)
      |> assign(current_uri: uri)
-     |> assign(sort_order: sort_order)
-     |> assign(:answers, sort_submissions(answers, sort_order))}
+     |> assign_new(:sort_order, fn -> sort_order end)
+     |> assign(:submissions, sort_submissions(submissions, sort_order))}
   end
 
   @impl true
@@ -138,11 +180,37 @@ defmodule AndaWeb.AnswersLive.Index do
   end
 
   @impl true
+  def handle_event("change_section", %{"section" => section}, socket)
+      when socket.assigns.live_action == :private do
+    url =
+      if section == "" do
+        ~p"/admin/quiz/#{socket.assigns.quiz.id}/answers"
+      else
+        ~p"/admin/quiz/#{socket.assigns.quiz.id}/answers?section=#{section}"
+      end
+
+    {:noreply, socket |> push_patch(to: url)}
+  end
+
+  @impl true
+  def handle_event("change_section", %{"section" => section}, socket)
+      when socket.assigns.live_action == :public do
+    url =
+      if section == "" do
+        ~p"/quiz/#{socket.assigns.quiz.slug}/answers/#{socket.assigns.tag_with_mac}"
+      else
+        ~p"/quiz/#{socket.assigns.quiz.slug}/answers/#{socket.assigns.tag_with_mac}?section=#{section}"
+      end
+
+    {:noreply, socket |> push_patch(to: url)}
+  end
+
+  @impl true
   def handle_event("set_sort_order", %{"sort_order" => sort_order}, socket) do
     {:noreply,
      assign(socket,
        sort_order: sort_order,
-       answers: sort_submissions(socket.assigns.answers, sort_order)
+       submissions: sort_submissions(socket.assigns.submissions, sort_order)
      )}
   end
 

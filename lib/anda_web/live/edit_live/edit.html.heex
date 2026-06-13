@@ -1,4 +1,5 @@
 <Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:edit} quiz={@quiz}>
+  <div class="pb-20">
     <div class="flex gap-2 flex-wrap justify-end mb-4">
       <.link
         class="btn btn-xs btn-outline m-1"
@@ -17,62 +18,67 @@
         </.button>
       </.link>
     </div>
-  <div class="mx-auto max-w-2xl space-y-4">
-
-    <div class="flex flex-col gap-8">
-      <.section
-        :for={section <- @quiz.sections}
-        id={"section_#{section.id}"}
-        title={section.title}
-        description={section.description}
-      >
-        <:controls>
-          <.section_edit_controls section={section} />
-        </:controls>
-        <:content :for={question <- section.questions}>
-          <div class="flex">
-            <div class="flex-grow">
-              <.question question={question}>
-                <.media_view
-                  :if={question.media_url}
-                  id={"media-#{question.id}"}
-                  class="my-5"
-                  src={question.media_url}
-                  type={question.media_type}
-                  aspect_ratio={question.media_aspect_ratio}
+    <div class="mx-auto max-w-2xl space-y-4">
+      <div class="flex flex-col gap-8">
+        <.section
+          :for={section <- @quiz.sections}
+          id={"section_#{section.id}"}
+          title={section.title}
+          description={section.description}
+        >
+          <:controls>
+            <.section_edit_controls section={section} />
+          </:controls>
+          <:content :for={question <- section.questions}>
+            <div class="flex">
+              <div class="flex-grow">
+                <.question question={question}>
+                  <.media_view
+                    :if={question.media_url}
+                    id={"media-#{question.id}"}
+                    class="my-5"
+                    src={question.media_url}
+                    type={question.media_type}
+                    aspect_ratio={question.media_aspect_ratio}
+                  />
+                  <.question_details question={question} />
+                </.question>
+              </div>
+              <div class="shrink-0 ml-5">
+                <.question_edit_controls
+                  question={question}
+                  section={section}
                 />
-                <.question_details question={question} />
-              </.question>
+              </div>
             </div>
-            <div class="shrink-0 ml-5">
-              <.question_edit_controls
-                question={question}
-                section={section}
-              />
-            </div>
-          </div>
-        </:content>
-        <:content>
-          <.link
-            patch={~p"/admin/quiz/#{section.quiz_id}/edit/question/new?section_id=#{section.id}"}
-            phx-click={JS.push_focus()}
-          >
-            <.button class="btn btn-outline">
-              <.icon name="hero-plus" />Legg til spørsmål
-            </.button>
-          </.link>
-        </:content>
-      </.section>
+          </:content>
+          <:content>
+            <.link
+              patch={
+                ~p"/admin/quiz/#{section.quiz_id}/edit/question/new?section_id=#{section.id}"
+              }
+              phx-click={JS.push_focus()}
+            >
+              <.button class="btn btn-outline">
+                <.icon name="hero-plus" />Legg til spørsmål
+              </.button>
+            </.link>
+          </:content>
+        </.section>
+      </div>
+    </div>
+    <div class="mt-4">
+      <.link
+        class=""
+        patch={~p"/admin/quiz/#{@quiz.id}/edit/section/new"}
+        phx-click={JS.push_focus()}
+      >
+        <.button class="btn btn-outline">
+          <.icon name="hero-plus" />Legg til seksjon
+        </.button>
+      </.link>
     </div>
   </div>
-  <.link
-    patch={~p"/admin/quiz/#{@quiz.id}/edit/section/new"}
-    phx-click={JS.push_focus()}
-  >
-    <.button class="btn btn-outline">
-      <.icon name="hero-plus" />Legg til seksjon
-    </.button>
-  </.link>
 
   <.modal
     :if={@live_action in [:new_section, :edit_section]}

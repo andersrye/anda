@@ -5,7 +5,7 @@
   current_tab={@current_tab}
   quiz={@quiz}
 >
-  <div class="mx-auto max-w-2xl space-y-4">
+  <div class="mx-auto max-w-2xl space-y-4 pb-20">
     <div :if={@quiz.mode == "hidden" && @live_action != :preview}>Oops, her er det ikke noe!</div>
 
     <div :if={@quiz.mode in ["open", "closed"] || @live_action == :preview}>

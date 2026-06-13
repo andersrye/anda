@@ -1,7 +1,7 @@
 <Layouts.quiz_app flash={@flash} current_scope={@current_scope} current_tab={:score} quiz={@quiz}>
   <:breadcrumb><.link navigate={~p"/admin"}>Quizer</.link></:breadcrumb>
   <:breadcrumb>{@quiz.title}</:breadcrumb>
-  <div class="mx-auto max-w-2xl space-y-4">
+  <div class="mx-auto max-w-2xl space-y-4 pb-20">
     <div class="flex flex-col gap-8">
       <.section
         :for={section <- @quiz.sections}

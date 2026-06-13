@@ -5,7 +5,9 @@ defmodule AndaWeb.LeaderboardLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign_new(:current_scope, fn -> nil end)}
+    {:ok, socket
+     |> assign_new(:current_scope, fn -> nil end)
+    }
   end
 
   def get_leaderboard(quiz, tag) do
@@ -31,7 +33,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
             get_in(scores_by_section, [
               Access.key(submission.id),
               Access.key(section.id)
-            ]) || 0
+            ])
           end)
         )
       end)
@@ -67,6 +69,7 @@ defmodule AndaWeb.LeaderboardLive.Index do
     {:noreply,
      socket
      |> assign(:quiz, quiz)
+     |> assign(:page_title, "#{quiz.title} - Leaderboard")
      |> assign(:tags, nil)
      |> assign(:tag_with_mac, tag_with_mac)
      |> assign(:show_copy_url, nil)

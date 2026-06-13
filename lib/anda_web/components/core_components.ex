@@ -1097,7 +1097,7 @@ defmodule AndaWeb.CoreComponents do
 
     ~H"""
     <th
-      class={"hover:bg-base-200/50 hover:cursor-pointer #{@class}"}
+      class={"hover:bg-gray-200 hover:cursor-pointer #{@class}"}
       phx-click="set_sort_order"
       phx-value-sort_order={@next_sort_order}
       {@rest}
@@ -1138,7 +1138,8 @@ defmodule AndaWeb.CoreComponents do
         Fasit: {@question.answer_key}
       </div>
       <div>
-        Godkjente svar:
+        <span :if={Enum.count(@answers) != 1}>Godkjente svar:</span>
+        <span :if={Enum.count(@answers) == 1}>Godkjent svar:</span>
         <span :if={Enum.count(@answers) > 0}>
           {@answers
           |> Enum.map(& &1.text)

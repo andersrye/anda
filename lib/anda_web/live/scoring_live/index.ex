@@ -1,4 +1,4 @@
-defmodule AndaWeb.ScoringLive.Index do
+  defmodule AndaWeb.ScoringLive.Index do
   alias Anda.Contest.QuizUtils
   use AndaWeb, :live_view
   alias Anda.Contest

@@ -64,7 +64,7 @@ defmodule AndaWeb.Layouts do
         </div>
       </header>
       <main
-        class="px-4 pb-20 sm:px-6 lg:px-8 flex-grow bg-base-200"
+        class="px-4 sm:px-6 lg:px-8 flex-grow bg-base-200"
         style="background: linear-gradient(var(--color-base-200), color-mix(in oklch, var(--color-base-200), oklch(100% none none ))); background-attachment: fixed;"
       >
         <!--<div :if={@breadcrumb != [] && @show_header} class="pt-4 breadcrumbs text-sm">
